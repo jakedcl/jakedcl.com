@@ -4,6 +4,7 @@ import { Project } from '@/types/sanity';
 import { PortableText } from 'next-sanity';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { urlFor } from '@/sanity/lib/image';
 
 export default function ProjectCard({ project }: { project: Project }) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -81,17 +82,19 @@ export default function ProjectCard({ project }: { project: Project }) {
               className="flex overflow-x-auto gap-3 h-full scrollbar-hide p-2" 
               id={`carousel-${project._id}`}
             >
-              {project.photos.map((photo, index) => (
-                <div key={index} className="flex-shrink-0 h-full aspect-[4/3]">
-                  <Image
-                    src={photo.asset.url}
-                    alt={photo.alt || `Project image ${index + 1}`}
-                    width={280}
-                    height={210}
-                    className="w-full h-full object-cover rounded-md"
-                  />
-                </div>
-              ))}
+              {project.photos
+                .filter((photo) => photo?.asset)
+                .map((photo, index) => (
+                  <div key={index} className="flex-shrink-0 h-full aspect-[4/3]">
+                    <Image
+                      src={urlFor(photo).width(280).height(210).fit('max').url()}
+                      alt={photo.alt || `Project image ${index + 1}`}
+                      width={280}
+                      height={210}
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                  </div>
+                ))}
             </div>
             
             {/* Left scroll button */}
