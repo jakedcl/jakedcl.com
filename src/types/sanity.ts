@@ -42,26 +42,6 @@ export interface Post {
 }
 
 export interface Settings {
-  title: string
-  tagline?: string
-  bio?: PortableTextBlock[]
-  profileImage?: SanityImage
-  email?: string
-  social?: {
-    github?: string
-    linkedin?: string
-    twitter?: string
-    instagram?: string
-    youtube?: string
-    website?: string
-  }
-  seo?: {
-    metaDescription?: string
-    ogImage?: SanityImage
-    keywords?: string[]
-  }
-  featuredProjects?: Project[]
-  resume?: SanityFile
   galleryPhotos?: SanityImage[]
 }
 

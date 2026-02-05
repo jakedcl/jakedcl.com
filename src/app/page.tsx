@@ -5,6 +5,8 @@ import Image from 'next/image';
 import ProjectCard from './components/ProjectCard';
 import Filmstrip from './components/Filmstrip';
 
+export const revalidate = 0; // Always fetch fresh data
+
 async function getProjects(): Promise<Project[]> {
   return await client.fetch(projectsQuery);
 }
