@@ -72,7 +72,14 @@ export const settingsQuery = groq`
       liveUrl,
       publishedAt
     },
-    resume
+    resume,
+    galleryPhotos[] {
+      asset-> {
+        url
+      },
+      alt,
+      caption
+    }
   }
 `
 

@@ -62,6 +62,7 @@ export interface Settings {
   }
   featuredProjects?: Project[]
   resume?: SanityFile
+  galleryPhotos?: SanityImage[]
 }
 
 export interface CodeBlock {
