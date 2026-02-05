@@ -13,13 +13,34 @@ export default function Filmstrip({ photos }: FilmstripProps) {
   const [shuffledPhotos, setShuffledPhotos] = useState<SanityImage[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
 
+  // All hooks must be called before any early returns
   useEffect(() => {
     // Shuffle photos on mount
-    const shuffled = [...photos].sort(() => Math.random() - 0.5);
-    // Duplicate for seamless infinite loop
-    setShuffledPhotos([...shuffled, ...shuffled]);
+    if (photos && photos.length > 0) {
+      const shuffled = [...photos].sort(() => Math.random() - 0.5);
+      // Duplicate for seamless infinite loop
+      setShuffledPhotos([...shuffled, ...shuffled]);
+    }
   }, [photos]);
 
+  useEffect(() => {
+    if (selectedPhoto === null) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedPhoto(null);
+      } else if (e.key === 'ArrowLeft') {
+        setSelectedPhoto((prev) => prev === null ? null : (prev === 0 ? (photos?.length || 0) - 1 : prev - 1));
+      } else if (e.key === 'ArrowRight') {
+        setSelectedPhoto((prev) => prev === null ? null : (prev === (photos?.length || 0) - 1 ? 0 : prev + 1));
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPhoto, photos?.length]);
+
+  // Early return AFTER all hooks
   if (!photos || photos.length === 0) return null;
 
   const handlePhotoClick = (index: number) => {
@@ -40,23 +61,6 @@ export default function Filmstrip({ photos }: FilmstripProps) {
       setSelectedPhoto(selectedPhoto === photos.length - 1 ? 0 : selectedPhoto + 1);
     }
   };
-
-  useEffect(() => {
-    if (selectedPhoto === null) return;
-    
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setSelectedPhoto(null);
-      } else if (e.key === 'ArrowLeft') {
-        setSelectedPhoto((prev) => prev === null ? null : (prev === 0 ? photos.length - 1 : prev - 1));
-      } else if (e.key === 'ArrowRight') {
-        setSelectedPhoto((prev) => prev === null ? null : (prev === photos.length - 1 ? 0 : prev + 1));
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedPhoto, photos.length]);
 
   return (
     <>
