@@ -16,13 +16,9 @@ export default function ProjectCard({ project }: { project: Project }) {
 
     const checkScroll = () => {
       const { scrollLeft, scrollWidth, clientWidth } = carousel;
-      const canScrollLeft = scrollLeft > 0;
-      const canScrollRight = scrollLeft < scrollWidth - clientWidth - 1;
-      const needsScroll = scrollWidth > clientWidth;
-
-      setCanScrollLeft(canScrollLeft);
-      setCanScrollRight(canScrollRight);
-      setNeedsScroll(needsScroll);
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+      setNeedsScroll(scrollWidth > clientWidth);
     };
 
     checkScroll();
@@ -35,24 +31,22 @@ export default function ProjectCard({ project }: { project: Project }) {
     };
   }, [project._id]);
 
-  const scrollLeft = (e: React.MouseEvent) => {
+  const handleScrollLeft = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const carousel = document.getElementById(`carousel-${project._id}`);
     if (carousel) {
-      // Scroll by 2 photos worth (2 * photo width + gap)
-      const scrollAmount = 2 * (window.innerWidth < 768 ? 128 + 12 : 192 + 12); // 2 photos + gaps
+      const scrollAmount = 2 * (window.innerWidth < 768 ? 160 : 220);
       carousel.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
     }
   };
 
-  const scrollRight = (e: React.MouseEvent) => {
+  const handleScrollRight = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const carousel = document.getElementById(`carousel-${project._id}`);
     if (carousel) {
-      // Scroll by 2 photos worth (2 * photo width + gap)
-      const scrollAmount = 2 * (window.innerWidth < 768 ? 128 + 12 : 192 + 12); // 2 photos + gaps
+      const scrollAmount = 2 * (window.innerWidth < 768 ? 160 : 220);
       carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -65,63 +59,67 @@ export default function ProjectCard({ project }: { project: Project }) {
           value={project.title} 
           components={{
             block: {
-              normal: ({children}) => <span className="text-xl md:text-2xl font-bold text-black">{children}</span>,
-              h1: ({children}) => <span className="text-2xl md:text-3xl font-bold text-black">{children}</span>,
-              h2: ({children}) => <span className="text-xl md:text-2xl font-bold text-black">{children}</span>,
-              h3: ({children}) => <span className="text-xl md:text-2xl font-semibold text-black">{children}</span>,
+              normal: ({children}) => <p className="text-lg md:text-xl text-black">{children}</p>,
+              h1: ({children}) => <h1 className="text-xl md:text-2xl font-bold text-black">{children}</h1>,
+              h2: ({children}) => <h2 className="text-lg md:text-xl font-bold text-black">{children}</h2>,
+              h3: ({children}) => <h3 className="text-lg md:text-xl font-semibold text-black">{children}</h3>,
+            },
+            marks: {
+              strong: ({children}) => <strong className="font-bold">{children}</strong>,
+              em: ({children}) => <em className="italic">{children}</em>,
+              code: ({children}) => <code className="font-mono text-sm bg-gray-100 px-1 rounded">{children}</code>,
             }
           }}
         />
       </div>
 
       {/* Project Photos Carousel */}
-      <div className="w-full h-48 bg-gray-50/80 rounded-xl overflow-hidden relative border border-gray-200/30">
+      <div className="w-full h-40 md:h-48 rounded-lg overflow-hidden relative border border-gray-200">
         {project.photos && project.photos.length > 0 ? (
           <>
-            <div className="flex overflow-x-auto gap-3 h-full scrollbar-hide p-3" id={`carousel-${project._id}`}>
+            <div 
+              className="flex overflow-x-auto gap-3 h-full scrollbar-hide p-2" 
+              id={`carousel-${project._id}`}
+            >
               {project.photos.map((photo, index) => (
-                <div key={index} className="flex-shrink-0 w-32 md:w-48 h-full">
+                <div key={index} className="flex-shrink-0 h-full aspect-[4/3]">
                   <Image
                     src={photo.asset.url}
                     alt={photo.alt || `Project image ${index + 1}`}
-                    width={192}
-                    height={192}
-                    className="w-full h-full object-cover rounded-lg"
+                    width={280}
+                    height={210}
+                    className="w-full h-full object-cover rounded-md"
                   />
                 </div>
               ))}
             </div>
             
-            {/* Left scroll indicator */}
+            {/* Left scroll button */}
             {needsScroll && canScrollLeft && (
-              <div className="absolute top-0 left-0 bottom-0 w-8 bg-gradient-to-r from-gray-100 to-transparent pointer-events-none flex items-center justify-center">
-                <button
-                  onClick={scrollLeft}
-                  className="w-6 h-6 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50 transition-colors pointer-events-auto"
-                >
-                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-              </div>
+              <button
+                onClick={handleScrollLeft}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm"
+              >
+                <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
             )}
             
-            {/* Right scroll indicator */}
+            {/* Right scroll button */}
             {needsScroll && canScrollRight && (
-              <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-gray-100 to-transparent pointer-events-none flex items-center justify-center">
-                <button
-                  onClick={scrollRight}
-                  className="w-6 h-6 bg-black/30 rounded-full flex items-center justify-center hover:bg-black/50 transition-colors pointer-events-auto"
-                >
-                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
+              <button
+                onClick={handleScrollRight}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm"
+              >
+                <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             )}
           </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
+          <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-50">
             No images
           </div>
         )}
@@ -135,7 +133,7 @@ export default function ProjectCard({ project }: { project: Project }) {
         href={project.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="block bg-white/60 backdrop-blur-sm rounded-xl p-4 md:p-6 shadow-sm border border-white/20 hover:bg-white/80 transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
+        className="block bg-white rounded-xl p-5 md:p-6 border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-md"
       >
         {cardContent}
       </a>
@@ -143,7 +141,7 @@ export default function ProjectCard({ project }: { project: Project }) {
   }
 
   return (
-    <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 md:p-6 shadow-sm border border-white/20">
+    <div className="bg-white rounded-xl p-5 md:p-6 border border-gray-200">
       {cardContent}
     </div>
   );
