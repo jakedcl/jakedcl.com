@@ -20,6 +20,7 @@ export interface Project {
 }
 
 export interface Settings {
+  bioText?: PortableTextBlock[]
   galleryPhotos?: SanityImage[]
 }
 
