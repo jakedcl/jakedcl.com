@@ -47,6 +47,10 @@ export default async function Home() {
           </div>
           <p className="text-base text-black">
             IT, Web Development
+            <br/>
+            Have an idea for a project on the web? 
+            Email me: jakedcl73@gmail.com
+            <br/>
           </p>
           <p className="text-base text-black">
             @jakedcl on{' '}
@@ -64,10 +68,7 @@ export default async function Home() {
               </span>
             ))}
           </p>
-          <p className="text-base text-black">
-            <br/>
-            Email me: jakedcl73@gmail.com
-          </p>
+
         </header>
 
         {/* Recent Work Section */}
