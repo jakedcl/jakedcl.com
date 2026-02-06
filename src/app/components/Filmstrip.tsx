@@ -2,7 +2,7 @@
 
 import { SanityImage } from '@/types/sanity';
 import Image from 'next/image';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { urlFor } from '@/sanity/lib/image';
 
 interface FilmstripProps {
@@ -280,42 +280,8 @@ export default function Filmstrip({ photos }: FilmstripProps) {
     window.addEventListener('mouseup', handleGlobalMouseUp);
   };
 
-  useEffect(() => {
-    if (selectedPhoto === null) return;
-    
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setSelectedPhoto(null);
-      } else if (e.key === 'ArrowLeft') {
-        navigateLightbox('prev');
-      } else if (e.key === 'ArrowRight') {
-        navigateLightbox('next');
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedPhoto, photos?.length]);
-
-  // Early return AFTER all hooks
-  if (!photos || photos.length === 0) return null;
-
-  const handlePhotoClick = (index: number) => {
-    // Only open lightbox if it was a tap (not a drag/swipe)
-    if (hasMoved.current) return;
-    
-    // Get the original photo index from the shuffled order
-    if (originalPhotoOrder.length > 0) {
-      const originalIndex = originalPhotoOrder[index];
-      setSelectedPhoto(originalIndex);
-    }
-  };
-
-  const closeLightbox = () => {
-    setSelectedPhoto(null);
-  };
-
-  const navigateLightbox = (direction: 'prev' | 'next') => {
+  // Define navigateLightbox before useEffect that uses it
+  const navigateLightbox = useCallback((direction: 'prev' | 'next') => {
     if (selectedPhoto === null || !photos) return;
     
     // Get array of valid photo indices (photos with assets)
@@ -341,6 +307,41 @@ export default function Filmstrip({ photos }: FilmstripProps) {
       const newValidIndex = currentValidIndex === validIndices.length - 1 ? 0 : currentValidIndex + 1;
       setSelectedPhoto(validIndices[newValidIndex]);
     }
+  }, [selectedPhoto, photos]);
+
+  useEffect(() => {
+    if (selectedPhoto === null) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedPhoto(null);
+      } else if (e.key === 'ArrowLeft') {
+        navigateLightbox('prev');
+      } else if (e.key === 'ArrowRight') {
+        navigateLightbox('next');
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPhoto, navigateLightbox]);
+
+  // Early return AFTER all hooks
+  if (!photos || photos.length === 0) return null;
+
+  const handlePhotoClick = (index: number) => {
+    // Only open lightbox if it was a tap (not a drag/swipe)
+    if (hasMoved.current) return;
+    
+    // Get the original photo index from the shuffled order
+    if (originalPhotoOrder.length > 0) {
+      const originalIndex = originalPhotoOrder[index];
+      setSelectedPhoto(originalIndex);
+    }
+  };
+
+  const closeLightbox = () => {
+    setSelectedPhoto(null);
   };
 
   return (

@@ -66,7 +66,7 @@ export default async function Home() {
           </p>
           <p className="text-base text-black">
             <br/>
-            Let's work on a new website: jakedcl73@gmail.com
+            Email me: jakedcl73@gmail.com
           </p>
         </header>
 
