@@ -2,6 +2,7 @@ import { client } from '@/sanity/lib/client';
 import { projectsQuery, settingsQuery } from '@/sanity/lib/queries';
 import { Project, Settings } from '@/types/sanity';
 import Image from 'next/image';
+import { PortableText } from 'next-sanity';
 import ProjectCard from './components/ProjectCard';
 import Filmstrip from './components/Filmstrip';
 
@@ -45,29 +46,33 @@ export default async function Home() {
               <Image src="/icons/media.png" alt="Media" width={28} height={28} className="w-7 h-7 object-contain" />
             </div>
           </div>
-          <p className="text-base text-black">
-            IT, Web Development
-            <br/>
-            Have an idea for a project on the web? 
-            Email me: jakedcl73@gmail.com
-            <br/>
-          </p>
-          <p className="text-base text-black">
-            @jakedcl on{' '}
-            {socialLinks.map((item, index) => (
-              <span key={item.text}>
-                <a
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline hover:text-gray-600 transition-colors"
-                >
-                  {item.text}
-                </a>
-                {index < socialLinks.length - 1 && ', '}
-              </span>
-            ))}
-          </p>
+          {settings?.bioText && (
+            <div className="text-base text-black">
+              <PortableText 
+                value={settings.bioText}
+                components={{
+                  block: {
+                    normal: ({children}) => <p className="mb-2">{children}</p>,
+                    h3: ({children}) => <h3 className="text-lg font-semibold mb-2">{children}</h3>,
+                  },
+                  marks: {
+                    strong: ({children}) => <strong className="font-bold">{children}</strong>,
+                    em: ({children}) => <em className="italic">{children}</em>,
+                    link: ({children, value}) => (
+                      <a
+                        href={value?.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:text-gray-600 transition-colors"
+                      >
+                        {children}
+                      </a>
+                    ),
+                  },
+                }}
+              />
+            </div>
+          )}
 
         </header>
 

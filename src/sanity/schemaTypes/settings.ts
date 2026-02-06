@@ -6,6 +6,41 @@ export const settingsType = defineType({
   type: 'document',
   fields: [
     defineField({
+      name: 'bioText',
+      title: 'Bio Text',
+      type: 'array',
+      of: [
+        {
+          type: 'block',
+          styles: [
+            {title: 'Normal', value: 'normal'},
+            {title: 'H3', value: 'h3'},
+          ],
+          marks: {
+            decorators: [
+              {title: 'Bold', value: 'strong'},
+              {title: 'Italic', value: 'em'},
+            ],
+            annotations: [
+              {
+                title: 'URL',
+                name: 'link',
+                type: 'object',
+                fields: [
+                  {
+                    title: 'URL',
+                    name: 'href',
+                    type: 'url',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      ],
+      description: 'Text that appears under your name (supports links and formatting)',
+    }),
+    defineField({
       name: 'galleryPhotos',
       title: 'Gallery Photos',
       type: 'array',

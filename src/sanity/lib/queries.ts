@@ -22,6 +22,7 @@ export const projectsQuery = groq`
 // Settings query - only fetch what's actually used
 export const settingsQuery = groq`
   *[_type == "settings"][0] {
+    bioText,
     galleryPhotos[] {
       asset-> {
         url

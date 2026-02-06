@@ -10,6 +10,7 @@ export default function ProjectCard({ project }: { project: Project }) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [needsScroll, setNeedsScroll] = useState(false);
+  const [fitsInView, setFitsInView] = useState(false);
 
   useEffect(() => {
     const carousel = document.getElementById(`carousel-${project._id}`);
@@ -20,6 +21,7 @@ export default function ProjectCard({ project }: { project: Project }) {
       setCanScrollLeft(scrollLeft > 0);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
       setNeedsScroll(scrollWidth > clientWidth);
+      setFitsInView(scrollWidth <= clientWidth);
     };
 
     checkScroll();
@@ -75,7 +77,7 @@ export default function ProjectCard({ project }: { project: Project }) {
       </div>
 
       {/* Project Photos Carousel */}
-      <div className="w-full h-40 md:h-48 rounded-lg overflow-hidden relative border border-gray-200">
+      <div className={`${fitsInView ? 'w-fit' : 'w-full'} h-40 md:h-48 rounded-lg overflow-hidden relative border border-gray-200`}>
         {project.photos && project.photos.length > 0 ? (
           <>
             <div 
