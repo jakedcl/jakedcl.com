@@ -78,7 +78,7 @@ export default async function Home() {
 
         {/* Recent Work Section */}
         <section className="px-6 md:px-10 pb-10">
-          <h2 className="text-2xl font-bold text-black mb-6">Recent Work</h2>
+          <h2 className="text-2xl font-bold text-black mb-6">Recent Projects</h2>
           
           {/* Projects */}
           <div className="space-y-10">

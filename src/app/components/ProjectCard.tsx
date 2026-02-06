@@ -77,7 +77,7 @@ export default function ProjectCard({ project }: { project: Project }) {
       </div>
 
       {/* Project Photos Carousel */}
-      <div className={`${fitsInView ? 'w-fit' : 'w-full'} h-40 md:h-48 rounded-lg overflow-hidden relative border border-gray-200`}>
+      <div className={`${fitsInView ? 'w-fit max-w-full' : 'w-full'} h-40 md:h-48 rounded-lg overflow-hidden relative border border-gray-200`}>
         {project.photos && project.photos.length > 0 ? (
           <>
             <div 
@@ -138,7 +138,7 @@ export default function ProjectCard({ project }: { project: Project }) {
         href={project.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="block bg-white rounded-xl p-4 md:p-5 border border-gray-300 shadow-sm hover:border-gray-400 hover:shadow-lg transition-all duration-200"
+        className="block bg-white rounded-xl p-4 md:p-5 border border-gray-300 shadow-sm hover:border-gray-400 hover:shadow-lg transition-all duration-200 overflow-hidden"
       >
         {cardContent}
       </a>
@@ -146,7 +146,7 @@ export default function ProjectCard({ project }: { project: Project }) {
   }
 
   return (
-    <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-300 shadow-sm">
+    <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-300 shadow-sm overflow-hidden">
       {cardContent}
     </div>
   );
