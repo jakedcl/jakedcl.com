@@ -136,7 +136,7 @@ export default function ProjectCard({ project }: { project: Project }) {
         href={project.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="block bg-white rounded-xl p-5 md:p-6 border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-md"
+        className="block bg-white rounded-xl p-6 md:p-8 border border-gray-300 shadow-sm hover:border-gray-400 hover:shadow-lg transition-all duration-200"
       >
         {cardContent}
       </a>
@@ -144,7 +144,7 @@ export default function ProjectCard({ project }: { project: Project }) {
   }
 
   return (
-    <div className="bg-white rounded-xl p-5 md:p-6 border border-gray-200">
+    <div className="bg-white rounded-xl p-6 md:p-8 border border-gray-300 shadow-sm">
       {cardContent}
     </div>
   );
