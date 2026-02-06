@@ -64,6 +64,10 @@ export default async function Home() {
               </span>
             ))}
           </p>
+          <p className="text-base text-black">
+            <br/>
+            Let's work on a new website: jakedcl73@gmail.com
+          </p>
         </header>
 
         {/* Recent Work Section */}
@@ -71,7 +75,7 @@ export default async function Home() {
           <h2 className="text-2xl font-bold text-black mb-6">Recent Work</h2>
           
           {/* Projects */}
-          <div className="space-y-8">
+          <div className="space-y-10">
             {projects.map((project) => (
               <ProjectCard key={project._id} project={project} />
             ))}

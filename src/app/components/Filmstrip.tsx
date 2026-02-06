@@ -16,6 +16,17 @@ export default function Filmstrip({ photos }: FilmstripProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const positionRef = useRef(0);
+  const isPausedRef = useRef(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartPosition = useRef(0);
+  const mouseStartX = useRef<number | null>(null);
+  const isDragging = useRef(false);
+  const hasMoved = useRef(false); // Track if user moved during touch/mouse down
+  const dragThreshold = 5; // Minimum pixels moved to consider it a drag
+  const lastMoveTime = useRef<number | null>(null);
+  const lastMoveX = useRef<number | null>(null);
+  const velocity = useRef(0); // Current scroll velocity
+  const isMomentumScrolling = useRef(false);
 
   // All hooks must be called before any early returns
   useEffect(() => {
@@ -43,21 +54,46 @@ export default function Filmstrip({ photos }: FilmstripProps) {
 
     const container = containerRef.current;
     const scrollSpeed = window.innerWidth < 768 ? 0.7 : 0.5; // pixels per frame (faster on mobile)
+    const friction = 0.95; // Friction coefficient for momentum scrolling (0.95 = 5% loss per frame)
+    const minVelocity = 0.1; // Minimum velocity to continue momentum scrolling
     
     const animate = () => {
       if (!container) return;
       
-      positionRef.current += scrollSpeed;
-      
-      // Get the width of one set of photos
-      const firstChild = container.firstElementChild as HTMLElement;
-      if (firstChild) {
-        const setWidth = container.scrollWidth / 2; // Since we duplicate twice
+      // Momentum scrolling (after user releases)
+      if (isMomentumScrolling.current && Math.abs(velocity.current) > minVelocity) {
+        positionRef.current += velocity.current;
+        velocity.current *= friction; // Apply friction
         
-        // When we've scrolled one full set, reset position seamlessly
-        if (positionRef.current >= setWidth) {
-          positionRef.current = positionRef.current - setWidth;
+        // Handle seamless looping
+        if (containerRef.current) {
+          const setWidth = containerRef.current.scrollWidth / 2;
+          if (positionRef.current < 0) {
+            positionRef.current = setWidth + positionRef.current;
+          } else if (positionRef.current >= setWidth) {
+            positionRef.current = positionRef.current - setWidth;
+          }
         }
+      }
+      // Auto-scroll (when not paused and not momentum scrolling)
+      else if (!isPausedRef.current && !isMomentumScrolling.current) {
+        positionRef.current += scrollSpeed;
+        
+        // Get the width of one set of photos
+        const firstChild = container.firstElementChild as HTMLElement;
+        if (firstChild) {
+          const setWidth = container.scrollWidth / 2; // Since we duplicate twice
+          
+          // When we've scrolled one full set, reset position seamlessly
+          if (positionRef.current >= setWidth) {
+            positionRef.current = positionRef.current - setWidth;
+          }
+        }
+      }
+      // Stop momentum scrolling if velocity is too low
+      else if (isMomentumScrolling.current && Math.abs(velocity.current) <= minVelocity) {
+        isMomentumScrolling.current = false;
+        velocity.current = 0;
       }
       
       container.style.transform = `translateX(-${positionRef.current}px)`;
@@ -73,6 +109,177 @@ export default function Filmstrip({ photos }: FilmstripProps) {
     };
   }, [shuffledPhotos.length]);
 
+  // Touch handlers for swipe functionality (mobile)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    isPausedRef.current = true;
+    isMomentumScrolling.current = false;
+    hasMoved.current = false;
+    velocity.current = 0;
+    touchStartX.current = e.touches[0].clientX;
+    touchStartPosition.current = positionRef.current;
+    lastMoveTime.current = Date.now();
+    lastMoveX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || lastMoveTime.current === null || lastMoveX.current === null) return;
+    
+    const currentX = e.touches[0].clientX;
+    const currentTime = Date.now();
+    const diff = Math.abs(touchStartX.current - currentX);
+    
+    // Mark as moved if movement exceeds threshold
+    if (diff > dragThreshold) {
+      hasMoved.current = true;
+    }
+    
+    // Calculate velocity (pixels per millisecond)
+    const timeDelta = currentTime - lastMoveTime.current;
+    const distanceDelta = lastMoveX.current - currentX; // Positive = swiped left
+    if (timeDelta > 0) {
+      velocity.current = distanceDelta / timeDelta; // pixels per ms
+    }
+    
+    const scrollDiff = touchStartX.current - currentX; // Positive = swiped left
+    
+    // Update position based on swipe
+    positionRef.current = touchStartPosition.current + scrollDiff;
+    
+    // Handle seamless looping
+    if (containerRef.current) {
+      const setWidth = containerRef.current.scrollWidth / 2;
+      if (positionRef.current < 0) {
+        positionRef.current = setWidth + positionRef.current;
+      } else if (positionRef.current >= setWidth) {
+        positionRef.current = positionRef.current - setWidth;
+      }
+    }
+    
+    // Update tracking for next velocity calculation
+    lastMoveTime.current = currentTime;
+    lastMoveX.current = currentX;
+  };
+
+  const handleTouchEnd = () => {
+    isPausedRef.current = false;
+    touchStartX.current = null;
+    
+    // Convert velocity from pixels/ms to pixels/frame (assuming 60fps = ~16.67ms per frame)
+    const velocityPerFrame = velocity.current * 16.67;
+    
+    // Only start momentum if velocity is significant
+    if (Math.abs(velocityPerFrame) > 0.5) {
+      velocity.current = velocityPerFrame;
+      isMomentumScrolling.current = true;
+    } else {
+      velocity.current = 0;
+      isMomentumScrolling.current = false;
+    }
+    
+    lastMoveTime.current = null;
+    lastMoveX.current = null;
+    
+    // Reset after a short delay to allow click handler to check
+    setTimeout(() => {
+      hasMoved.current = false;
+    }, 100);
+  };
+
+  // Mouse handlers for drag functionality (desktop)
+  const handleMouseMove = (e: React.MouseEvent | MouseEvent) => {
+    if (!isDragging.current || mouseStartX.current === null) return;
+    
+    const currentX = e.clientX;
+    const currentTime = Date.now();
+    const diff = Math.abs(mouseStartX.current - currentX);
+    
+    // Mark as moved if movement exceeds threshold
+    if (diff > dragThreshold) {
+      hasMoved.current = true;
+    }
+    
+    // Calculate velocity (pixels per millisecond)
+    if (lastMoveTime.current !== null && lastMoveX.current !== null) {
+      const timeDelta = currentTime - lastMoveTime.current;
+      const distanceDelta = lastMoveX.current - currentX; // Positive = dragged left
+      if (timeDelta > 0) {
+        velocity.current = distanceDelta / timeDelta; // pixels per ms
+      }
+    }
+    
+    const scrollDiff = mouseStartX.current - currentX; // Positive = dragged left
+    
+    // Update position based on drag
+    positionRef.current = touchStartPosition.current + scrollDiff;
+    
+    // Handle seamless looping
+    if (containerRef.current) {
+      const setWidth = containerRef.current.scrollWidth / 2;
+      if (positionRef.current < 0) {
+        positionRef.current = setWidth + positionRef.current;
+      } else if (positionRef.current >= setWidth) {
+        positionRef.current = positionRef.current - setWidth;
+      }
+    }
+    
+    // Update tracking for next velocity calculation
+    lastMoveTime.current = currentTime;
+    lastMoveX.current = currentX;
+  };
+
+  const handleMouseUp = () => {
+    isPausedRef.current = false;
+    isDragging.current = false;
+    mouseStartX.current = null;
+    window.removeEventListener('mousemove', handleGlobalMouseMove);
+    window.removeEventListener('mouseup', handleGlobalMouseUp);
+    
+    // Convert velocity from pixels/ms to pixels/frame (assuming 60fps = ~16.67ms per frame)
+    const velocityPerFrame = velocity.current * 16.67;
+    
+    // Only start momentum if velocity is significant
+    if (Math.abs(velocityPerFrame) > 0.5) {
+      velocity.current = velocityPerFrame;
+      isMomentumScrolling.current = true;
+    } else {
+      velocity.current = 0;
+      isMomentumScrolling.current = false;
+    }
+    
+    lastMoveTime.current = null;
+    lastMoveX.current = null;
+    
+    // Reset after a short delay to allow click handler to check
+    setTimeout(() => {
+      hasMoved.current = false;
+    }, 100);
+  };
+
+  const handleGlobalMouseMove = (e: MouseEvent) => {
+    handleMouseMove(e);
+  };
+
+  const handleGlobalMouseUp = () => {
+    handleMouseUp();
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isPausedRef.current = true;
+    isMomentumScrolling.current = false;
+    isDragging.current = true;
+    hasMoved.current = false;
+    velocity.current = 0;
+    mouseStartX.current = e.clientX;
+    touchStartPosition.current = positionRef.current;
+    lastMoveTime.current = Date.now();
+    lastMoveX.current = e.clientX;
+    e.preventDefault();
+    
+    // Add global listeners for dragging outside the container
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+  };
+
   useEffect(() => {
     if (selectedPhoto === null) return;
     
@@ -80,9 +287,9 @@ export default function Filmstrip({ photos }: FilmstripProps) {
       if (e.key === 'Escape') {
         setSelectedPhoto(null);
       } else if (e.key === 'ArrowLeft') {
-        setSelectedPhoto((prev) => prev === null ? null : (prev === 0 ? (photos?.length || 0) - 1 : prev - 1));
+        navigateLightbox('prev');
       } else if (e.key === 'ArrowRight') {
-        setSelectedPhoto((prev) => prev === null ? null : (prev === (photos?.length || 0) - 1 ? 0 : prev + 1));
+        navigateLightbox('next');
       }
     };
     
@@ -94,6 +301,9 @@ export default function Filmstrip({ photos }: FilmstripProps) {
   if (!photos || photos.length === 0) return null;
 
   const handlePhotoClick = (index: number) => {
+    // Only open lightbox if it was a tap (not a drag/swipe)
+    if (hasMoved.current) return;
+    
     // Get the original photo index from the shuffled order
     if (originalPhotoOrder.length > 0) {
       const originalIndex = originalPhotoOrder[index];
@@ -106,22 +316,47 @@ export default function Filmstrip({ photos }: FilmstripProps) {
   };
 
   const navigateLightbox = (direction: 'prev' | 'next') => {
-    if (selectedPhoto === null) return;
+    if (selectedPhoto === null || !photos) return;
+    
+    // Get array of valid photo indices (photos with assets)
+    const validIndices = photos
+      .map((photo, index) => photo?.asset ? index : -1)
+      .filter((index) => index !== -1);
+    
+    if (validIndices.length === 0) return;
+    
+    // Find current index in valid indices array
+    const currentValidIndex = validIndices.indexOf(selectedPhoto);
+    if (currentValidIndex === -1) {
+      // If current photo is invalid, go to first valid photo
+      setSelectedPhoto(validIndices[0]);
+      return;
+    }
+    
+    // Navigate to next/prev valid photo
     if (direction === 'prev') {
-      setSelectedPhoto(selectedPhoto === 0 ? photos.length - 1 : selectedPhoto - 1);
+      const newValidIndex = currentValidIndex === 0 ? validIndices.length - 1 : currentValidIndex - 1;
+      setSelectedPhoto(validIndices[newValidIndex]);
     } else {
-      setSelectedPhoto(selectedPhoto === photos.length - 1 ? 0 : selectedPhoto + 1);
+      const newValidIndex = currentValidIndex === validIndices.length - 1 ? 0 : currentValidIndex + 1;
+      setSelectedPhoto(validIndices[newValidIndex]);
     }
   };
 
   return (
     <>
-      <section className="w-full overflow-hidden bg-white">
+      <section className="w-full overflow-hidden bg-white pt-2">
         <div className="relative h-48 md:h-64">
           <div 
             ref={containerRef}
-            className="flex h-full gap-2"
-            style={{ willChange: 'transform' }}
+            className="flex h-full gap-2 cursor-grab active:cursor-grabbing"
+            style={{ willChange: 'transform', touchAction: 'pan-y pinch-zoom', userSelect: 'none' }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
           >
             {shuffledPhotos
               .map((photo, originalIndex) => ({ photo, originalIndex }))
@@ -130,8 +365,16 @@ export default function Filmstrip({ photos }: FilmstripProps) {
                 <button
                   key={`${photo.asset?._ref || 'photo'}-${originalIndex}`}
                   onClick={() => handlePhotoClick(originalIndex)}
-                  className="flex-shrink-0 h-full cursor-pointer hover:opacity-90 active:opacity-90 transition-opacity"
-                  style={{ width: 'auto' }}
+                  className="flex-shrink-0 h-full cursor-pointer hover:opacity-90 active:opacity-90 transition-opacity filmstrip-image-container"
+                  style={{ 
+                    width: 'fit-content',
+                    maxWidth: 'fit-content',
+                    padding: 0,
+                    margin: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    lineHeight: 0,
+                  }}
                 >
                   <Image
                     src={urlFor(photo).width(800).url()}
@@ -139,6 +382,13 @@ export default function Filmstrip({ photos }: FilmstripProps) {
                     width={800}
                     height={600}
                     className="h-full w-auto object-contain"
+                    style={{
+                      display: 'block',
+                      height: '100%',
+                      width: 'auto',
+                      maxWidth: 'none',
+                      flexShrink: 0,
+                    }}
                     unoptimized
                   />
                 </button>
@@ -148,7 +398,7 @@ export default function Filmstrip({ photos }: FilmstripProps) {
       </section>
 
       {/* Lightbox Modal */}
-      {selectedPhoto !== null && (
+      {selectedPhoto !== null && photos && photos[selectedPhoto]?.asset && (
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={closeLightbox}
