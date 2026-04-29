@@ -364,6 +364,7 @@ export default function Filmstrip({ photos }: FilmstripProps) {
               .filter(({ photo }) => photo?.asset)
               .map(({ photo, originalIndex }) => (
                 <button
+                  type="button"
                   key={`${photo.asset?._ref || 'photo'}-${originalIndex}`}
                   onClick={() => handlePhotoClick(originalIndex)}
                   className="flex-shrink-0 h-full cursor-pointer hover:opacity-90 active:opacity-90 transition-opacity filmstrip-image-container"
@@ -403,8 +404,12 @@ export default function Filmstrip({ photos }: FilmstripProps) {
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={closeLightbox}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image lightbox"
         >
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               closeLightbox();
@@ -418,6 +423,7 @@ export default function Filmstrip({ photos }: FilmstripProps) {
           </button>
 
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               navigateLightbox('prev');
@@ -431,6 +437,7 @@ export default function Filmstrip({ photos }: FilmstripProps) {
           </button>
 
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               navigateLightbox('next');

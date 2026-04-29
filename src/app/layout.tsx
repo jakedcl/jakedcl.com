@@ -1,25 +1,57 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#ffffff",
+};
+
 export const metadata: Metadata = {
-  title: "Jake DCL - Creative Portfolio",
-  description: "Jacob Decore Lurker (Jake DCL) - Web Developer, Designer, and Creative Technologist. Exploring the intersection of code, design, and creative expression.",
+  metadataBase: new URL("https://jakedcl.com"),
+  title: {
+    default: "Jake DCL | Web Developer Portfolio",
+    template: "%s | Jake DCL",
+  },
+  description: "Jake DeCore-Lurker - Focused in designing, building, and maintaining web applications and IT systems.",
   keywords: ["Jake DCL", "Jacob Decore Lurker", "web developer", "designer", "portfolio", "creative technologist"],
   authors: [{ name: "Jake DCL" }],
   creator: "Jake DCL",
+  category: "technology",
+  alternates: {
+    canonical: "/",
+  },
+  icons: {
+    icon: [{ url: "/icon", type: "image/png" }],
+    apple: [{ url: "/apple-icon", type: "image/png" }],
+    shortcut: ["/icon"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://jakedcl.com",
-    title: "Jake DCL - Creative Portfolio",
+    title: "Jake DCL | Web Developer Portfolio",
     description: "Jacob Decore Lurker (Jake DCL) - Web Developer, Designer, and Creative Technologist.",
     siteName: "Jake DCL Portfolio",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Jake DCL - Creative Portfolio",
-    description: "Jacob Decore Lurker (Jake DCL) - Web Developer, Designer, and Creative Technologist.",
-    creator: "@jakedcl",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Jake DCL web developer portfolio",
+      },
+    ],
   },
 };
 
@@ -30,12 +62,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link 
-          href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;500;700&display=swap" 
-          rel="stylesheet" 
-        />
-      </head>
       <body className="font-sans antialiased bg-white text-black">
         {children}
       </body>

@@ -63,9 +63,10 @@ export default function ProjectCard({ project }: { project: Project }) {
           components={{
             block: {
               normal: ({children}) => <p className="text-lg md:text-xl text-black">{children}</p>,
-              h1: ({children}) => <h1 className="text-xl md:text-2xl font-bold text-black">{children}</h1>,
-              h2: ({children}) => <h2 className="text-lg md:text-xl font-bold text-black">{children}</h2>,
-              h3: ({children}) => <h3 className="text-lg md:text-xl font-semibold text-black">{children}</h3>,
+              // Keep card titles semantically below page <h1>.
+              h1: ({children}) => <h3 className="text-xl md:text-2xl font-bold text-black">{children}</h3>,
+              h2: ({children}) => <h3 className="text-lg md:text-xl font-bold text-black">{children}</h3>,
+              h3: ({children}) => <h4 className="text-lg md:text-xl font-semibold text-black">{children}</h4>,
             },
             marks: {
               strong: ({children}) => <strong className="font-bold">{children}</strong>,
@@ -102,8 +103,10 @@ export default function ProjectCard({ project }: { project: Project }) {
             {/* Left scroll button */}
             {needsScroll && canScrollLeft && (
               <button
+                type="button"
                 onClick={handleScrollLeft}
                 className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm"
+                aria-label="Scroll project images left"
               >
                 <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -114,8 +117,10 @@ export default function ProjectCard({ project }: { project: Project }) {
             {/* Right scroll button */}
             {needsScroll && canScrollRight && (
               <button
+                type="button"
                 onClick={handleScrollRight}
                 className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm"
+                aria-label="Scroll project images right"
               >
                 <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
