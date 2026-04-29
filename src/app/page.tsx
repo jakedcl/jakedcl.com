@@ -19,16 +19,25 @@ async function getSettings(): Promise<Settings | null> {
 export default async function Home() {
   const projects = await getProjects();
   const settings = await getSettings();
-
-  const socialLinks = [
-    { text: 'github', link: 'https://github.com/jakedcl' },
-    { text: 'linkedin', link: 'https://linkedin.com/in/jacobdcl' },
-    { text: 'youtube', link: 'https://youtube.com/@jakedcl' },
-    { text: 'instagram', link: 'https://instagram.com/jakedcl' },
-  ];
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Jake DCL',
+    url: 'https://jakedcl.com',
+    jobTitle: 'Web Developer',
+    description: 'Portfolio website for Jacob Decore Lurker (Jake DCL).',
+    sameAs: [
+      'https://github.com/jakedcl',
+      'https://www.linkedin.com/in/jakedcl',
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* Main Content */}
       <main className="relative overflow-x-hidden">
         {/* Filmstrip Gallery - At the very top */}
