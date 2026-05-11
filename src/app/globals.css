@@ -83,16 +83,19 @@ body {
   background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.3) 100%);
 }
 
-/* Filmstrip scroll animation */
-@keyframes scroll-left {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
+/* Filmstrip scroll animation - now handled by JavaScript for seamless infinite scroll */
 
-.animate-scroll-left {
-  animation: scroll-left 60s linear infinite;
+/* iOS Safari fix for portrait images in filmstrip */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific styles */
+  .filmstrip-image-container {
+    width: fit-content !important;
+    max-width: fit-content !important;
+  }
+  
+  .filmstrip-image-container img {
+    width: auto !important;
+    max-width: none !important;
+    height: 100% !important;
+  }
 }
