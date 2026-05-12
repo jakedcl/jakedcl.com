@@ -67,16 +67,22 @@ export default async function Home() {
                   marks: {
                     strong: ({children}) => <strong className="font-bold">{children}</strong>,
                     em: ({children}) => <em className="italic">{children}</em>,
-                    link: ({children, value}) => (
-                      <a
-                        href={value?.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline hover:text-gray-600 transition-colors"
-                      >
-                        {children}
-                      </a>
-                    ),
+                    link: ({children, value}) => {
+                      const href = value?.href ?? ''
+                      const openInNewTab =
+                        href.startsWith('http://') || href.startsWith('https://')
+                      return (
+                        <a
+                          href={href || undefined}
+                          {...(openInNewTab
+                            ? {target: '_blank', rel: 'noopener noreferrer'}
+                            : {})}
+                          className="underline hover:text-gray-600 transition-colors"
+                        >
+                          {children}
+                        </a>
+                      )
+                    },
                   },
                 }}
               />
