@@ -1,10 +1,9 @@
 import { client } from '@/sanity/lib/client';
 import { projectsQuery, settingsQuery } from '@/sanity/lib/queries';
 import { Project, Settings } from '@/types/sanity';
-import Image from 'next/image';
-import { PortableText } from 'next-sanity';
 import ProjectCard from './components/ProjectCard';
 import Filmstrip from './components/Filmstrip';
+import Resume from './components/Resume';
 
 export const revalidate = 0; // Always fetch fresh data
 
@@ -14,6 +13,24 @@ async function getProjects(): Promise<Project[]> {
 
 async function getSettings(): Promise<Settings | null> {
   return await client.fetch(settingsQuery);
+}
+
+function ProjectsList({
+  projects,
+  compact = false,
+  className = '',
+}: {
+  projects: Project[];
+  compact?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      {projects.map((project) => (
+        <ProjectCard key={project._id} project={project} compact={compact} />
+      ))}
+    </div>
+  );
 }
 
 export default async function Home() {
@@ -38,70 +55,29 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      {/* Main Content */}
       <main className="relative overflow-x-hidden">
-        {/* Filmstrip Gallery - At the very top */}
         {settings?.galleryPhotos && settings.galleryPhotos.length > 0 && (
           <Filmstrip photos={settings.galleryPhotos} />
         )}
 
-        {/* Header Section */}
-        <header className="px-6 md:px-10 pt-10 pb-6">
-          <div className="flex items-center gap-4 mb-3">
-            <h1 className="text-4xl md:text-5xl font-bold text-black">Jake DCL</h1>
-            <div className="flex items-center gap-1">
-              <Image src="/icons/web.png" alt="Web" width={28} height={28} className="w-7 h-7 object-contain" />
-              <Image src="/icons/maps.png" alt="Maps" width={28} height={28} className="w-7 h-7 object-contain" />
-              <Image src="/icons/media.png" alt="Media" width={28} height={28} className="w-7 h-7 object-contain" />
-            </div>
-          </div>
-          {settings?.bioText && (
-            <div className="text-base text-black">
-              <PortableText 
-                value={settings.bioText}
-                components={{
-                  block: {
-                    normal: ({children}) => <p className="mb-2">{children}</p>,
-                    h3: ({children}) => <h3 className="text-lg font-semibold mb-2">{children}</h3>,
-                  },
-                  marks: {
-                    strong: ({children}) => <strong className="font-bold">{children}</strong>,
-                    em: ({children}) => <em className="italic">{children}</em>,
-                    link: ({children, value}) => {
-                      const href = value?.href ?? ''
-                      const openInNewTab =
-                        href.startsWith('http://') || href.startsWith('https://')
-                      return (
-                        <a
-                          href={href || undefined}
-                          {...(openInNewTab
-                            ? {target: '_blank', rel: 'noopener noreferrer'}
-                            : {})}
-                          className="underline hover:text-gray-600 transition-colors"
-                        >
-                          {children}
-                        </a>
-                      )
-                    },
-                  },
-                }}
-              />
-            </div>
-          )}
+        <div className="px-6 pb-10 pt-10 md:px-10 lg:grid lg:grid-cols-[minmax(0,1fr)_min(19rem,26%)] lg:items-start lg:gap-x-12 xl:grid-cols-[minmax(0,1fr)_min(22rem,28%)] xl:gap-x-14">
+          <header className="min-w-0 pb-6 lg:pb-0">
+            <h1 className="sr-only">Jake DCL</h1>
+            <Resume />
+          </header>
 
-        </header>
+          {/* Desktop: sticky sidebar */}
+          <aside className="hidden min-w-0 lg:block lg:sticky lg:top-8 lg:self-start">
+            <h2 className="mb-5 text-lg font-bold text-black xl:text-xl">Recent Projects</h2>
+            <ProjectsList projects={projects} compact className="space-y-6" />
+          </aside>
 
-        {/* Recent Work Section */}
-        <section className="px-6 md:px-10 pb-10">
-          <h2 className="text-2xl font-bold text-black mb-6">Recent Projects</h2>
-          
-          {/* Projects */}
-          <div className="space-y-10">
-            {projects.map((project) => (
-              <ProjectCard key={project._id} project={project} />
-            ))}
-          </div>
-        </section>
+          {/* Mobile: full-width stack below resume */}
+          <section className="min-w-0 lg:hidden">
+            <h2 className="mb-6 text-2xl font-bold text-black">Recent Projects</h2>
+            <ProjectsList projects={projects} className="space-y-10" />
+          </section>
+        </div>
       </main>
     </div>
   );
