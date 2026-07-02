@@ -33,6 +33,13 @@ body {
   font-family: var(--font-sans);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .scroll-focus-item {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
 /* Clean animations for portfolio */
 @keyframes fade-in-up {
   from {

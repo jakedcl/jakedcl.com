@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { urlFor } from '@/sanity/lib/image';
 
-export default function ProjectCard({ project }: { project: Project }) {
+export default function ProjectCard({ project, compact = false }: { project: Project; compact?: boolean }) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [needsScroll, setNeedsScroll] = useState(false);
@@ -62,11 +62,18 @@ export default function ProjectCard({ project }: { project: Project }) {
           value={project.title} 
           components={{
             block: {
-              normal: ({children}) => <p className="text-lg md:text-xl text-black">{children}</p>,
-              // Keep card titles semantically below page <h1>.
-              h1: ({children}) => <h3 className="text-xl md:text-2xl font-bold text-black">{children}</h3>,
-              h2: ({children}) => <h3 className="text-lg md:text-xl font-bold text-black">{children}</h3>,
-              h3: ({children}) => <h4 className="text-lg md:text-xl font-semibold text-black">{children}</h4>,
+              normal: ({children}) => (
+                <p className={`text-black ${compact ? 'text-sm lg:text-base' : 'text-lg md:text-xl'}`}>{children}</p>
+              ),
+              h1: ({children}) => (
+                <h3 className={`font-bold text-black ${compact ? 'text-base lg:text-lg' : 'text-xl md:text-2xl'}`}>{children}</h3>
+              ),
+              h2: ({children}) => (
+                <h3 className={`font-bold text-black ${compact ? 'text-base lg:text-lg' : 'text-lg md:text-xl'}`}>{children}</h3>
+              ),
+              h3: ({children}) => (
+                <h4 className={`font-semibold text-black ${compact ? 'text-sm lg:text-base' : 'text-lg md:text-xl'}`}>{children}</h4>
+              ),
             },
             marks: {
               strong: ({children}) => <strong className="font-bold">{children}</strong>,
@@ -78,7 +85,7 @@ export default function ProjectCard({ project }: { project: Project }) {
       </div>
 
       {/* Project Photos Carousel */}
-      <div className={`${fitsInView ? 'w-fit max-w-full' : 'w-full'} h-40 md:h-48 rounded-lg overflow-hidden relative border border-gray-200`}>
+      <div className={`${fitsInView ? 'w-fit max-w-full' : 'w-full'} ${compact ? 'h-32' : 'h-40 md:h-48'} rounded-lg overflow-hidden relative border border-gray-200`}>
         {project.photos && project.photos.length > 0 ? (
           <>
             <div 
@@ -137,13 +144,21 @@ export default function ProjectCard({ project }: { project: Project }) {
     </>
   );
 
+  const cardClass = compact
+    ? 'block bg-white rounded-xl p-3 lg:p-4 border border-gray-300 shadow-sm hover:border-gray-400 hover:shadow-lg transition-all duration-200 overflow-hidden'
+    : 'block bg-white rounded-xl p-4 md:p-5 border border-gray-300 shadow-sm hover:border-gray-400 hover:shadow-lg transition-all duration-200 overflow-hidden'
+
+  const cardShellClass = compact
+    ? 'bg-white rounded-xl p-3 lg:p-4 border border-gray-300 shadow-sm overflow-hidden'
+    : 'bg-white rounded-xl p-4 md:p-5 border border-gray-300 shadow-sm overflow-hidden'
+
   if (project.link) {
     return (
       <a
         href={project.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="block bg-white rounded-xl p-4 md:p-5 border border-gray-300 shadow-sm hover:border-gray-400 hover:shadow-lg transition-all duration-200 overflow-hidden"
+        className={cardClass}
       >
         {cardContent}
       </a>
@@ -151,7 +166,7 @@ export default function ProjectCard({ project }: { project: Project }) {
   }
 
   return (
-    <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-300 shadow-sm overflow-hidden">
+    <div className={cardShellClass}>
       {cardContent}
     </div>
   );
