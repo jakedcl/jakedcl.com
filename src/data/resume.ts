@@ -8,6 +8,7 @@ export type ResumeBullet = string
 export type ResumeRole = {
   title: string
   organization: string
+  organizationUrl?: string
   period: string
   bullets: ResumeBullet[]
 }
@@ -29,12 +30,11 @@ export type Resume = {
 export const resume: Resume = {
   legalName: 'Jake DeCore-Lurker',
   contact: [
-    { label: 'jakedcl.com', href: 'https://jakedcl.com' },
     { label: 'jakedecorelurker@gmail.com', href: 'mailto:jakedecorelurker@gmail.com' },
     { label: '347-733-1501', href: 'tel:+13477331501' },
   ],
   summary:
-    'Systems-oriented software and infrastructure professional with experience building and maintaining web applications and operational systems in business environments.',
+    '23 year old Technologist from NYC with experience building, connecting, and maintaining creative business applications. ',
   skills: [
     {
       label: 'Web & Backend',
@@ -105,6 +105,7 @@ export const resume: Resume = {
     {
       title: 'IT Support Technician',
       organization: 'KRNL Technology (MSP)',
+      organizationUrl: 'https://krnltech.com',
       period: '10/2024–9/2025',
       bullets: [
         'Managed Microsoft 365, Azure AD, Google Workspace, and Duo across multiple client organizations',
@@ -118,17 +119,19 @@ export const resume: Resume = {
     },
     {
       title: 'Logistics & Operations Associate',
-      organization: 'NYDAC',
+      organization: 'New York Design and Construction',
+      organizationUrl: 'https://newyorkdesignandconstruction.com',
       period: '2022–2024',
       bullets: [
         'Built and improved internal systems supporting logistics, scheduling, inventory, and operational workflows',
         'Coordinated crews, vendors, equipment, and inventory for large-scale event operations',
-        'Acted as liaison between field operations and clients to improve reliability and workflow efficiency',
+        'Acted as liaison between field operations and clients',
       ],
     },
     {
       title: 'Technical Intern',
       organization: 'NYC Department of Investigation',
+      organizationUrl: 'https://www.nyc.gov/site/doi',
       period: '6/2024–8/2024',
       bullets: [
         'Analyzed structured datasets using Excel and Python and produced reports to support investigations',
@@ -137,6 +140,8 @@ export const resume: Resume = {
     {
       title: 'Technology Instructor (Part-time)',
       organization: 'NYC Public Schools',
+      organizationUrl:
+        'https://www.nyc.gov/site/dycd/services/after-school/COMPASS_program_model.page',
       period: '9/2023–6/2024',
       bullets: [
         'Led weekly classes teaching basic programming and digital literacy to elementary school students',
@@ -147,6 +152,7 @@ export const resume: Resume = {
     {
       title: 'Bachelor of Science in Computer Science',
       organization: 'CUNY College of Staten Island',
+      organizationUrl: 'https://www.cs.csi.cuny.edu/',
       period: 'May 2026',
       bullets: [],
     },
