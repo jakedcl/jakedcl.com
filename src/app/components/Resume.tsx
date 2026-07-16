@@ -52,6 +52,19 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   )
 }
 
+function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="underline underline-offset-2 transition-colors hover:text-black"
+    >
+      {children}
+    </a>
+  )
+}
+
 function RoleHeader({ role }: { role: ResumeRole }) {
   return (
     <div className="space-y-0.5">
@@ -63,7 +76,13 @@ function RoleHeader({ role }: { role: ResumeRole }) {
           {role.period}
         </p>
       </div>
-      <p className="text-sm leading-snug text-neutral-600">{role.organization}</p>
+      <p className="text-sm leading-snug text-neutral-600">
+        {role.organizationUrl ? (
+          <ExternalLink href={role.organizationUrl}>{role.organization}</ExternalLink>
+        ) : (
+          role.organization
+        )}
+      </p>
     </div>
   )
 }
