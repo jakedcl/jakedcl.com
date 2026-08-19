@@ -22,9 +22,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   icons: {
-    icon: [{ url: "/icon", type: "image/png" }],
+    icon: [{ url: "/favicon.png", type: "image/png", sizes: "32x32" }],
     apple: [{ url: "/apple-icon", type: "image/png" }],
-    shortcut: ["/icon"],
+    shortcut: ["/favicon.png"],
   },
   robots: {
     index: true,
