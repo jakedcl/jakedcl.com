@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Html, useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -24,6 +24,12 @@ const PAPER_CSS = { width: 400, height: 560 } as const
 const HTML_DISTANCE_FACTOR = PAPER_CSS.width
 const CLICK_SLOP_PX = 8
 const PAGE_CLEARANCE = 0.002
+// Cover rotation is damped; ~0.54 is vertical. Wait until it is mostly off the page.
+const RESUME_REVEAL = 0.66
+// Spine tape occupies x≈0–0.10; page mesh left is 0.06. Nudge the overlay onto the cream.
+const HTML_SPINE_NUDGE = 0.04
+// Sit slightly into the page so the CSS3D sheet is not a card hovering above it.
+const HTML_PAGE_EMBED = 0.0006
 
 function isPaperLink(target: EventTarget | null) {
   return target instanceof Element && Boolean(target.closest('a[href]'))
@@ -46,6 +52,8 @@ export default function Notebook({
   const coverRef = useRef<THREE.Group>(null)
   const pressRef = useRef<{ x: number; y: number; scroll: number } | null>(null)
   const openAmount = useRef(opened ? 1 : 0)
+  const resumeVisibleRef = useRef(openAmount.current > RESUME_REVEAL)
+  const [resumeVisible, setResumeVisible] = useState(resumeVisibleRef.current)
   const [coverMap, paperMap] = useTexture([
     '/desk/notebook-cover.jpg',
     '/desk/paper-cream.jpg',
@@ -62,11 +70,17 @@ export default function Notebook({
     if (coverRef.current) {
       coverRef.current.rotation.z = openAmount.current * Math.PI * 0.93
     }
+    const nextVisible = openAmount.current > RESUME_REVEAL
+    if (nextVisible !== resumeVisibleRef.current) {
+      resumeVisibleRef.current = nextVisible
+      setResumeVisible(nextVisible)
+    }
   })
 
   const pageHeight = NOTEBOOK.pages - PAGE_CLEARANCE
   const pageY = NOTEBOOK.cover + pageHeight / 2
   const coverHingeY = NOTEBOOK.cover + NOTEBOOK.pages
+  const pageTop = NOTEBOOK.cover + pageHeight
 
   return (
     <Hotspot disabled={!interactive || pageInteractive} label="Resume notebook" onSelect={onOpenPage}>
@@ -107,16 +121,21 @@ export default function Notebook({
           <meshStandardMaterial color="#111111" roughness={0.7} metalness={0.05} />
         </mesh>
 
-        {opened ? (
+        {resumeVisible ? (
           <Html
             transform
             occlude={false}
-            position={[NOTEBOOK.width / 2 + 0.02, coverHingeY + 0.002, 0]}
+            position={[
+              NOTEBOOK.width / 2 + 0.02 + HTML_SPINE_NUDGE,
+              pageTop - HTML_PAGE_EMBED,
+              0,
+            ]}
             rotation={[-Math.PI / 2, 0, 0]}
             distanceFactor={HTML_DISTANCE_FACTOR}
             scale={[PAGE_WIDTH / PAPER_CSS.width, PAGE_DEPTH / PAPER_CSS.height, 1]}
             pointerEvents={pageInteractive ? 'auto' : 'none'}
             zIndexRange={[20, 0]}
+            style={{ background: 'transparent', boxShadow: 'none' }}
           >
             <div
               className="lined-paper notebook-page"

@@ -123,12 +123,12 @@ body {
       var(--paper-rule) calc(var(--paper-line) - 1px),
       var(--paper-rule) var(--paper-line)
     );
-  /* First alphabetic baseline (Helvetica ~0.8em + half-leading) sits on the first rule. */
-  padding-top: calc((var(--paper-line) + 1em) / 2 - 0.8em);
+  /* First alphabetic baseline sits on the first rule; extra -4px lifts sagging type onto the lines. */
+  padding-top: calc((var(--paper-line) + 1em) / 2 - 0.8em - 4px);
   padding-right: 1.25rem;
   padding-bottom: var(--paper-line);
   padding-left: calc(var(--paper-margin) + 12px);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  box-shadow: none;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--paper-font);
   line-height: var(--paper-line);
@@ -219,6 +219,7 @@ body {
 .notebook-page {
   touch-action: pan-y;
   cursor: pointer;
+  box-shadow: none;
 }
 
 .notebook-page a[href] {
