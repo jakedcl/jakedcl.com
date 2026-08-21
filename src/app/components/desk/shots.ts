@@ -33,12 +33,12 @@ export const shots: Record<ShotName, Shot> = {
     duration: 2.7,
   },
   page: {
-    // Aerial overlook of the OPEN notebook — high +Y, looking down, with a
-    // little desk visible above and below (~10% viewport margin each edge).
-    // Not the far intro `aerial`, and not edge-to-edge in the frame.
-    position: [PAGE_FOCUS[0], 4.28, 0.16],
+    // Aerial overlook of the OPEN notebook: high +Y, slight +Z tilt so the
+    // wood desk, folders, and polaroids stay in frame around the book.
+    // Not edge-to-edge paper, and not the far intro `aerial`.
+    position: [PAGE_FOCUS[0], 5.55, 1.05],
     target: PAGE_FOCUS,
-    fov: 32,
+    fov: 36,
   },
   desk: {
     position: [0.35, 4.7, 5.15],

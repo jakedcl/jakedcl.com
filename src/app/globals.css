@@ -92,13 +92,25 @@ body {
 
 /* Filmstrip scroll animation - now handled by JavaScript for seamless infinite scroll */
 
-.lined-html-portal,
+/* drei Html `wrapperClass` is a fullscreen CSS3D viewport over the canvas.
+   Never paint it — that reads as a flat white document covering the desk. */
+.lined-html-portal {
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  outline: none;
+}
+
+/* Paper-sized inner sheet (400×560), not a 100vw overlay. */
 .lined-html {
+  width: 400px;
+  height: 560px;
   background: #f4efe3;
   box-shadow: none !important;
   filter: none !important;
   outline: none;
   -webkit-box-shadow: none;
+  overflow: hidden;
 }
 
 .lined-paper {
@@ -108,6 +120,7 @@ body {
   --paper-font: 11px;
   --paper-rule: #c5d4e6;
   --paper-red: #d98989;
+  position: relative;
   width: 400px;
   height: 560px;
   overflow-x: hidden;

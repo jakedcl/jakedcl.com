@@ -147,6 +147,8 @@ export default function Notebook({
             pointerEvents={pageInteractive ? 'auto' : 'none'}
             zIndexRange={[20, 0]}
             style={{
+              width: PAPER_CSS.width,
+              height: PAPER_CSS.height,
               background: PAPER_CREAM,
               boxShadow: 'none',
               filter: 'none',

@@ -3,6 +3,7 @@
 import { Suspense, useMemo } from 'react'
 import { ContactShadows, OrbitControls } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
+import * as THREE from 'three'
 import CameraRig from './CameraRig'
 import Desk from './Desk'
 import DeskProps from './DeskProps'
@@ -119,10 +120,14 @@ export default function DeskScene({
 
   return (
     <Canvas
-      shadows
+      shadows="percentage"
       dpr={[1, 1.5]}
       camera={{ position: start.position, fov: start.fov, near: 0.1, far: 40 }}
       gl={{ antialias: true }}
+      onCreated={({ gl }) => {
+        gl.shadowMap.enabled = true
+        gl.shadowMap.type = THREE.PCFShadowMap
+      }}
     >
       <Suspense fallback={null}>
         <SceneContents

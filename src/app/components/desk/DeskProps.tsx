@@ -6,7 +6,6 @@ import { portableTextToPlain } from '@/lib/portableText'
 import type { Project, SanityImage } from '@/types/sanity'
 import Hotspot from './Hotspot'
 import type { ShotName } from './types'
-import { useSafeTexture } from './useSafeTexture'
 
 function Folder({
   position,
@@ -44,17 +43,12 @@ function Folder({
 function Polaroid({
   position,
   rotation,
-  image,
+  map,
 }: {
   position: [number, number, number]
   rotation: [number, number, number]
-  image?: SanityImage
+  map: THREE.Texture
 }) {
-  const src = image?.asset?.url
-    ? `${image.asset.url}?w=640&h=640&fit=crop`
-    : null
-  const texture = useSafeTexture(src, '/desk/paper-cream.jpg')
-
   return (
     <group position={position} rotation={rotation}>
       <mesh castShadow receiveShadow>
@@ -63,7 +57,7 @@ function Polaroid({
       </mesh>
       <mesh position={[0, 0.008, 0.04]}>
         <planeGeometry args={[0.48, 0.48]} />
-        <meshStandardMaterial map={texture ?? undefined} color="#ece6d8" roughness={0.7} />
+        <meshStandardMaterial map={map} color="#ece6d8" roughness={0.7} />
       </mesh>
     </group>
   )
@@ -154,11 +148,14 @@ export default function DeskProps({
   interactive: boolean
   onSelectShot: (shot: ShotName) => void
 }) {
-  const ruler = useTexture('/desk/ruler.jpg')
+  const [ruler, polaroidMap] = useTexture(['/desk/ruler.jpg', '/desk/paper-cream.jpg'])
   ruler.colorSpace = THREE.SRGBColorSpace
+  polaroidMap.colorSpace = THREE.SRGBColorSpace
 
   const folderProjects = projects.slice(0, 3)
-  const polaroids = photos.slice(0, 4)
+  // Blank frames only — never TextureLoader/useTexture on cdn.sanity.io (CORS).
+  // Real gallery photos render in the HUD via <img>.
+  const polaroidCount = Math.min(4, Math.max(3, photos.length || 3))
   const folderTitles = folderProjects.map((project) => portableTextToPlain(project.title) || 'Project')
 
   return (
@@ -178,10 +175,10 @@ export default function DeskProps({
 
       <Hotspot disabled={!interactive} label="Photos" onSelect={() => onSelectShot('gallery')}>
         <group>
-          {(polaroids.length ? polaroids : [undefined, undefined, undefined]).map((photo, index) => (
+          {Array.from({ length: polaroidCount }, (_, index) => (
             <Polaroid
-              key={photo?.asset?.url || `polaroid-${index}`}
-              image={photo}
+              key={`polaroid-${index}`}
+              map={polaroidMap}
               position={[1.55 + (index % 2) * 0.55, 0.01, -0.45 - Math.floor(index / 2) * 0.62]}
               rotation={[0, 0.18 - index * 0.12, 0]}
             />
