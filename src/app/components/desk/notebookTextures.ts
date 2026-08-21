@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { resume } from '@/data/resume'
 import type { NotebookCoverCopy, NotebookInsideCopy } from '@/data/notebook'
 
 const FONT = '"Helvetica Neue", Helvetica, Arial, sans-serif'
@@ -298,5 +299,111 @@ export function createInsideCoverTexture(
   ctx.imageSmoothingEnabled = true
   ctx.imageSmoothingQuality = 'high'
   drawClassProgram(ctx, width, height, copy)
+  return makeTexture(canvas)
+}
+
+function wrapCanvasText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
+  const words = text.split(/\s+/).filter(Boolean)
+  const lines: string[] = []
+  let current = ''
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word
+    if (current && ctx.measureText(next).width > maxWidth) {
+      lines.push(current)
+      current = word
+    } else {
+      current = next
+    }
+  }
+  if (current) lines.push(current)
+  return lines
+}
+
+/**
+ * Lined looseleaf with resume copy painted on the rules so the marble cover
+ * can occlude a real page mesh (no CSS3D pop-in).
+ */
+export function drawLooseleafResume(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+) {
+  const line = Math.round(height / 32)
+  const margin = Math.round(width * 0.1)
+  const textX = margin + Math.round(width * 0.03)
+  const maxWidth = width - textX - Math.round(width * 0.045)
+  const ink = '#171717'
+  const muted = '#525252'
+
+  ctx.fillStyle = '#f4efe3'
+  ctx.fillRect(0, 0, width, height)
+
+  ctx.strokeStyle = '#c5d4e6'
+  ctx.lineWidth = Math.max(1, height * 0.0016)
+  for (let y = line; y < height; y += line) {
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(width, y)
+    ctx.stroke()
+  }
+
+  ctx.strokeStyle = '#d98989'
+  ctx.lineWidth = Math.max(2, width * 0.0024)
+  ctx.beginPath()
+  ctx.moveTo(margin, 0)
+  ctx.lineTo(margin, height)
+  ctx.stroke()
+
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'alphabetic'
+  ctx.fillStyle = ink
+
+  let row = 1
+  const write = (text: string, weight: string, size: number, color = ink) => {
+    setFont(ctx, weight, size)
+    ctx.fillStyle = color
+    for (const piece of wrapCanvasText(ctx, text, maxWidth)) {
+      ctx.fillText(piece, textX, row * line)
+      row += 1
+      if (row * line > height - line) return
+    }
+  }
+
+  write(resume.legalName, '500', line * 0.48)
+  write(resume.contact.map((link) => link.label).join('  |  '), '400', line * 0.38, muted)
+  write(resume.summary, '400', line * 0.38)
+  row += 1
+  write('TECHNICAL SKILLS', '700', line * 0.4)
+  for (const group of resume.skills) {
+    write(`${group.label}:  ${group.items.join(', ')}`, '400', line * 0.38)
+  }
+  row += 1
+  write('EXPERIENCE', '700', line * 0.4)
+  for (const role of resume.experience) {
+    const head = role.period ? `${role.title}  ·  ${role.period}` : role.title
+    write(head, '600', line * 0.4)
+    write(role.organization, '400', line * 0.38, muted)
+    for (const bullet of role.bullets) {
+      write(`•  ${bullet}`, '400', line * 0.38)
+    }
+  }
+  row += 1
+  write('EDUCATION', '700', line * 0.4)
+  for (const role of resume.education) {
+    write(role.title, '600', line * 0.4)
+    const school = role.period ? `${role.organization}  ·  ${role.period}` : role.organization
+    write(school, '400', line * 0.38, muted)
+  }
+}
+
+export function createLooseleafResumeTexture(width: number, height: number) {
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Could not create 2D context for looseleaf resume')
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  drawLooseleafResume(ctx, width, height)
   return makeTexture(canvas)
 }
