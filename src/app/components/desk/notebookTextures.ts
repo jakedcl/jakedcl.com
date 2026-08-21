@@ -79,6 +79,8 @@ function makeTexture(canvas: HTMLCanvasElement) {
   texture.minFilter = THREE.LinearMipmapLinearFilter
   texture.magFilter = THREE.LinearFilter
   texture.generateMipmaps = true
+  texture.wrapS = THREE.ClampToEdgeWrapping
+  texture.wrapT = THREE.ClampToEdgeWrapping
   texture.needsUpdate = true
   return texture
 }
@@ -322,16 +324,27 @@ function wrapCanvasText(ctx: CanvasRenderingContext2D, text: string, maxWidth: n
 /**
  * Lined looseleaf with resume copy painted on the rules so the marble cover
  * can occlude a real page mesh (no CSS3D pop-in).
+ *
+ * Design space matches the CSS sheet (400×560, 28px rules). Type uses an
+ * alphabetic baseline sitting on each blue rule.
  */
 export function drawLooseleafResume(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
 ) {
-  const line = Math.round(height / 32)
-  const margin = Math.round(width * 0.1)
-  const textX = margin + Math.round(width * 0.03)
-  const maxWidth = width - textX - Math.round(width * 0.045)
+  const designLine = 28
+  const designWidth = 400
+  const scaledLine = designLine * (width / designWidth)
+  // Keep at least ~32 rows so the full resume fits on the mesh (no HTML scroll).
+  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 32)))
+  const margin = Math.round(width * (40 / 400))
+  const textX = margin + Math.round(width * (12 / 400))
+  const maxWidth = width - textX - Math.round(width * (20 / 400))
+  const fontScale = line / designLine
+  const nameSize = 13 * fontScale
+  const bodySize = 11 * fontScale
+  const mutedSize = 10 * fontScale
   const ink = '#171717'
   const muted = '#525252'
 
@@ -339,7 +352,7 @@ export function drawLooseleafResume(
   ctx.fillRect(0, 0, width, height)
 
   ctx.strokeStyle = '#c5d4e6'
-  ctx.lineWidth = Math.max(1, height * 0.0016)
+  ctx.lineWidth = Math.max(1, fontScale)
   for (let y = line; y < height; y += line) {
     ctx.beginPath()
     ctx.moveTo(0, y)
@@ -356,43 +369,44 @@ export function drawLooseleafResume(
 
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
-  ctx.fillStyle = ink
 
   let row = 1
+  const remaining = () => row * line <= height - line
   const write = (text: string, weight: string, size: number, color = ink) => {
+    if (!remaining()) return
     setFont(ctx, weight, size)
     ctx.fillStyle = color
     for (const piece of wrapCanvasText(ctx, text, maxWidth)) {
+      if (!remaining()) return
       ctx.fillText(piece, textX, row * line)
       row += 1
-      if (row * line > height - line) return
     }
   }
 
-  write(resume.legalName, '500', line * 0.48)
-  write(resume.contact.map((link) => link.label).join('  |  '), '400', line * 0.38, muted)
-  write(resume.summary, '400', line * 0.38)
+  write(resume.legalName, '500', nameSize)
+  write(resume.contact.map((link) => link.label).join('  |  '), '400', mutedSize, muted)
+  write(resume.summary, '400', bodySize)
   row += 1
-  write('TECHNICAL SKILLS', '700', line * 0.4)
+  write('TECHNICAL SKILLS', '700', bodySize)
   for (const group of resume.skills) {
-    write(`${group.label}:  ${group.items.join(', ')}`, '400', line * 0.38)
+    write(`${group.label}:  ${group.items.join(', ')}`, '400', bodySize)
   }
   row += 1
-  write('EXPERIENCE', '700', line * 0.4)
+  write('EXPERIENCE', '700', bodySize)
   for (const role of resume.experience) {
     const head = role.period ? `${role.title}  ·  ${role.period}` : role.title
-    write(head, '600', line * 0.4)
-    write(role.organization, '400', line * 0.38, muted)
+    write(head, '600', bodySize)
+    write(role.organization, '400', mutedSize, muted)
     for (const bullet of role.bullets) {
-      write(`•  ${bullet}`, '400', line * 0.38)
+      write(`•  ${bullet}`, '400', bodySize)
     }
   }
   row += 1
-  write('EDUCATION', '700', line * 0.4)
+  write('EDUCATION', '700', bodySize)
   for (const role of resume.education) {
-    write(role.title, '600', line * 0.4)
+    write(role.title, '600', bodySize)
     const school = role.period ? `${role.organization}  ·  ${role.period}` : role.organization
-    write(school, '400', line * 0.38, muted)
+    write(school, '400', mutedSize, muted)
   }
 }
 

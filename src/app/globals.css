@@ -92,34 +92,38 @@ body {
 
 /* Filmstrip scroll animation - now handled by JavaScript for seamless infinite scroll */
 
-/* drei Html `wrapperClass` is a fullscreen CSS3D viewport over the canvas.
-   Never paint it — that reads as a flat white document covering the desk. */
-.lined-html-portal {
+/* drei Html (folder labels, leftover CSS3D) is a canvas sibling. Never paint
+   cream/white on the portal — that reads as a paperwhite void over WebGL. */
+.lined-html-portal,
+.lined-html,
+.lined-paper,
+.desk-html-portal,
+.desk-html {
   background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
   box-shadow: none !important;
   filter: none !important;
   outline: none;
 }
 
-/* Paper-sized inner sheet (400×560), not a 100vw overlay. */
+canvas + div,
+canvas ~ div {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
 .lined-html {
   width: 400px;
   height: 560px;
-  background: #f4efe3;
-  box-shadow: none !important;
-  filter: none !important;
-  outline: none;
-  -webkit-box-shadow: none;
   overflow: hidden;
 }
 
 .lined-paper {
-  /* One rhythm for both the printed rules and the HTML resume on top. */
+  /* Leftover paper HTML only — the 3D resume is a WebGL canvas texture. */
   --paper-line: 28px;
   --paper-margin: 40px;
   --paper-font: 11px;
-  --paper-rule: #c5d4e6;
-  --paper-red: #d98989;
   position: relative;
   width: 400px;
   height: 560px;
@@ -127,38 +131,6 @@ body {
   overflow-y: auto;
   box-sizing: border-box;
   color: #111;
-  background-color: #f4efe3;
-  /* After Html rotation [-PI/2,0,0], CSS right is +X (outer edge, away from the spine). */
-  border-top-right-radius: 25px 25.05px;
-  border-bottom-right-radius: 25px 25.05px;
-  /* Rules scroll with the copy so wrapped lines stay on the blue lines. */
-  background-attachment: local;
-  background-origin: padding-box;
-  background-clip: padding-box;
-  background-image:
-    linear-gradient(
-      90deg,
-      transparent var(--paper-margin),
-      var(--paper-red) var(--paper-margin),
-      var(--paper-red) calc(var(--paper-margin) + 1px),
-      transparent calc(var(--paper-margin) + 1px)
-    ),
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0,
-      transparent calc(var(--paper-line) - 1px),
-      var(--paper-rule) calc(var(--paper-line) - 1px),
-      var(--paper-rule) var(--paper-line)
-    );
-  /* First alphabetic baseline sits on the first rule; extra -4px lifts sagging type onto the lines. */
-  padding-top: calc((var(--paper-line) + 1em) / 2 - 0.8em - 4px);
-  padding-right: 1.25rem;
-  padding-bottom: var(--paper-line);
-  padding-left: calc(var(--paper-margin) + 12px);
-  box-shadow: none !important;
-  filter: none;
-  outline: none;
-  -webkit-box-shadow: none;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--paper-font);
   line-height: var(--paper-line);

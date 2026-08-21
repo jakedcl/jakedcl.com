@@ -33,7 +33,14 @@ function Folder({
         <boxGeometry args={[0.28, 0.01, 0.16]} />
         <meshStandardMaterial map={folderMap} roughness={0.9} />
       </mesh>
-      <Html position={[0, 0.08, 0.1]} center distanceFactor={6} style={{ pointerEvents: 'none' }}>
+      <Html
+        position={[0, 0.08, 0.1]}
+        center
+        distanceFactor={6}
+        wrapperClass="desk-html-portal"
+        className="desk-html"
+        style={{ pointerEvents: 'none', background: 'transparent' }}
+      >
         <span className="desk-label">{title}</span>
       </Html>
     </group>

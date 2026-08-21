@@ -123,8 +123,10 @@ export default function DeskScene({
       shadows="percentage"
       dpr={[1, 1.5]}
       camera={{ position: start.position, fov: start.fov, near: 0.1, far: 40 }}
-      gl={{ antialias: true }}
+      gl={{ antialias: true, alpha: false }}
+      style={{ background: '#b7a48d' }}
       onCreated={({ gl }) => {
+        gl.setClearColor('#b7a48d', 1)
         gl.shadowMap.enabled = true
         gl.shadowMap.type = THREE.PCFShadowMap
       }}
