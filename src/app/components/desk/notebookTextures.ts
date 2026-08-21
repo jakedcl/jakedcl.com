@@ -404,9 +404,10 @@ export function drawCompositionPageResume(
   const designWidth = 400
   const scaledLine = designLine * (width / designWidth)
   // Cap row height so the full resume fits on the mesh (no HTML scroll).
-  // /43: ~5 blank header rows + 2-row name + wraps/gaps without clipping education.
-  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 43)))
+  // /44: ~6 blank header rows + 2-row name + wraps/gaps without clipping education.
+  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 44)))
   const margin = Math.round(width * (40 / 400))
+  // Body column — name + contact must share this x (right of the red margin).
   const textX = margin + Math.round(width * (12 / 400))
   const maxWidth = width - textX - Math.round(width * (20 / 400))
   const fontScale = line / designLine
@@ -426,8 +427,8 @@ export function drawCompositionPageResume(
   ctx.fillRect(0, 0, width, height)
   paintPaperGrain(ctx, width, height)
 
-  // Classic looseleaf header: ~5 blank lines above the name — no blue rules there.
-  const nameRow = 6
+  // Classic looseleaf header: ~6 blank lines above the name — no blue rules there.
+  const nameRow = 7
   ctx.strokeStyle = ruleBlue
   ctx.lineWidth = Math.max(1, fontScale * 0.85)
   for (let y = nameRow * line; y < height; y += line) {
@@ -492,11 +493,16 @@ export function drawCompositionPageResume(
     }
   }
 
-  // Tall name: baseline on the lower of its two rule rows so glyphs fill both;
-  // write() advances past that row so contact starts clear of the name.
-  write(resume.legalName, '500', nameSize)
+  // Tall name: baseline on the lower of its two rule rows so glyphs fill both.
+  // Plain fillText at textX (same column as body) — no tracking that could drift left.
+  if (remaining()) {
+    setFont(ctx, '500', nameSize)
+    ctx.fillStyle = ink
+    ctx.fillText(resume.legalName, textX, baselineY())
+    row += 1
+  }
 
-  // Contact with softer separators (matches /resume paper styling).
+  // Contact shares textX so labels stay clear of the red margin line.
   if (remaining()) {
     setFont(ctx, '400', mutedSize)
     let cursor = textX
