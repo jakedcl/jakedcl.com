@@ -42,13 +42,13 @@ function SceneContents({
 
   return (
     <>
-      <color attach="background" args={['#b7a48d']} />
-      <fog attach="fog" args={['#b7a48d', 10, 22]} />
-      <ambientLight intensity={0.52} />
-      <hemisphereLight args={['#f3efe8', '#8d7d6c', 0.7]} />
+      <color attach="background" args={['#c4b49c']} />
+      <fog attach="fog" args={['#c4b49c', 14, 28]} />
+      <ambientLight intensity={0.8} />
+      <hemisphereLight args={['#f7f3ec', '#8d7d6c', 0.85]} />
       <directionalLight
         position={[4.2, 7.2, 3.6]}
-        intensity={1.35}
+        intensity={1.6}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
@@ -86,7 +86,7 @@ function SceneContents({
         interactive={hotspotsActive}
         onSelectShot={onSelectShot}
       />
-      <ContactShadows position={[0, 0.001, 0]} opacity={0.38} scale={9} blur={2.2} far={5} />
+      <ContactShadows position={[0, 0.001, 0]} opacity={0.28} scale={9} blur={2.2} far={5} />
     </>
   )
 }
@@ -124,9 +124,11 @@ export default function DeskScene({
       dpr={[1, 1.5]}
       camera={{ position: start.position, fov: start.fov, near: 0.1, far: 40 }}
       gl={{ antialias: true, alpha: false }}
-      style={{ background: '#b7a48d' }}
+      style={{ background: '#c4b49c' }}
       onCreated={({ gl }) => {
-        gl.setClearColor('#b7a48d', 1)
+        gl.setClearColor('#c4b49c', 1)
+        gl.toneMapping = THREE.ACESFilmicToneMapping
+        gl.toneMappingExposure = 1.22
         gl.shadowMap.enabled = true
         gl.shadowMap.type = THREE.PCFShadowMap
       }}
