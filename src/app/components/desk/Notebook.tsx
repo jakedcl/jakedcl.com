@@ -14,6 +14,14 @@ export const NOTEBOOK = {
   pages: 0.045,
 }
 
+const PAGE_INSET = 0.08
+const PAGE_WIDTH = NOTEBOOK.width - PAGE_INSET
+const PAGE_DEPTH = NOTEBOOK.depth - PAGE_INSET
+const PAPER_CSS = { width: 400, height: 560 } as const
+// drei Html transform defaults distanceFactor to 10 (400px → 10 world units).
+// 400 restores 1px ≈ 1 world unit so scale can map the overlay onto the mesh.
+const HTML_DISTANCE_FACTOR = PAPER_CSS.width
+
 export default function Notebook({
   opened,
   pageInteractive,
@@ -87,7 +95,7 @@ export default function Notebook({
           castShadow
           receiveShadow
         >
-          <boxGeometry args={[NOTEBOOK.width - 0.08, NOTEBOOK.pages, NOTEBOOK.depth - 0.08]} />
+          <boxGeometry args={[PAGE_WIDTH, NOTEBOOK.pages, PAGE_DEPTH]} />
           <meshStandardMaterial map={paperMap} roughness={0.95} color="#f4efe3" />
         </mesh>
 
@@ -118,7 +126,8 @@ export default function Notebook({
             occlude={false}
             position={[NOTEBOOK.width / 2 + 0.02, coverHingeY + 0.002, 0]}
             rotation={[-Math.PI / 2, 0, 0]}
-            scale={0.00355}
+            distanceFactor={HTML_DISTANCE_FACTOR}
+            scale={[PAGE_WIDTH / PAPER_CSS.width, PAGE_DEPTH / PAPER_CSS.height, 1]}
             pointerEvents={pageInteractive ? 'auto' : 'none'}
             zIndexRange={[20, 0]}
           >

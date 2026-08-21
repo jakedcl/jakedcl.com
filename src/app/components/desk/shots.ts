@@ -9,6 +9,8 @@ export type Shot = {
 
 // Closed notebook cover center after the leftward shift (hinge at x = -0.5, width 1.52).
 const NOTEBOOK_FOCUS: [number, number, number] = [0.26, 0.07, 0]
+// Open page mesh center (local x = width/2+0.02, then group x = -0.5).
+const PAGE_FOCUS: [number, number, number] = [0.28, 0.05, 0]
 
 export const shots: Record<ShotName, Shot> = {
   intro: {
@@ -31,9 +33,10 @@ export const shots: Record<ShotName, Shot> = {
     duration: 2.7,
   },
   page: {
-    position: [0.34, 2.48, 0.05],
-    target: [0.34, 0.05, 0],
-    fov: 26,
+    // Close reading pose over the open spread — not the intro aerial.
+    position: [PAGE_FOCUS[0], 1.32, 1.18],
+    target: PAGE_FOCUS,
+    fov: 32,
   },
   desk: {
     position: [0.35, 4.7, 5.15],
