@@ -58,7 +58,11 @@ export default function Notebook({
   const pageResumeMap = useMemo(() => createLooseleafResumeTexture(PAGE_TEX_WIDTH, PAGE_TEX_HEIGHT), [])
 
   useEffect(() => {
-    pageResumeMap.anisotropy = 8
+    // No mipmaps — canvas type stays crisp when the page shot is close.
+    pageResumeMap.generateMipmaps = false
+    pageResumeMap.minFilter = THREE.LinearFilter
+    pageResumeMap.magFilter = THREE.LinearFilter
+    pageResumeMap.anisotropy = 16
     pageResumeMap.needsUpdate = true
     return () => pageResumeMap.dispose()
   }, [pageResumeMap])
