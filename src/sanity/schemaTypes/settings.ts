@@ -73,7 +73,7 @@ export const settingsType = defineType({
       title: 'Inside cover (class program)',
       type: 'object',
       description:
-        'Fill-in lines at the top of the CLASS PROGRAM sheet (name, address, email, phone, school, class). The period grid stays empty. Leave a field blank to use the site default.',
+        'Fill-in lines on the CLASS PROGRAM sheet. The period grid stays empty. Leave a field blank to use the site default.',
       fields: [
         defineField({
           name: 'name',
@@ -84,18 +84,6 @@ export const settingsType = defineType({
           name: 'address',
           title: 'Address',
           type: 'string',
-        }),
-        defineField({
-          name: 'email',
-          title: 'Email',
-          type: 'string',
-          description: 'Line under Address. Defaults to the resume email.',
-        }),
-        defineField({
-          name: 'phone',
-          title: 'Phone',
-          type: 'string',
-          description: 'Line under Email. Defaults to the resume phone number.',
         }),
         defineField({
           name: 'school',
