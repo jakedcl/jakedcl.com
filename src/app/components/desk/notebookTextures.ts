@@ -321,12 +321,42 @@ function wrapCanvasText(ctx: CanvasRenderingContext2D, text: string, maxWidth: n
   return lines
 }
 
+function paintPaperGrain(ctx: CanvasRenderingContext2D, width: number, height: number) {
+  // Sparse soft flecks — reads as paper tooth on the mesh without a second texture load.
+  const flecks = Math.floor((width * height) / 1800)
+  for (let i = 0; i < flecks; i++) {
+    const x = (i * 127 + 41) % width
+    const y = (i * 311 + 17) % height
+    const a = 0.02 + ((i * 17) % 7) * 0.005
+    ctx.fillStyle = i % 3 === 0 ? `rgba(80,70,55,${a})` : `rgba(255,252,245,${a * 1.35})`
+    ctx.fillRect(x, y, 1 + (i % 2), 1 + ((i * 3) % 2))
+  }
+}
+
+function fillTrackedText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  tracking: number,
+) {
+  if (tracking <= 0) {
+    ctx.fillText(text, x, y)
+    return
+  }
+  let cursor = x
+  for (const ch of text) {
+    ctx.fillText(ch, cursor, y)
+    cursor += ctx.measureText(ch).width + tracking
+  }
+}
+
 /**
  * Lined looseleaf with resume copy painted on the rules so the marble cover
  * can occlude a real page mesh (no CSS3D pop-in).
  *
- * Design space matches the CSS sheet (400×560, 28px rules). Type uses an
- * alphabetic baseline sitting on each blue rule.
+ * Design space matches the CSS sheet (400×560, 28px rules). Type sits in the
+ * ruling band with the alphabetic baseline just above each blue rule.
  */
 export function drawLooseleafResume(
   ctx: CanvasRenderingContext2D,
@@ -337,7 +367,8 @@ export function drawLooseleafResume(
   const designWidth = 400
   const scaledLine = designLine * (width / designWidth)
   // Cap row height so the full resume fits on the mesh (no HTML scroll).
-  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 36)))
+  // /37 leaves room for a blank top rule plus section gaps without clipping education.
+  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 37)))
   const margin = Math.round(width * (40 / 400))
   const textX = margin + Math.round(width * (12 / 400))
   const maxWidth = width - textX - Math.round(width * (20 / 400))
@@ -345,14 +376,20 @@ export function drawLooseleafResume(
   const nameSize = 13 * fontScale
   const bodySize = 11 * fontScale
   const mutedSize = 10 * fontScale
+  // Sit glyphs in the band above the rule (classic lined-paper writing).
+  const baselineLift = line * 0.2
   const ink = '#171717'
   const muted = '#525252'
+  const soft = '#8a8a8a'
+  const ruleBlue = '#b7c9de'
+  const marginRed = '#d27c7c'
 
-  ctx.fillStyle = '#f4efe3'
+  ctx.fillStyle = '#f3eee2'
   ctx.fillRect(0, 0, width, height)
+  paintPaperGrain(ctx, width, height)
 
-  ctx.strokeStyle = '#c5d4e6'
-  ctx.lineWidth = Math.max(1, fontScale)
+  ctx.strokeStyle = ruleBlue
+  ctx.lineWidth = Math.max(1, fontScale * 0.85)
   for (let y = line; y < height; y += line) {
     ctx.beginPath()
     ctx.moveTo(0, y)
@@ -360,39 +397,112 @@ export function drawLooseleafResume(
     ctx.stroke()
   }
 
-  ctx.strokeStyle = '#d98989'
-  ctx.lineWidth = Math.max(2, width * 0.0024)
+  ctx.strokeStyle = marginRed
+  ctx.lineWidth = Math.max(2, width * 0.0022)
   ctx.beginPath()
   ctx.moveTo(margin, 0)
   ctx.lineTo(margin, height)
   ctx.stroke()
 
+  // Looseleaf punch holes in the left margin.
+  const holeR = Math.max(3, width * 0.011)
+  const holeX = margin * 0.42
+  const holeCount = 3
+  const holeSpan = height * 0.62
+  const holeStart = (height - holeSpan) / 2
+  for (let i = 0; i < holeCount; i++) {
+    const hy = holeStart + (holeSpan * i) / (holeCount - 1)
+    ctx.beginPath()
+    ctx.fillStyle = '#e8e2d4'
+    ctx.arc(holeX, hy, holeR, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.strokeStyle = 'rgba(60,50,40,0.18)'
+    ctx.lineWidth = Math.max(1, fontScale * 0.5)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.fillStyle = 'rgba(90,78,62,0.12)'
+    ctx.arc(holeX + holeR * 0.15, hy + holeR * 0.15, holeR * 0.72, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
 
-  let row = 1
+  // Leave a top rule empty so the name is not jammed into the page edge.
+  let row = 2
   const remaining = () => row * line <= height - line
-  const write = (text: string, weight: string, size: number, color = ink) => {
+  const baselineY = () => row * line - baselineLift
+
+  const write = (
+    text: string,
+    weight: string,
+    size: number,
+    color = ink,
+    tracking = 0,
+  ) => {
     if (!remaining()) return
     setFont(ctx, weight, size)
     ctx.fillStyle = color
     for (const piece of wrapCanvasText(ctx, text, maxWidth)) {
       if (!remaining()) return
-      ctx.fillText(piece, textX, row * line)
+      fillTrackedText(ctx, piece, textX, baselineY(), tracking)
+      row += 1
+    }
+  }
+
+  const writeLabeled = (label: string, rest: string, size: number) => {
+    if (!remaining()) return
+    setFont(ctx, '600', size)
+    ctx.fillStyle = ink
+    const labelText = `${label}:  `
+    const labelW = ctx.measureText(labelText).width
+    ctx.fillText(labelText, textX, baselineY())
+    setFont(ctx, '400', size)
+    const pieces = wrapCanvasText(ctx, rest, Math.max(8, maxWidth - labelW))
+    if (pieces.length === 0) {
+      row += 1
+      return
+    }
+    ctx.fillText(pieces[0], textX + labelW, baselineY())
+    row += 1
+    for (const piece of pieces.slice(1)) {
+      if (!remaining()) return
+      setFont(ctx, '400', size)
+      ctx.fillStyle = ink
+      ctx.fillText(piece, textX, baselineY())
       row += 1
     }
   }
 
   write(resume.legalName, '500', nameSize)
-  write(resume.contact.map((link) => link.label).join('  |  '), '400', mutedSize, muted)
+
+  // Contact with softer separators (matches /resume paper styling).
+  if (remaining()) {
+    setFont(ctx, '400', mutedSize)
+    let cursor = textX
+    resume.contact.forEach((link, index) => {
+      if (index > 0) {
+        ctx.fillStyle = soft
+        const sep = '  |  '
+        ctx.fillText(sep, cursor, baselineY())
+        cursor += ctx.measureText(sep).width
+      }
+      ctx.fillStyle = muted
+      ctx.fillText(link.label, cursor, baselineY())
+      cursor += ctx.measureText(link.label).width
+    })
+    row += 1
+  }
+
   write(resume.summary, '400', bodySize)
   row += 1
-  write('TECHNICAL SKILLS', '700', bodySize)
+  // ~0.06em tracking on section titles, like the CSS lined sheet.
+  write('TECHNICAL SKILLS', '700', bodySize, ink, bodySize * 0.06)
   for (const group of resume.skills) {
-    write(`${group.label}:  ${group.items.join(', ')}`, '400', bodySize)
+    writeLabeled(group.label, group.items.join(', '), bodySize)
   }
   row += 1
-  write('EXPERIENCE', '700', bodySize)
+  write('EXPERIENCE', '700', bodySize, ink, bodySize * 0.06)
   for (const role of resume.experience) {
     const head = role.period ? `${role.title}  ·  ${role.period}` : role.title
     write(head, '600', bodySize)
@@ -402,7 +512,7 @@ export function drawLooseleafResume(
     }
   }
   row += 1
-  write('EDUCATION', '700', bodySize)
+  write('EDUCATION', '700', bodySize, ink, bodySize * 0.06)
   for (const role of resume.education) {
     write(role.title, '600', bodySize)
     const school = role.period ? `${role.organization}  ·  ${role.period}` : role.organization
