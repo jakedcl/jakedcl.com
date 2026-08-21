@@ -37,8 +37,6 @@ export const settingsQuery = groq`
     notebookInside {
       name,
       address,
-      email,
-      phone,
       school,
       class
     }

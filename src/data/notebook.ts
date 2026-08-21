@@ -10,8 +10,6 @@ export type NotebookCoverCopy = {
 export type NotebookInsideCopy = {
   name: string
   address: string
-  email: string
-  phone: string
   school: string
   class: string
 }
@@ -32,17 +30,9 @@ export const NOTEBOOK_COVER_FALLBACK: NotebookCoverCopy = {
   email: 'jakedcl.com',
 }
 
-const emailFromResume =
-  resume.contact.find((link) => link.href.startsWith('mailto:'))?.label ??
-  'jakedecorelurker@gmail.com'
-const phoneFromResume =
-  resume.contact.find((link) => link.href.startsWith('tel:'))?.label ?? '347-733-1501'
-
 export const NOTEBOOK_INSIDE_FALLBACK: NotebookInsideCopy = {
   name: 'Jake DCL',
   address: 'jakedcl.com',
-  email: emailFromResume,
-  phone: phoneFromResume,
   school: resume.education[0]?.organization ?? 'CUNY College of Staten Island',
   class: 'Web Developer',
 }
@@ -57,8 +47,6 @@ export function resolveNotebookCopy(settings: Settings | null | undefined): Note
     inside: {
       name: pick(settings?.notebookInside?.name, NOTEBOOK_INSIDE_FALLBACK.name),
       address: pick(settings?.notebookInside?.address, NOTEBOOK_INSIDE_FALLBACK.address),
-      email: pick(settings?.notebookInside?.email, NOTEBOOK_INSIDE_FALLBACK.email),
-      phone: pick(settings?.notebookInside?.phone, NOTEBOOK_INSIDE_FALLBACK.phone),
       school: pick(settings?.notebookInside?.school, NOTEBOOK_INSIDE_FALLBACK.school),
       class: pick(settings?.notebookInside?.class, NOTEBOOK_INSIDE_FALLBACK.class),
     },

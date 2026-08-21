@@ -203,10 +203,6 @@ export function drawClassProgram(
   y += lineGap
   labeledRule(ctx, 'ADDRESS', copy.address, padX, y, contentW, labelSize, valueSize, labelCol)
   y += lineGap
-  labeledRule(ctx, 'EMAIL', copy.email, padX, y, contentW, labelSize, valueSize, labelCol)
-  y += lineGap
-  labeledRule(ctx, 'PHONE', copy.phone, padX, y, contentW, labelSize, valueSize, labelCol)
-  y += lineGap
   labeledRule(ctx, 'SCHOOL', copy.school, padX, y, contentW, labelSize, valueSize, labelCol)
   y += lineGap
   labeledRule(ctx, 'CLASS', copy.class, padX, y, contentW, labelSize, valueSize, labelCol)

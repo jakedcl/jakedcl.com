@@ -28,8 +28,6 @@ export interface NotebookCoverSettings {
 export interface NotebookInsideSettings {
   name?: string
   address?: string
-  email?: string
-  phone?: string
   school?: string
   class?: string
 }
