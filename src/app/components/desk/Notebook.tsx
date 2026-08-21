@@ -70,7 +70,7 @@ export default function Notebook({
 
   return (
     <Hotspot disabled={!interactive || pageInteractive} label="Resume notebook" onSelect={onOpenPage}>
-      <group position={[0, 0, 0]}>
+      <group position={[-0.5, 0, 0]}>
         <RoundedBox
           args={[NOTEBOOK.width, NOTEBOOK.cover, NOTEBOOK.depth]}
           radius={0.03}

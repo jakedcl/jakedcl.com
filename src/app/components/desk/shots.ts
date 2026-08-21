@@ -9,19 +9,19 @@ export type Shot = {
 
 export const shots: Record<ShotName, Shot> = {
   intro: {
-    position: [1.35, 3.15, 2.75],
-    target: [0.74, 0.08, 0.04],
+    position: [0.85, 3.15, 2.75],
+    target: [0.24, 0.08, 0.04],
     fov: 34,
   },
   cover: {
-    position: [0.76, 1.95, 1.38],
-    target: [0.76, 0.07, 0.02],
+    position: [0.26, 1.95, 1.38],
+    target: [0.26, 0.07, 0.02],
     fov: 28,
     duration: 2.4,
   },
   page: {
-    position: [0.84, 2.48, 0.05],
-    target: [0.84, 0.05, 0],
+    position: [0.34, 2.48, 0.05],
+    target: [0.34, 0.05, 0],
     fov: 26,
   },
   desk: {
