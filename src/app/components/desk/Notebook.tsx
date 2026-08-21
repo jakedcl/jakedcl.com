@@ -154,7 +154,8 @@ export default function Notebook({
         >
           <meshStandardMaterial attach="material-0" color={PAPER_CREAM} roughness={0.95} />
           <meshStandardMaterial attach="material-1" color={PAPER_CREAM} roughness={0.95} />
-          <meshStandardMaterial attach="material-2" map={pageResumeMap} roughness={0.95} metalness={0} />
+          {/* Unlit +Y: lighting softens canvas ink; Basic keeps resume text crisp. */}
+          <meshBasicMaterial attach="material-2" map={pageResumeMap} />
           <meshStandardMaterial attach="material-3" map={paperMap} color={PAPER_CREAM} roughness={0.95} />
           <meshStandardMaterial attach="material-4" color={PAPER_CREAM} roughness={0.95} />
           <meshStandardMaterial attach="material-5" color={PAPER_CREAM} roughness={0.95} />
