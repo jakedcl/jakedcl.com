@@ -77,7 +77,7 @@ export default function Notebook({
   const coverHingeY = NOTEBOOK.cover + NOTEBOOK.pages
 
   return (
-    <Hotspot disabled={!interactive || pageInteractive} label="Resume notebook" onSelect={onOpenPage}>
+    <Hotspot disabled={!interactive} label="Resume notebook" onSelect={onOpenPage}>
       <group position={[-0.5, 0, 0]}>
         <RoundedBox
           args={[NOTEBOOK.width, NOTEBOOK.cover, NOTEBOOK.depth]}
@@ -135,6 +135,10 @@ export default function Notebook({
               className="lined-paper notebook-page"
               onPointerDown={(event) => event.stopPropagation()}
               onWheel={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                if ((event.target as HTMLElement).closest('a')) return
+                onOpenPage()
+              }}
             >
               <Resume variant="paper" />
             </div>

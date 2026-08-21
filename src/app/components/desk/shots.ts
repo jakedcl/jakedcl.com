@@ -33,8 +33,9 @@ export const shots: Record<ShotName, Shot> = {
     duration: 2.7,
   },
   page: {
-    // Close reading pose over the open spread — not the intro aerial.
-    position: [PAGE_FOCUS[0], 1.32, 1.18],
+    // Close aerial overlook over the OPEN notebook — high +Y, looking down
+    // so the lined resume fills the frame. Not the far intro `aerial`.
+    position: [PAGE_FOCUS[0], 3.05, 0.16],
     target: PAGE_FOCUS,
     fov: 32,
   },

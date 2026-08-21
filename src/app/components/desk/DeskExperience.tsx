@@ -21,7 +21,6 @@ export default function DeskExperience({
 }) {
   const [mode, setMode] = useState<Mode>('boot')
   const [shot, setShot] = useState<ShotName>('intro')
-  const [opened, setOpened] = useState(false)
   const [introDone, setIntroDone] = useState(false)
   const [arrived, setArrived] = useState(false)
   const [skipIntro, setSkipIntro] = useState(false)
@@ -49,7 +48,6 @@ export default function DeskExperience({
     if (skipIntro) {
       setShot('desk')
       setIntroDone(true)
-      setOpened(false)
       setArrived(false)
       setSnapCamera(true)
       return
@@ -71,7 +69,6 @@ export default function DeskExperience({
   const onSelectShot = useCallback((next: ShotName) => {
     setShot(next)
     setArrived(false)
-    if (next === 'page') setOpened(true)
     if (next !== 'page' && next !== 'cover' && next !== 'intro' && next !== 'aerial') {
       setIntroDone(true)
     }
@@ -108,7 +105,8 @@ export default function DeskExperience({
     return fallback
   }
 
-  const pageInteractive = shot === 'page' && introDone
+  const opened = shot === 'page'
+  const pageInteractive = opened && introDone
   const hotspotsActive = introDone
   const orbitEnabled = introDone && arrived && canOrbit(shot)
 
