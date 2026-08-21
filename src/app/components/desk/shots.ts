@@ -9,8 +9,8 @@ export type Shot = {
 
 // Closed notebook cover center after the leftward shift (hinge at x = -0.5, width 1.52).
 const NOTEBOOK_FOCUS: [number, number, number] = [0.26, 0.07, 0]
-// Open page mesh center (local x = width/2+0.02, then group x = -0.5).
-const PAGE_FOCUS: [number, number, number] = [0.28, 0.05, 0]
+// Open page center (local PAGE_CENTER_X = 0.80, then group x = -0.5).
+const PAGE_FOCUS: [number, number, number] = [0.3, 0.05, 0]
 
 export const shots: Record<ShotName, Shot> = {
   intro: {

@@ -1,12 +1,13 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Html, useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { NotebookCopy } from '@/data/notebook'
 import Resume from '../Resume'
 import Hotspot from './Hotspot'
+import { PAGE_CORNER_RADIUS, createNotebookSlabGeometry } from './notebookGeometry'
 
 export const NOTEBOOK = {
   width: 1.52,
@@ -15,21 +16,27 @@ export const NOTEBOOK = {
   pages: 0.045,
 }
 
-const PAGE_INSET = 0.08
-const PAGE_WIDTH = NOTEBOOK.width - PAGE_INSET
-const PAGE_DEPTH = NOTEBOOK.depth - PAGE_INSET
+const PAPER_CREAM = '#f4efe3'
+const PAGE_CLEARANCE = 0.002
+const PAGE_HEIGHT = NOTEBOOK.pages - PAGE_CLEARANCE
+// Spine tape is a 0.10-wide box centered at x=0.05 (occupies 0–0.10).
+const PAGE_SPINE_INSET = 0.12
+const PAGE_OUTER_INSET = 0.04
+const PAGE_EDGE_INSET = 0.04
+export const PAGE_WIDTH = NOTEBOOK.width - PAGE_SPINE_INSET - PAGE_OUTER_INSET
+export const PAGE_DEPTH = NOTEBOOK.depth - PAGE_EDGE_INSET * 2
+export const PAGE_CENTER_X = PAGE_SPINE_INSET + PAGE_WIDTH / 2
 const PAPER_CSS = { width: 400, height: 560 } as const
 // drei Html transform defaults distanceFactor to 10 (400px → 10 world units).
 // 400 restores 1px ≈ 1 world unit so scale can map the overlay onto the mesh.
 const HTML_DISTANCE_FACTOR = PAPER_CSS.width
 const CLICK_SLOP_PX = 8
-const PAGE_CLEARANCE = 0.002
 // Cover rotation is damped; ~0.54 is vertical. Wait until it is mostly off the page.
 const RESUME_REVEAL = 0.66
-// Spine tape occupies x≈0–0.10; page mesh left is 0.06. Nudge the overlay onto the cream.
-const HTML_SPINE_NUDGE = 0.04
-// Sit slightly into the page so the CSS3D sheet is not a card hovering above it.
-const HTML_PAGE_EMBED = 0.0006
+// Sit slightly into the page so the CSS3D sheet is the bound face, not a card above it.
+const HTML_PAGE_EMBED = 0.0012
+// CSS radii that stay circular in world space after the non-uniform Html scale.
+const PAGE_CORNER_CSS = `${(PAGE_CORNER_RADIUS / PAGE_WIDTH) * PAPER_CSS.width}px ${(PAGE_CORNER_RADIUS / PAGE_DEPTH) * PAPER_CSS.height}px`
 
 function isPaperLink(target: EventTarget | null) {
   return target instanceof Element && Boolean(target.closest('a[href]'))
@@ -58,6 +65,12 @@ export default function Notebook({
     '/desk/notebook-cover.jpg',
     '/desk/paper-cream.jpg',
   ])
+  const pageGeometry = useMemo(
+    () => createNotebookSlabGeometry(PAGE_WIDTH, PAGE_HEIGHT, PAGE_DEPTH, PAGE_CORNER_RADIUS),
+    [],
+  )
+
+  useEffect(() => () => pageGeometry.dispose(), [pageGeometry])
 
   coverMap.colorSpace = THREE.SRGBColorSpace
   paperMap.colorSpace = THREE.SRGBColorSpace
@@ -77,10 +90,9 @@ export default function Notebook({
     }
   })
 
-  const pageHeight = NOTEBOOK.pages - PAGE_CLEARANCE
-  const pageY = NOTEBOOK.cover + pageHeight / 2
+  const pageY = NOTEBOOK.cover + PAGE_HEIGHT / 2
   const coverHingeY = NOTEBOOK.cover + NOTEBOOK.pages
-  const pageTop = NOTEBOOK.cover + pageHeight
+  const pageTop = NOTEBOOK.cover + PAGE_HEIGHT
 
   return (
     <Hotspot disabled={!interactive || pageInteractive} label="Resume notebook" onSelect={onOpenPage}>
@@ -91,16 +103,17 @@ export default function Notebook({
         </mesh>
 
         <mesh
-          position={[NOTEBOOK.width / 2 + 0.02, pageY, 0]}
+          geometry={pageGeometry}
+          position={[PAGE_CENTER_X, pageY, 0]}
           castShadow
           receiveShadow
+          visible={!resumeVisible}
           onClick={(event) => {
             event.stopPropagation()
             if (pageInteractive) onClosePage()
           }}
         >
-          <boxGeometry args={[PAGE_WIDTH, pageHeight, PAGE_DEPTH]} />
-          <meshStandardMaterial map={paperMap} roughness={0.95} color="#f4efe3" />
+          <meshStandardMaterial map={paperMap} roughness={0.95} color={PAPER_CREAM} />
         </mesh>
 
         <group ref={coverRef} position={[0, coverHingeY, 0]}>
@@ -125,20 +138,30 @@ export default function Notebook({
           <Html
             transform
             occlude={false}
-            position={[
-              NOTEBOOK.width / 2 + 0.02 + HTML_SPINE_NUDGE,
-              pageTop - HTML_PAGE_EMBED,
-              0,
-            ]}
+            wrapperClass="lined-html-portal"
+            className="lined-html"
+            position={[PAGE_CENTER_X, pageTop - HTML_PAGE_EMBED, 0]}
             rotation={[-Math.PI / 2, 0, 0]}
             distanceFactor={HTML_DISTANCE_FACTOR}
             scale={[PAGE_WIDTH / PAPER_CSS.width, PAGE_DEPTH / PAPER_CSS.height, 1]}
             pointerEvents={pageInteractive ? 'auto' : 'none'}
             zIndexRange={[20, 0]}
-            style={{ background: 'transparent', boxShadow: 'none' }}
+            style={{
+              background: PAPER_CREAM,
+              boxShadow: 'none',
+              filter: 'none',
+              outline: 'none',
+              overflow: 'hidden',
+              borderTopRightRadius: PAGE_CORNER_CSS,
+              borderBottomRightRadius: PAGE_CORNER_CSS,
+            }}
           >
             <div
               className="lined-paper notebook-page"
+              style={{
+                borderTopRightRadius: PAGE_CORNER_CSS,
+                borderBottomRightRadius: PAGE_CORNER_CSS,
+              }}
               tabIndex={0}
               aria-label="Resume. Click the page to close the notebook and return to the desk."
               onPointerDown={(event) => {
