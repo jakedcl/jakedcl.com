@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useRef, type ReactNode } from 'react'
-import { useTexture } from '@react-three/drei'
+import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
+import { Html, useTexture } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { resolveNotebookCopy, type NotebookCopy } from '@/data/notebook'
+import Resume from '../Resume'
 import Hotspot from './Hotspot'
 import {
   COVER_CORNER_RADIUS,
@@ -12,7 +13,6 @@ import {
   createNotebookSlabGeometry,
 } from './notebookGeometry'
 import { createCoverTexture, createInsideCoverTexture } from './notebookTextures'
-import { createResumePageTexture } from './resumePageTexture'
 
 export const NOTEBOOK = {
   width: 1.52,
@@ -24,10 +24,21 @@ export const NOTEBOOK = {
 const PAGE_INSET = 0.08
 const PAGE_WIDTH = NOTEBOOK.width - PAGE_INSET
 const PAGE_DEPTH = NOTEBOOK.depth - PAGE_INSET
+const PAPER_CSS = { width: 400, height: 560 } as const
+// drei Html transform defaults distanceFactor to 10 (400px → 10 world units).
+// 400 restores 1px ≈ 1 world unit so scale can map the overlay onto the mesh.
+const HTML_DISTANCE_FACTOR = PAPER_CSS.width
+// Cover rotation is damped; ~0.54 is vertical. Wait until it is mostly off the page
+// so CSS3D resume text cannot punch through the still-closed marble.
+const RESUME_REVEAL = 0.62
+const CLICK_SLOP_PX = 8
 const PAGE_CLEARANCE = 0.002
 const TEX_WIDTH = 2048
 const TEX_HEIGHT = Math.round(TEX_WIDTH * (NOTEBOOK.depth / NOTEBOOK.width))
-const PAGE_TEX_HEIGHT = Math.round(TEX_WIDTH * (PAGE_DEPTH / PAGE_WIDTH))
+
+function isPaperLink(target: EventTarget | null) {
+  return target instanceof Element && Boolean(target.closest('a[href]'))
+}
 
 function NotebookSlab({
   width,
@@ -83,6 +94,9 @@ export default function Notebook({
 }) {
   const coverRef = useRef<THREE.Group>(null)
   const openAmount = useRef(opened ? 1 : 0)
+  const resumeVisibleRef = useRef(openAmount.current > RESUME_REVEAL)
+  const [resumeVisible, setResumeVisible] = useState(resumeVisibleRef.current)
+  const pressRef = useRef<{ x: number; y: number; scroll: number } | null>(null)
   const { gl } = useThree()
   const [coverMap, paperMap] = useTexture([
     '/desk/notebook-cover.jpg',
@@ -106,13 +120,8 @@ export default function Notebook({
     return createInsideCoverTexture(notebook.inside, TEX_WIDTH, TEX_HEIGHT)
   }, [notebook.inside])
 
-  const resumeMap = useMemo(() => {
-    if (typeof document === 'undefined') return null
-    return createResumePageTexture(TEX_WIDTH, PAGE_TEX_HEIGHT)
-  }, [])
-
   useEffect(() => {
-    const maps = [coverLabelMap, insideCoverMap, resumeMap]
+    const maps = [coverLabelMap, insideCoverMap]
     const maxAniso = Math.max(8, gl.capabilities.getMaxAnisotropy())
     for (const map of maps) {
       if (!map) continue
@@ -122,18 +131,8 @@ export default function Notebook({
     return () => {
       coverLabelMap?.dispose()
       insideCoverMap?.dispose()
-      resumeMap?.dispose()
     }
-  }, [gl, coverLabelMap, insideCoverMap, resumeMap])
-
-  useEffect(() => {
-    if (!opened && !pageInteractive) return
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClosePage()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClosePage, opened, pageInteractive])
+  }, [gl, coverLabelMap, insideCoverMap])
 
   const backCoverMaterial = useMemo(
     () =>
@@ -229,19 +228,16 @@ export default function Notebook({
   const pageFaceMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        map: resumeMap ?? paperMap,
-        roughness: 0.92,
+        map: paperMap,
+        roughness: 0.95,
         metalness: 0,
-        color: '#ffffff',
+        color: '#f4efe3',
         transparent: false,
         opacity: 1,
         depthWrite: true,
         depthTest: true,
-        polygonOffset: true,
-        polygonOffsetFactor: 1,
-        polygonOffsetUnits: 1,
       }),
-    [paperMap, resumeMap],
+    [paperMap],
   )
 
   const pageMaterials = useMemo(
@@ -262,6 +258,11 @@ export default function Notebook({
     if (coverRef.current) {
       coverRef.current.rotation.z = openAmount.current * Math.PI * 0.93
     }
+    const nextVisible = openAmount.current > RESUME_REVEAL
+    if (nextVisible !== resumeVisibleRef.current) {
+      resumeVisibleRef.current = nextVisible
+      setResumeVisible(nextVisible)
+    }
   })
 
   const pageHeight = NOTEBOOK.pages - PAGE_CLEARANCE
@@ -269,11 +270,7 @@ export default function Notebook({
   const coverHingeY = NOTEBOOK.cover + NOTEBOOK.pages
 
   return (
-    <Hotspot
-      disabled={!interactive}
-      label="Resume notebook"
-      onSelect={opened || pageInteractive ? onClosePage : onOpenPage}
-    >
+    <Hotspot disabled={!interactive || pageInteractive} label="Resume notebook" onSelect={onOpenPage}>
       <group position={[-0.5, 0, 0]}>
         <NotebookSlab
           width={NOTEBOOK.width}
@@ -308,6 +305,60 @@ export default function Notebook({
           <boxGeometry args={[0.1, coverHingeY + 0.02, NOTEBOOK.depth + 0.01]} />
           <primitive object={spineMaterial} attach="material" />
         </mesh>
+
+        {resumeVisible ? (
+          <Html
+            transform
+            occlude={[coverRef as RefObject<THREE.Object3D>]}
+            position={[NOTEBOOK.width / 2 + 0.02, coverHingeY + 0.002, 0]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            distanceFactor={HTML_DISTANCE_FACTOR}
+            scale={[PAGE_WIDTH / PAPER_CSS.width, PAGE_DEPTH / PAPER_CSS.height, 1]}
+            pointerEvents={pageInteractive ? 'auto' : 'none'}
+            zIndexRange={[20, 0]}
+          >
+            <div
+              className="lined-paper notebook-page"
+              tabIndex={0}
+              aria-label="Resume. Click the page to close the notebook and return to the desk."
+              onPointerDown={(event) => {
+                event.stopPropagation()
+                pressRef.current = {
+                  x: event.clientX,
+                  y: event.clientY,
+                  scroll: event.currentTarget.scrollTop,
+                }
+              }}
+              onPointerUp={(event) => {
+                event.stopPropagation()
+                const press = pressRef.current
+                pressRef.current = null
+                if (!press || isPaperLink(event.target)) return
+                const dragged =
+                  Math.hypot(event.clientX - press.x, event.clientY - press.y) > CLICK_SLOP_PX
+                const scrolled = Math.abs(event.currentTarget.scrollTop - press.scroll) > 4
+                if (dragged || scrolled) return
+                onClosePage()
+              }}
+              onClick={(event) => event.stopPropagation()}
+              onWheel={(event) => event.stopPropagation()}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  event.preventDefault()
+                  onClosePage()
+                  return
+                }
+                if (event.target !== event.currentTarget) return
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  onClosePage()
+                }
+              }}
+            >
+              <Resume variant="paper" />
+            </div>
+          </Html>
+        ) : null}
       </group>
     </Hotspot>
   )

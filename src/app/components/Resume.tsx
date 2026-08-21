@@ -131,50 +131,103 @@ function RoleEntry({ role, compact = false }: { role: ResumeRole; compact?: bool
   )
 }
 
+function PaperContactLine({ links }: { links: ResumeLink[] }) {
+  const isPhone = (link: ResumeLink) => link.href.startsWith('tel:')
+  const primary = links.filter((link) => !isPhone(link))
+  const phone = links.find(isPhone)
+  const items = phone ? [...primary, phone] : primary
+
+  return (
+    <p className="paper-contact">
+      {items.map((link, index) => (
+        <span key={link.label}>
+          {index > 0 && (
+            <span className="paper-contact-sep" aria-hidden>
+              {' | '}
+            </span>
+          )}
+          {link.href ? (
+            <a
+              href={link.href}
+              className="underline"
+              {...(link.href.startsWith('http')
+                ? { target: '_blank', rel: 'noopener noreferrer' }
+                : {})}
+            >
+              {link.label}
+            </a>
+          ) : (
+            link.label
+          )}
+        </span>
+      ))}
+    </p>
+  )
+}
+
+function PaperRoleHeader({ role }: { role: ResumeRole }) {
+  return (
+    <>
+      <div className="paper-role-head">
+        <h3>{role.title}</h3>
+        {role.period ? <p className="paper-muted">{role.period}</p> : null}
+      </div>
+      <p className="paper-muted">
+        {role.organizationUrl ? (
+          <ExternalLink href={role.organizationUrl}>{role.organization}</ExternalLink>
+        ) : (
+          role.organization
+        )}
+      </p>
+    </>
+  )
+}
+
 function PaperResume() {
   return (
-    <div className="w-full space-y-3 text-black">
-      <div className="space-y-1.5">
-        <p className="text-[13px] font-medium leading-tight text-neutral-900">{resume.legalName}</p>
-        <ContactLine links={resume.contact} compact />
-        <p className="text-[10px] leading-snug text-neutral-800">{resume.summary}</p>
-      </div>
+    <div className="paper-resume">
+      <p className="paper-name">{resume.legalName}</p>
+      <PaperContactLine links={resume.contact} />
+      <p>{resume.summary}</p>
 
       <section>
-        <SectionHeading compact>Technical Skills</SectionHeading>
-        <ul className="space-y-1.5 text-[10px]">
+        <h2>Technical Skills</h2>
+        <ul className="paper-skills">
           {resume.skills.map((group) => (
-            <li key={group.label} className="leading-snug">
-              <p className="mb-0.5 font-semibold text-black">{group.label}</p>
-              <p className="text-neutral-800">{group.items.join(', ')}</p>
+            <li key={group.label}>
+              <p className="paper-skill-label">{group.label}</p>
+              <p>{group.items.join(', ')}</p>
             </li>
           ))}
         </ul>
       </section>
 
       <section>
-        <SectionHeading compact>Experience</SectionHeading>
-        <div className="space-y-2.5">
-          {resume.experience.map((role) => (
-            <RoleEntry key={`${role.title}-${role.organization}`} role={role} compact />
-          ))}
-        </div>
-        <p className="mt-2.5 text-[10px] text-neutral-500">
-          <a
-            href="/resume.pdf"
-            download="Jake_DeCore_Lurker_Resume.pdf"
-            className="underline underline-offset-2 transition-colors hover:text-black"
-          >
+        <h2>Experience</h2>
+        {resume.experience.map((role) => (
+          <article key={`${role.title}-${role.organization}`} className="paper-role">
+            <PaperRoleHeader role={role} />
+            {role.bullets.length > 0 ? (
+              <ul className="paper-bullets">
+                {role.bullets.map((bullet) => (
+                  <li key={bullet}>{bullet}</li>
+                ))}
+              </ul>
+            ) : null}
+          </article>
+        ))}
+        <p className="paper-muted">
+          <a href="/resume.pdf" download="Jake_DeCore_Lurker_Resume.pdf" className="underline">
             Download Resume PDF
           </a>
         </p>
       </section>
 
-      <section className="space-y-2">
-        <SectionHeading compact>Education</SectionHeading>
+      <section>
+        <h2>Education</h2>
         {resume.education.map((role) => (
-          <article key={`${role.title}-${role.organization}`}>
-            <RoleHeader role={role} compact />
+          <article key={`${role.title}-${role.organization}`} className="paper-role">
+            <PaperRoleHeader role={role} />
           </article>
         ))}
       </section>
