@@ -367,15 +367,15 @@ export function drawCompositionPageResume(
   const designWidth = 400
   const scaledLine = designLine * (width / designWidth)
   // Cap row height so the full resume fits on the mesh (no HTML scroll).
-  // /37 leaves room for a blank top rule plus section gaps without clipping education.
-  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 37)))
+  // /38 leaves room for a blank top rule, wraps, and tight section gaps without clipping education.
+  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 38)))
   const margin = Math.round(width * (40 / 400))
   const textX = margin + Math.round(width * (12 / 400))
   const maxWidth = width - textX - Math.round(width * (20 / 400))
   const fontScale = line / designLine
-  const nameSize = 13 * fontScale
-  const bodySize = 11 * fontScale
-  const mutedSize = 10 * fontScale
+  const nameSize = 15 * fontScale
+  const bodySize = 12.5 * fontScale
+  const mutedSize = 11.5 * fontScale
   // Sit glyphs in the band above the rule (classic lined-paper writing).
   const baselineLift = line * 0.2
   const ink = '#171717'
@@ -480,7 +480,6 @@ export function drawCompositionPageResume(
   for (const group of resume.skills) {
     writeLabeled(group.label, group.items.join(', '), bodySize)
   }
-  row += 1
   write('EXPERIENCE', '700', bodySize, ink, bodySize * 0.06)
   for (const role of resume.experience) {
     const head = role.period ? `${role.title}  ·  ${role.period}` : role.title
