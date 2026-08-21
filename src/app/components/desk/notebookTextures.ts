@@ -336,8 +336,8 @@ export function drawLooseleafResume(
   const designLine = 28
   const designWidth = 400
   const scaledLine = designLine * (width / designWidth)
-  // Keep at least ~32 rows so the full resume fits on the mesh (no HTML scroll).
-  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 32)))
+  // Cap row height so the full resume fits on the mesh (no HTML scroll).
+  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 36)))
   const margin = Math.round(width * (40 / 400))
   const textX = margin + Math.round(width * (12 / 400))
   const maxWidth = width - textX - Math.round(width * (20 / 400))
