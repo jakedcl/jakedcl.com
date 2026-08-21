@@ -404,8 +404,8 @@ export function drawCompositionPageResume(
   const designWidth = 400
   const scaledLine = designLine * (width / designWidth)
   // Cap row height so the full resume fits on the mesh (no HTML scroll).
-  // /44: ~6 blank header rows + 2-row name + wraps/gaps without clipping education.
-  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 44)))
+  // /42: ~4 blank header rows + 2-row name + wraps/gaps without clipping education.
+  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 42)))
   const margin = Math.round(width * (40 / 400))
   // Body column — name + contact must share this x (right of the red margin).
   const textX = margin + Math.round(width * (12 / 400))
@@ -427,11 +427,12 @@ export function drawCompositionPageResume(
   ctx.fillRect(0, 0, width, height)
   paintPaperGrain(ctx, width, height)
 
-  // Classic looseleaf header: ~6 blank lines above the name — no blue rules there.
-  const nameRow = 7
+  // Ruled area origin — keep fixed (do not slide with content bumps).
+  // Blank header band above; first blue rule at ruleStart * line.
+  const ruleStart = 5
   ctx.strokeStyle = ruleBlue
   ctx.lineWidth = Math.max(1, fontScale * 0.85)
-  for (let y = nameRow * line; y < height; y += line) {
+  for (let y = ruleStart * line; y < height; y += line) {
     ctx.beginPath()
     ctx.moveTo(0, y)
     ctx.lineTo(width, y)
@@ -448,7 +449,8 @@ export function drawCompositionPageResume(
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
 
-  let row = nameRow + 1
+  // Name baseline on the 2nd blue rule (first empty ruled line above).
+  let row = ruleStart + 1
   const remaining = () => row * line <= height - line
   const baselineY = () => row * line - baselineLift
 
