@@ -28,7 +28,7 @@ function ContactLine({ links, compact = false }: { links: ResumeLink[]; compact?
   return (
     <p
       className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-neutral-700 ${
-        compact ? 'text-[11px]' : 'text-sm md:text-base'
+        compact ? 'text-[10px]' : 'text-sm md:text-base'
       }`}
     >
       {primary.map((link, index) => (
@@ -62,7 +62,7 @@ function SectionHeading({
 }) {
   return (
     <h2
-      className={`mb-3 border-b pb-1 font-bold uppercase tracking-wide text-black ${
+      className={`mb-2 border-b pb-1 font-bold uppercase tracking-wide text-black ${
         compact ? 'border-neutral-300 text-[10px]' : 'border-neutral-200 text-xs sm:text-sm'
       }`}
     >
@@ -90,7 +90,7 @@ function RoleHeader({ role, compact = false }: { role: ResumeRole; compact?: boo
       <div className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-3">
         <h3
           className={`font-semibold leading-snug text-black ${
-            compact ? 'text-[12px]' : 'text-[0.95rem] sm:text-base md:text-lg'
+            compact ? 'text-[11px]' : 'text-[0.95rem] sm:text-base md:text-lg'
           }`}
         >
           {role.title}
@@ -99,7 +99,7 @@ function RoleHeader({ role, compact = false }: { role: ResumeRole; compact?: boo
           {role.period}
         </p>
       </div>
-      <p className={`leading-snug text-neutral-600 ${compact ? 'text-[11px]' : 'text-sm'}`}>
+      <p className={`leading-snug text-neutral-600 ${compact ? 'text-[10px]' : 'text-sm'}`}>
         {role.organizationUrl ? (
           <ExternalLink href={role.organizationUrl}>{role.organization}</ExternalLink>
         ) : (
@@ -116,8 +116,8 @@ function RoleEntry({ role, compact = false }: { role: ResumeRole; compact?: bool
       <RoleHeader role={role} compact={compact} />
       {role.bullets.length > 0 && (
         <ul
-          className={`list-disc space-y-1.5 pl-4 text-neutral-800 ${
-            compact ? 'text-[11px] leading-snug' : 'text-sm leading-snug sm:pl-5 sm:leading-relaxed md:text-base'
+          className={`list-disc space-y-1 pl-4 text-neutral-800 ${
+            compact ? 'text-[10px] leading-snug' : 'text-sm leading-snug sm:pl-5 sm:leading-relaxed md:text-base'
           }`}
         >
           {role.bullets.map((bullet) => (
@@ -133,16 +133,16 @@ function RoleEntry({ role, compact = false }: { role: ResumeRole; compact?: bool
 
 function PaperResume() {
   return (
-    <div className="w-full space-y-4 text-black">
-      <div className="space-y-2">
-        <p className="text-base font-medium leading-tight text-neutral-900">{resume.legalName}</p>
+    <div className="w-full space-y-3 text-black">
+      <div className="space-y-1.5">
+        <p className="text-[13px] font-medium leading-tight text-neutral-900">{resume.legalName}</p>
         <ContactLine links={resume.contact} compact />
-        <p className="text-[11px] leading-snug text-neutral-800">{resume.summary}</p>
+        <p className="text-[10px] leading-snug text-neutral-800">{resume.summary}</p>
       </div>
 
       <section>
         <SectionHeading compact>Technical Skills</SectionHeading>
-        <ul className="space-y-2 text-[11px]">
+        <ul className="space-y-1.5 text-[10px]">
           {resume.skills.map((group) => (
             <li key={group.label} className="leading-snug">
               <p className="mb-0.5 font-semibold text-black">{group.label}</p>
@@ -154,12 +154,12 @@ function PaperResume() {
 
       <section>
         <SectionHeading compact>Experience</SectionHeading>
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {resume.experience.map((role) => (
             <RoleEntry key={`${role.title}-${role.organization}`} role={role} compact />
           ))}
         </div>
-        <p className="mt-3 text-[11px] text-neutral-500">
+        <p className="mt-2.5 text-[10px] text-neutral-500">
           <a
             href="/resume.pdf"
             download="Jake_DeCore_Lurker_Resume.pdf"
