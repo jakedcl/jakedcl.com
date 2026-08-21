@@ -21,8 +21,7 @@ const PAPER_CSS = { width: 400, height: 560 } as const
 // drei Html transform defaults distanceFactor to 10 (400px → 10 world units).
 // 400 restores 1px ≈ 1 world unit so scale can map the overlay onto the mesh.
 const HTML_DISTANCE_FACTOR = PAPER_CSS.width
-// Sit the resume on the cream page with a visible paper border, not edge-to-edge.
-const HTML_PAGE_FIT = 0.87
+// Overlay maps 1:1 onto PAGE_WIDTH × PAGE_DEPTH — the page mesh is the looseleaf.
 // Cover rotation is damped; ~0.54 is vertical. Wait until it is mostly off the page
 // so CSS3D resume text cannot punch through the still-closed marble.
 const RESUME_REVEAL = 0.62
@@ -148,11 +147,7 @@ export default function Notebook({
             position={[NOTEBOOK.width / 2 + 0.02, coverHingeY + 0.002, 0]}
             rotation={[-Math.PI / 2, 0, 0]}
             distanceFactor={HTML_DISTANCE_FACTOR}
-            scale={[
-              (PAGE_WIDTH * HTML_PAGE_FIT) / PAPER_CSS.width,
-              (PAGE_DEPTH * HTML_PAGE_FIT) / PAPER_CSS.height,
-              1,
-            ]}
+            scale={[PAGE_WIDTH / PAPER_CSS.width, PAGE_DEPTH / PAPER_CSS.height, 1]}
             pointerEvents={pageInteractive ? 'auto' : 'none'}
             zIndexRange={[20, 0]}
           >
