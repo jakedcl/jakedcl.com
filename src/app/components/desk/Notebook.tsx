@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Html, RoundedBox, useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -21,6 +21,9 @@ const PAPER_CSS = { width: 400, height: 560 } as const
 // drei Html transform defaults distanceFactor to 10 (400px → 10 world units).
 // 400 restores 1px ≈ 1 world unit so scale can map the overlay onto the mesh.
 const HTML_DISTANCE_FACTOR = PAPER_CSS.width
+// Cover rotation is damped; ~0.54 is vertical. Wait until it is mostly off the page
+// so CSS3D resume text cannot punch through the still-closed marble.
+const RESUME_REVEAL = 0.62
 
 export default function Notebook({
   opened,
@@ -35,6 +38,8 @@ export default function Notebook({
 }) {
   const coverRef = useRef<THREE.Group>(null)
   const openAmount = useRef(opened ? 1 : 0)
+  const resumeVisibleRef = useRef(openAmount.current > RESUME_REVEAL)
+  const [resumeVisible, setResumeVisible] = useState(resumeVisibleRef.current)
   const [coverMap, paperMap] = useTexture([
     '/desk/notebook-cover.jpg',
     '/desk/paper-cream.jpg',
@@ -70,6 +75,11 @@ export default function Notebook({
     openAmount.current = THREE.MathUtils.damp(openAmount.current, target, 2.15, delta)
     if (coverRef.current) {
       coverRef.current.rotation.z = openAmount.current * Math.PI * 0.93
+    }
+    const nextVisible = openAmount.current > RESUME_REVEAL
+    if (nextVisible !== resumeVisibleRef.current) {
+      resumeVisibleRef.current = nextVisible
+      setResumeVisible(nextVisible)
     }
   })
 
@@ -120,10 +130,10 @@ export default function Notebook({
           <primitive object={spineMaterial} attach="material" />
         </mesh>
 
-        {opened ? (
+        {resumeVisible ? (
           <Html
             transform
-            occlude={false}
+            occlude={[coverRef]}
             position={[NOTEBOOK.width / 2 + 0.02, coverHingeY + 0.002, 0]}
             rotation={[-Math.PI / 2, 0, 0]}
             distanceFactor={HTML_DISTANCE_FACTOR}
