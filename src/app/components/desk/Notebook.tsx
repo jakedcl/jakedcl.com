@@ -17,10 +17,12 @@ export const NOTEBOOK = {
 export default function Notebook({
   opened,
   pageInteractive,
+  interactive = true,
   onOpenPage,
 }: {
   opened: boolean
   pageInteractive: boolean
+  interactive?: boolean
   onOpenPage: () => void
 }) {
   const coverRef = useRef<THREE.Group>(null)
@@ -67,7 +69,7 @@ export default function Notebook({
   const coverHingeY = NOTEBOOK.cover + NOTEBOOK.pages
 
   return (
-    <Hotspot disabled={pageInteractive} label="Resume notebook" onSelect={onOpenPage}>
+    <Hotspot disabled={!interactive || pageInteractive} label="Resume notebook" onSelect={onOpenPage}>
       <group position={[0, 0, 0]}>
         <RoundedBox
           args={[NOTEBOOK.width, NOTEBOOK.cover, NOTEBOOK.depth]}

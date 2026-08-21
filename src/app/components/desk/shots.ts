@@ -4,18 +4,20 @@ export type Shot = {
   position: [number, number, number]
   target: [number, number, number]
   fov: number
+  duration?: number
 }
 
 export const shots: Record<ShotName, Shot> = {
   intro: {
-    position: [2.55, 3.9, 4.35],
-    target: [0.45, 0.08, 0.05],
-    fov: 36,
+    position: [1.35, 3.15, 2.75],
+    target: [0.74, 0.08, 0.04],
+    fov: 34,
   },
   cover: {
-    position: [0.72, 2.05, 1.72],
-    target: [0.74, 0.07, 0.02],
-    fov: 30,
+    position: [0.76, 1.95, 1.38],
+    target: [0.76, 0.07, 0.02],
+    fov: 28,
+    duration: 2.4,
   },
   page: {
     position: [0.84, 2.48, 0.05],
@@ -26,6 +28,7 @@ export const shots: Record<ShotName, Shot> = {
     position: [0.35, 4.7, 5.15],
     target: [0.25, 0, 0.12],
     fov: 38,
+    duration: 2.15,
   },
   projects: {
     position: [-1.55, 2.25, 2.35],

@@ -11,10 +11,12 @@ const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
 export default function CameraRig({
   shot,
   orbitEnabled,
+  snap,
   onArrived,
 }: {
   shot: ShotName
   orbitEnabled: boolean
+  snap?: boolean
   onArrived?: (shot: ShotName) => void
 }) {
   const { camera } = useThree()
@@ -24,6 +26,7 @@ export default function CameraRig({
   const destPos = useRef(new THREE.Vector3(...shots[shot].position))
   const destTarget = useRef(new THREE.Vector3(...shots[shot].target))
   const startFov = useRef(shots.intro.fov)
+  const duration = useRef(shots[shot].duration ?? 1.55)
   const progress = useRef(0)
   const currentShot = useRef(shot)
   const arrived = useRef(false)
@@ -34,15 +37,16 @@ export default function CameraRig({
     destPos.current.set(...shots[shot].position)
     destTarget.current.set(...shots[shot].target)
     startFov.current = 'fov' in camera ? camera.fov : shots[shot].fov
+    duration.current = snap ? 0.001 : (shots[shot].duration ?? 1.55)
     progress.current = 0
     arrived.current = false
     currentShot.current = shot
-  }, [camera, shot])
+  }, [camera, shot, snap])
 
   useFrame((_, delta) => {
     if (orbitEnabled && arrived.current) return
 
-    progress.current = Math.min(1, progress.current + delta / 1.55)
+    progress.current = Math.min(1, progress.current + delta / duration.current)
     const t = easeOutCubic(progress.current)
     const dest = shots[currentShot.current]
 

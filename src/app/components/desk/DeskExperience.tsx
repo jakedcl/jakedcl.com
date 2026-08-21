@@ -29,7 +29,11 @@ export default function DeskExperience({
   useEffect(() => {
     const decide = () => {
       const allow3d = canUseWebGL() && !isCompactViewport()
-      if (prefersReducedMotion()) setSkipIntro(true)
+      if (prefersReducedMotion()) {
+        setSkipIntro(true)
+        setShot('desk')
+        setIntroDone(true)
+      }
       setMode(allow3d ? '3d' : '2d')
     }
 
@@ -41,24 +45,22 @@ export default function DeskExperience({
     if (mode !== '3d') return
 
     if (skipIntro) {
-      setOpened(true)
-      setShot('page')
+      setShot('desk')
       setIntroDone(true)
+      setOpened(false)
       setArrived(false)
       return
     }
 
-    const zoom = window.setTimeout(() => setShot('cover'), 400)
-    const open = window.setTimeout(() => {
-      setOpened(true)
-      setShot('page')
-    }, 3100)
-    const done = window.setTimeout(() => setIntroDone(true), 5400)
+    const zoom = window.setTimeout(() => setShot('cover'), 500)
+    const pullBack = window.setTimeout(() => {
+      setShot('desk')
+      setIntroDone(true)
+    }, 3800)
 
     return () => {
       window.clearTimeout(zoom)
-      window.clearTimeout(open)
-      window.clearTimeout(done)
+      window.clearTimeout(pullBack)
     }
   }, [mode, skipIntro])
 
@@ -115,6 +117,7 @@ export default function DeskExperience({
           pageInteractive={pageInteractive}
           hotspotsActive={hotspotsActive}
           orbitEnabled={orbitEnabled}
+          snapCamera={skipIntro && shot === 'desk'}
           projects={projects}
           photos={photos}
           onSelectShot={onSelectShot}

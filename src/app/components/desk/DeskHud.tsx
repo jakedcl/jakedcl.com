@@ -148,7 +148,7 @@ export default function DeskHud({
 
       {shot === 'desk' && introDone ? (
         <p className="pointer-events-none absolute left-1/2 top-14 z-20 -translate-x-1/2 text-center text-xs text-black/60 md:text-sm">
-          Drag to look around. Click the folders, photos, or pencil cup.
+          Drag to look around. Click the notebook to open the resume, or the folders, photos, or pencil cup.
         </p>
       ) : null}
     </>

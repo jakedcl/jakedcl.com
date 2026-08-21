@@ -17,6 +17,7 @@ function SceneContents({
   pageInteractive,
   hotspotsActive,
   orbitEnabled,
+  snapCamera,
   projects,
   photos,
   onSelectShot,
@@ -27,6 +28,7 @@ function SceneContents({
   pageInteractive: boolean
   hotspotsActive: boolean
   orbitEnabled: boolean
+  snapCamera?: boolean
   projects: Project[]
   photos: SanityImage[]
   onSelectShot: (shot: ShotName) => void
@@ -53,7 +55,7 @@ function SceneContents({
         shadow-camera-top={6}
         shadow-camera-bottom={-6}
       />
-      <CameraRig shot={shot} orbitEnabled={orbitEnabled} onArrived={onCameraArrived} />
+      <CameraRig shot={shot} orbitEnabled={orbitEnabled} snap={snapCamera} onArrived={onCameraArrived} />
       <OrbitControls
         enabled={orbitEnabled}
         enablePan={false}
@@ -66,7 +68,12 @@ function SceneContents({
         target={target}
       />
       <Desk />
-      <Notebook opened={opened} pageInteractive={pageInteractive} onOpenPage={() => onSelectShot('page')} />
+      <Notebook
+        opened={opened}
+        pageInteractive={pageInteractive}
+        interactive={hotspotsActive}
+        onOpenPage={() => onSelectShot('page')}
+      />
       <DeskProps
         projects={projects}
         photos={photos}
@@ -84,6 +91,7 @@ export default function DeskScene({
   pageInteractive,
   hotspotsActive,
   orbitEnabled,
+  snapCamera,
   projects,
   photos,
   onSelectShot,
@@ -94,16 +102,19 @@ export default function DeskScene({
   pageInteractive: boolean
   hotspotsActive: boolean
   orbitEnabled: boolean
+  snapCamera?: boolean
   projects: Project[]
   photos: SanityImage[]
   onSelectShot: (shot: ShotName) => void
   onCameraArrived: (shot: ShotName) => void
 }) {
+  const start = snapCamera ? shots.desk : shots.intro
+
   return (
     <Canvas
       shadows
       dpr={[1, 1.5]}
-      camera={{ position: shots.intro.position, fov: shots.intro.fov, near: 0.1, far: 40 }}
+      camera={{ position: start.position, fov: start.fov, near: 0.1, far: 40 }}
       gl={{ antialias: true }}
     >
       <Suspense fallback={null}>
@@ -113,6 +124,7 @@ export default function DeskScene({
           pageInteractive={pageInteractive}
           hotspotsActive={hotspotsActive}
           orbitEnabled={orbitEnabled}
+          snapCamera={snapCamera}
           projects={projects}
           photos={photos}
           onSelectShot={onSelectShot}
