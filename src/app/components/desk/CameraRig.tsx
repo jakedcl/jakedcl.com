@@ -30,6 +30,8 @@ export default function CameraRig({
   const progress = useRef(0)
   const currentShot = useRef(shot)
   const arrived = useRef(false)
+  const snapRef = useRef(snap)
+  snapRef.current = snap
 
   useEffect(() => {
     startPos.current.copy(camera.position)
@@ -37,11 +39,11 @@ export default function CameraRig({
     destPos.current.set(...shots[shot].position)
     destTarget.current.set(...shots[shot].target)
     startFov.current = 'fov' in camera ? camera.fov : shots[shot].fov
-    duration.current = snap ? 0.001 : (shots[shot].duration ?? 1.55)
+    duration.current = snapRef.current ? 0.001 : (shots[shot].duration ?? 1.55)
     progress.current = 0
     arrived.current = false
     currentShot.current = shot
-  }, [camera, shot, snap])
+  }, [camera, shot])
 
   useFrame((_, delta) => {
     if (orbitEnabled && arrived.current) return

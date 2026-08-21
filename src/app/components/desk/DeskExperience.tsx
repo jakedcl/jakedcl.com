@@ -25,6 +25,7 @@ export default function DeskExperience({
   const [introDone, setIntroDone] = useState(false)
   const [arrived, setArrived] = useState(false)
   const [skipIntro, setSkipIntro] = useState(false)
+  const [snapCamera, setSnapCamera] = useState(false)
 
   useEffect(() => {
     const decide = () => {
@@ -33,6 +34,7 @@ export default function DeskExperience({
         setSkipIntro(true)
         setShot('desk')
         setIntroDone(true)
+        setSnapCamera(true)
       }
       setMode(allow3d ? '3d' : '2d')
     }
@@ -49,6 +51,7 @@ export default function DeskExperience({
       setIntroDone(true)
       setOpened(false)
       setArrived(false)
+      setSnapCamera(true)
       return
     }
 
@@ -117,11 +120,14 @@ export default function DeskExperience({
           pageInteractive={pageInteractive}
           hotspotsActive={hotspotsActive}
           orbitEnabled={orbitEnabled}
-          snapCamera={skipIntro && shot === 'desk'}
+          snapCamera={snapCamera}
           projects={projects}
           photos={photos}
           onSelectShot={onSelectShot}
-          onCameraArrived={() => setArrived(true)}
+          onCameraArrived={() => {
+            setArrived(true)
+            setSnapCamera(false)
+          }}
         />
         <DeskHud
           shot={shot}
