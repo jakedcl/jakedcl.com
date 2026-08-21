@@ -404,17 +404,18 @@ export function drawCompositionPageResume(
   const designWidth = 400
   const scaledLine = designLine * (width / designWidth)
   // Cap row height so the full resume fits on the mesh (no HTML scroll).
-  // /42: ~4 blank header rows + 2-row name + wraps/gaps without clipping education.
-  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 42)))
+  // /44: room for ~0.78×line body wraps after blank header + 2-row name.
+  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 44)))
   const margin = Math.round(width * (40 / 400))
   // Body column — name + contact must share this x (right of the red margin).
   const textX = margin + Math.round(width * (12 / 400))
   const maxWidth = width - textX - Math.round(width * (20 / 400))
   const fontScale = line / designLine
-  // ~2× ruled line height so the name spans two rule rows.
+  // Fill most of each ruled band (classic notebook writing), not half-height type.
   const nameSize = line * 2
-  const bodySize = 12.5 * fontScale
-  const mutedSize = 11.5 * fontScale
+  const bodySize = line * 0.78
+  const sectionSize = line * 0.82
+  const mutedSize = line * 0.7
   // Sit glyphs in the band above the rule (classic lined-paper writing).
   const baselineLift = line * 0.2
   const ink = '#171717'
@@ -523,13 +524,12 @@ export function drawCompositionPageResume(
   }
 
   write(resume.summary, '400', bodySize)
-  row += 1
   // ~0.06em tracking on section titles, like the CSS lined sheet.
-  write('TECHNICAL SKILLS', '700', bodySize, ink, bodySize * 0.06)
+  write('TECHNICAL SKILLS', '700', sectionSize, ink, sectionSize * 0.06)
   for (const group of resume.skills) {
     writeLabeled(group.label, group.items.join(', '), bodySize)
   }
-  write('EXPERIENCE', '700', bodySize, ink, bodySize * 0.06)
+  write('EXPERIENCE', '700', sectionSize, ink, sectionSize * 0.06)
   for (const role of resume.experience) {
     const head = role.period ? `${role.title}  ·  ${role.period}` : role.title
     write(head, '600', bodySize)
@@ -538,8 +538,7 @@ export function drawCompositionPageResume(
       write(`•  ${bullet}`, '400', bodySize)
     }
   }
-  row += 1
-  write('EDUCATION', '700', bodySize, ink, bodySize * 0.06)
+  write('EDUCATION', '700', sectionSize, ink, sectionSize * 0.06)
   for (const role of resume.education) {
     write(role.title, '600', bodySize)
     const school = role.period ? `${role.organization}  ·  ${role.period}` : role.organization
