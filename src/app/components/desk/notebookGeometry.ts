@@ -56,11 +56,20 @@ export function createNotebookSlabGeometry(
 
   const pos = geom.getAttribute('position')
   const uv = geom.getAttribute('uv')
-  const index = geom.index
-  if (!index || !uv) {
+  if (!uv || !pos) {
     geom.computeBoundingSphere()
     return geom
   }
+
+  // Recent ExtrudeGeometry is often non-indexed; build a sequential index so we
+  // can regroup to BoxGeometry material order (+X,-X,+Y,-Y,+Z,-Z). Without this,
+  // Extrude's 2 default groups black out marble/page maps on material-2.
+  if (!geom.index) {
+    const seq = new Uint32Array(pos.count)
+    for (let i = 0; i < pos.count; i++) seq[i] = i
+    geom.setIndex(new THREE.BufferAttribute(seq, 1))
+  }
+  const index = geom.index!
 
   const a = new THREE.Vector3()
   const b = new THREE.Vector3()

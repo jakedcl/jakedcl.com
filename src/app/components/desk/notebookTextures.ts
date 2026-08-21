@@ -352,13 +352,13 @@ function fillTrackedText(
 }
 
 /**
- * Lined looseleaf with resume copy painted on the rules so the marble cover
- * can occlude a real page mesh (no CSS3D pop-in).
+ * Ruled composition-notebook page with resume copy on the blue rules.
+ * Bound to the cloth spine in 3D (not binder paper) — no punch holes.
  *
  * Design space matches the CSS sheet (400×560, 28px rules). Type sits in the
  * ruling band with the alphabetic baseline just above each blue rule.
  */
-export function drawLooseleafResume(
+export function drawCompositionPageResume(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
@@ -403,27 +403,6 @@ export function drawLooseleafResume(
   ctx.moveTo(margin, 0)
   ctx.lineTo(margin, height)
   ctx.stroke()
-
-  // Looseleaf punch holes in the left margin.
-  const holeR = Math.max(3, width * 0.011)
-  const holeX = margin * 0.42
-  const holeCount = 3
-  const holeSpan = height * 0.62
-  const holeStart = (height - holeSpan) / 2
-  for (let i = 0; i < holeCount; i++) {
-    const hy = holeStart + (holeSpan * i) / (holeCount - 1)
-    ctx.beginPath()
-    ctx.fillStyle = '#e8e2d4'
-    ctx.arc(holeX, hy, holeR, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.strokeStyle = 'rgba(60,50,40,0.18)'
-    ctx.lineWidth = Math.max(1, fontScale * 0.5)
-    ctx.stroke()
-    ctx.beginPath()
-    ctx.fillStyle = 'rgba(90,78,62,0.12)'
-    ctx.arc(holeX + holeR * 0.15, hy + holeR * 0.15, holeR * 0.72, 0, Math.PI * 2)
-    ctx.fill()
-  }
 
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
@@ -520,14 +499,14 @@ export function drawLooseleafResume(
   }
 }
 
-export function createLooseleafResumeTexture(width: number, height: number) {
+export function createCompositionPageResumeTexture(width: number, height: number) {
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height
   const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Could not create 2D context for looseleaf resume')
+  if (!ctx) throw new Error('Could not create 2D context for composition page resume')
   ctx.imageSmoothingEnabled = true
   ctx.imageSmoothingQuality = 'high'
-  drawLooseleafResume(ctx, width, height)
+  drawCompositionPageResume(ctx, width, height)
   return makeTexture(canvas)
 }

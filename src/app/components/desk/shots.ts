@@ -12,6 +12,31 @@ const NOTEBOOK_FOCUS: [number, number, number] = [0.26, 0.07, 0]
 // Open page center (local PAGE_CENTER_X = 0.80, then group x = -0.5).
 const PAGE_FOCUS: [number, number, number] = [0.3, 0.05, 0]
 
+/** Page overhead knobs — book ~70–80% of frame, thin desk rim (ruler/folder). */
+export const PAGE_CAM = {
+  y: 3.72,
+  z: 0.72,
+  fov: 31,
+} as const
+
+/**
+ * Slight aspect framing so the open book keeps similar coverage on wide vs tall viewports.
+ * Wider than 16:9 → nudge closer; taller → pull back a little.
+ */
+export function pageCameraForAspect(aspect: number): {
+  position: [number, number, number]
+  target: [number, number, number]
+  fov: number
+} {
+  const ref = 16 / 9
+  const pull = Math.min(1.16, Math.max(0.92, Math.sqrt(ref / Math.max(aspect, 0.5))))
+  return {
+    position: [PAGE_FOCUS[0], PAGE_CAM.y * pull, PAGE_CAM.z * pull],
+    target: [PAGE_FOCUS[0], 0.02, 0.02],
+    fov: PAGE_CAM.fov * (0.98 + (pull - 1) * 0.4),
+  }
+}
+
 export const shots: Record<ShotName, Shot> = {
   intro: {
     // Low, slightly oblique approach — start of the swoop, not a held pose.
@@ -33,11 +58,11 @@ export const shots: Record<ShotName, Shot> = {
     duration: 2.7,
   },
   page: {
-    // Close overhead of the open page — paper dominates for legibility,
-    // with only a thin desk rim (ruler/folder edge) still in frame.
-    position: [PAGE_FOCUS[0], 2.72, 0.48],
+    // Middle-distance overhead: open composition page fills most of frame.
+    // Aspect tweaks live in pageCameraForAspect (used by CameraRig).
+    position: [PAGE_FOCUS[0], PAGE_CAM.y, PAGE_CAM.z],
     target: [PAGE_FOCUS[0], 0.02, 0.02],
-    fov: 27,
+    fov: PAGE_CAM.fov,
   },
   desk: {
     position: [0.35, 4.7, 5.15],
