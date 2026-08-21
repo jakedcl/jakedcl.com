@@ -140,7 +140,7 @@ body {
   line-height: var(--paper-line);
 }
 
-.paper-resume :is(p, h2, h3, ul, ol, li, article, section, div) {
+.paper-resume :is(p, h2, h3, ul, ol, li, article, div) {
   margin: 0;
   padding: 0;
   font-size: inherit;
@@ -160,9 +160,12 @@ body {
   color: #a3a3a3;
 }
 
+.lined-paper .paper-resume section {
+  margin: 0;
+  padding: var(--paper-line) 0 0;
+}
+
 .paper-resume h2 {
-  /* padding, not margin, so a blank ruled line stays above the heading */
-  padding-top: var(--paper-line);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -187,14 +190,16 @@ body {
   column-gap: 0.75rem;
 }
 
-.paper-resume .paper-role + .paper-role {
+.lined-paper .paper-resume .paper-role + .paper-role {
   padding-top: var(--paper-line);
 }
 
-.paper-resume ul.paper-skills,
-.paper-resume ul.paper-skills li {
+.lined-paper .paper-resume ul.paper-skills,
+.lined-paper .paper-resume ul.paper-skills > li {
   display: block;
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .paper-resume .paper-skill-label {
