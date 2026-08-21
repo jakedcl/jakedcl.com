@@ -121,7 +121,7 @@ export default function DeskScene({
   return (
     <Canvas
       shadows="percentage"
-      dpr={[1, 1.5]}
+      dpr={[1, 2]}
       camera={{ position: start.position, fov: start.fov, near: 0.1, far: 40 }}
       gl={{ antialias: true, alpha: false }}
       style={{ background: '#c4b49c' }}

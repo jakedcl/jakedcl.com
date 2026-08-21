@@ -34,7 +34,7 @@ const PAGE_EDGE_INSET = 0.01
 export const PAGE_WIDTH = NOTEBOOK.width - PAGE_SPINE_INSET - PAGE_OUTER_INSET
 export const PAGE_DEPTH = NOTEBOOK.depth - PAGE_EDGE_INSET * 2
 export const PAGE_CENTER_X = PAGE_SPINE_INSET + PAGE_WIDTH / 2
-const PAGE_TEX_WIDTH = 2048
+const PAGE_TEX_WIDTH = 3072
 const PAGE_TEX_HEIGHT = Math.round(PAGE_TEX_WIDTH * (PAGE_DEPTH / PAGE_WIDTH))
 // Cover face maps X×Z; match aspect so CLASS PROGRAM isn’t stretched.
 const COVER_TEX_WIDTH = 2048
