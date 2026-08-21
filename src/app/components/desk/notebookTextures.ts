@@ -159,11 +159,22 @@ export function drawCompositionCover(
   )
 }
 
+const BLANK_INSIDE: NotebookInsideCopy = {
+  name: '',
+  address: '',
+  school: '',
+  class: '',
+}
+
+/**
+ * Classic US composition-book CLASS PROGRAM schedule (inside cover).
+ * Pass blank copy for decorative empty lines/grid — do not auto-fill from CMS.
+ */
 export function drawClassProgram(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
-  copy: NotebookInsideCopy,
+  copy: NotebookInsideCopy = BLANK_INSIDE,
 ) {
   ctx.fillStyle = PAPER
   ctx.fillRect(0, 0, width, height)
@@ -187,7 +198,7 @@ export function drawClassProgram(
 
   const padX = innerX + innerW * 0.055
   const contentW = innerW * 0.89
-  let y = innerY + innerH * 0.08
+  let y = innerY + innerH * 0.07
 
   setFont(ctx, '700', width * 0.048)
   ctx.fillStyle = INK
@@ -195,10 +206,10 @@ export function drawClassProgram(
   ctx.textBaseline = 'middle'
   ctx.fillText('CLASS PROGRAM', width / 2, y)
 
-  y += height * 0.055
+  y += height * 0.052
   const labelSize = width * 0.02
   const valueSize = width * 0.024
-  const lineGap = height * 0.036
+  const lineGap = height * 0.034
   const labelCol = contentW * 0.2
   ctx.textAlign = 'left'
 
@@ -210,23 +221,35 @@ export function drawClassProgram(
   y += lineGap
   labeledRule(ctx, 'CLASS', copy.class, padX, y, contentW, labelSize, valueSize, labelCol)
 
-  y += height * 0.04
+  y += height * 0.032
   const gridX = padX
   const gridW = contentW
-  const footerY = innerY + innerH - height * 0.055
-  const gridH = footerY - y - height * 0.02
-  const rows = 9
-  const periodW = gridW * 0.2
+  const footerBand = height * 0.048
+  const footerY = innerY + innerH - footerBand
+  const gridH = footerY - y - height * 0.012
+  // Header (TIME + days) + PERIOD 1–8 + SUBJECT / ROOM / INSTRUCTOR
+  const rows = 12
+  const periodW = gridW * 0.22
   const dayW = (gridW - periodW) / 6
   const rowH = gridH / rows
   const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+  const leftLabels = [
+    'TIME',
+    'PERIOD 1',
+    'PERIOD 2',
+    'PERIOD 3',
+    'PERIOD 4',
+    'PERIOD 5',
+    'PERIOD 6',
+    'PERIOD 7',
+    'PERIOD 8',
+    'SUBJECT',
+    'ROOM',
+    'INSTRUCTOR',
+  ]
 
   ctx.strokeStyle = GRID
   ctx.lineWidth = Math.max(1, width * 0.0018)
-  ctx.fillStyle = INK
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  setFont(ctx, '700', Math.min(rowH * 0.38, width * 0.016))
 
   for (let r = 0; r <= rows; r++) {
     const gy = y + r * rowH
@@ -251,24 +274,38 @@ export function drawClassProgram(
     ctx.stroke()
   }
 
-  ctx.fillText('', gridX + periodW / 2, y + rowH / 2)
+  ctx.fillStyle = INK
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  setFont(ctx, '700', Math.min(rowH * 0.42, width * 0.015))
+  ctx.fillText(leftLabels[0], gridX + periodW / 2, y + rowH / 2)
+
+  // Day headers rotated like a classic composition book.
+  const dayFont = Math.min(dayW * 0.42, width * 0.014)
+  setFont(ctx, '700', dayFont)
   days.forEach((day, i) => {
-    ctx.fillText(day, gridX + periodW + i * dayW + dayW / 2, y + rowH / 2)
+    const cx = gridX + periodW + i * dayW + dayW / 2
+    const cy = y + rowH / 2
+    ctx.save()
+    ctx.translate(cx, cy)
+    ctx.rotate(-Math.PI / 2)
+    ctx.fillText(day, 0, 0)
+    ctx.restore()
   })
-  setFont(ctx, '600', Math.min(rowH * 0.34, width * 0.015))
-  for (let p = 1; p <= 8; p++) {
-    ctx.fillText(`PERIOD ${p}`, gridX + periodW / 2, y + rowH * (p + 0.5))
+
+  setFont(ctx, '600', Math.min(rowH * 0.36, width * 0.0135))
+  for (let r = 1; r < rows; r++) {
+    ctx.fillText(leftLabels[r], gridX + periodW / 2, y + rowH * (r + 0.5))
   }
 
+  const footY = innerY + innerH - height * 0.02
   setFont(ctx, '400', width * 0.014)
   ctx.fillStyle = MUTED
-  ctx.textAlign = 'center'
   ctx.textBaseline = 'alphabetic'
-  ctx.fillText(
-    'Wide Ruled   ·   9¾ × 7½ in.   ·   Made in U.S.A.',
-    width / 2,
-    innerY + innerH - height * 0.022,
-  )
+  ctx.textAlign = 'left'
+  ctx.fillText('9¾ in. x 7½ in.', padX, footY)
+  ctx.textAlign = 'right'
+  ctx.fillText('MADE IN U.S.A.', padX + contentW, footY)
 }
 
 export function createCoverTexture(
@@ -289,9 +326,9 @@ export function createCoverTexture(
 }
 
 export function createInsideCoverTexture(
-  copy: NotebookInsideCopy,
   width: number,
   height: number,
+  copy: NotebookInsideCopy = BLANK_INSIDE,
 ) {
   const canvas = document.createElement('canvas')
   canvas.width = width
@@ -367,13 +404,14 @@ export function drawCompositionPageResume(
   const designWidth = 400
   const scaledLine = designLine * (width / designWidth)
   // Cap row height so the full resume fits on the mesh (no HTML scroll).
-  // /41 leaves room for ~4 blank top rules, wraps, and tight section gaps without clipping education.
-  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 41)))
+  // /42: ~4 blank header rows + 2-row name + wraps/gaps without clipping education.
+  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 42)))
   const margin = Math.round(width * (40 / 400))
   const textX = margin + Math.round(width * (12 / 400))
   const maxWidth = width - textX - Math.round(width * (20 / 400))
   const fontScale = line / designLine
-  const nameSize = 15 * fontScale
+  // ~2× ruled line height so the name spans two rule rows.
+  const nameSize = line * 2
   const bodySize = 12.5 * fontScale
   const mutedSize = 11.5 * fontScale
   // Sit glyphs in the band above the rule (classic lined-paper writing).
@@ -388,9 +426,11 @@ export function drawCompositionPageResume(
   ctx.fillRect(0, 0, width, height)
   paintPaperGrain(ctx, width, height)
 
+  // Classic looseleaf header: ~4 blank lines above the name — no blue rules there.
+  const nameRow = 5
   ctx.strokeStyle = ruleBlue
   ctx.lineWidth = Math.max(1, fontScale * 0.85)
-  for (let y = line; y < height; y += line) {
+  for (let y = nameRow * line; y < height; y += line) {
     ctx.beginPath()
     ctx.moveTo(0, y)
     ctx.lineTo(width, y)
@@ -407,8 +447,7 @@ export function drawCompositionPageResume(
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
 
-  // Classic looseleaf header: ~4 blank ruled lines above the name.
-  let row = 5
+  let row = nameRow + 1
   const remaining = () => row * line <= height - line
   const baselineY = () => row * line - baselineLift
 
@@ -453,6 +492,8 @@ export function drawCompositionPageResume(
     }
   }
 
+  // Tall name: baseline on the lower of its two rule rows so glyphs fill both;
+  // write() advances past that row so contact starts clear of the name.
   write(resume.legalName, '500', nameSize)
 
   // Contact with softer separators (matches /resume paper styling).

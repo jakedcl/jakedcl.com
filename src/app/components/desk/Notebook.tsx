@@ -11,7 +11,10 @@ import {
   PAGE_CORNER_RADIUS,
   createNotebookSlabGeometry,
 } from './notebookGeometry'
-import { createCompositionPageResumeTexture } from './notebookTextures'
+import {
+  createCompositionPageResumeTexture,
+  createInsideCoverTexture,
+} from './notebookTextures'
 
 export const NOTEBOOK = {
   width: 1.52,
@@ -33,6 +36,9 @@ export const PAGE_DEPTH = NOTEBOOK.depth - PAGE_EDGE_INSET * 2
 export const PAGE_CENTER_X = PAGE_SPINE_INSET + PAGE_WIDTH / 2
 const PAGE_TEX_WIDTH = 2048
 const PAGE_TEX_HEIGHT = Math.round(PAGE_TEX_WIDTH * (PAGE_DEPTH / PAGE_WIDTH))
+// Cover face maps X×Z; match aspect so CLASS PROGRAM isn’t stretched.
+const COVER_TEX_WIDTH = 2048
+const COVER_TEX_HEIGHT = Math.round(COVER_TEX_WIDTH * (NOTEBOOK.depth / NOTEBOOK.width))
 
 export default function Notebook({
   opened,
@@ -65,6 +71,11 @@ export default function Notebook({
     () => createCompositionPageResumeTexture(PAGE_TEX_WIDTH, PAGE_TEX_HEIGHT),
     [],
   )
+  // Blank CLASS PROGRAM decor on the inside cover (-Y). Geometry already flips U.
+  const classProgramMap = useMemo(
+    () => createInsideCoverTexture(COVER_TEX_WIDTH, COVER_TEX_HEIGHT),
+    [],
+  )
 
   // Rounded outer corners; square at the cloth spine. Groups match BoxGeometry order.
   const coverGeom = useMemo(
@@ -90,12 +101,15 @@ export default function Notebook({
     pageResumeMap.magFilter = THREE.LinearFilter
     pageResumeMap.anisotropy = 16
     pageResumeMap.needsUpdate = true
+    classProgramMap.anisotropy = 8
+    classProgramMap.needsUpdate = true
     return () => {
       pageResumeMap.dispose()
+      classProgramMap.dispose()
       coverGeom.dispose()
       pageGeom.dispose()
     }
-  }, [pageResumeMap, coverGeom, pageGeom])
+  }, [pageResumeMap, classProgramMap, coverGeom, pageGeom])
 
   useCursor(pageHover && pageInteractive)
 
@@ -147,7 +161,7 @@ export default function Notebook({
         </mesh>
 
         <group ref={coverRef} position={[0, coverHingeY, 0]}>
-          {/* Slab groups: +X, -X, +Y marble, -Y cream, +Z, -Z. */}
+          {/* Slab groups: +X, -X, +Y marble, -Y CLASS PROGRAM, +Z, -Z. */}
           <mesh
             position={[NOTEBOOK.width / 2, NOTEBOOK.cover / 2, 0]}
             geometry={coverGeom}
@@ -157,7 +171,12 @@ export default function Notebook({
             <meshStandardMaterial attach="material-0" color="#141414" roughness={0.6} />
             <meshStandardMaterial attach="material-1" color="#141414" roughness={0.6} />
             <meshStandardMaterial attach="material-2" map={coverMap} roughness={0.55} metalness={0.02} />
-            <meshStandardMaterial attach="material-3" map={paperMap} roughness={0.92} />
+            <meshStandardMaterial
+              attach="material-3"
+              map={classProgramMap}
+              roughness={0.92}
+              metalness={0}
+            />
             <meshStandardMaterial attach="material-4" color="#141414" roughness={0.6} />
             <meshStandardMaterial attach="material-5" color="#141414" roughness={0.6} />
           </mesh>
