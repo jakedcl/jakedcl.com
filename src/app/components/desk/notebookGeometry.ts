@@ -2,8 +2,8 @@ import * as THREE from 'three'
 
 /** Outer-corner radius on the cover (opposite the spine). */
 export const COVER_CORNER_RADIUS = 0.1
-/** Page stack follows the cover curve, inset slightly. */
-export const PAGE_CORNER_RADIUS = 0.085
+/** Page stack matches cover outer rounding (tiny outer/edge inset). */
+export const PAGE_CORNER_RADIUS = 0.09
 
 function notebookOutline(width: number, depth: number, radius: number) {
   const r = Math.min(radius, width * 0.28, depth * 0.28)

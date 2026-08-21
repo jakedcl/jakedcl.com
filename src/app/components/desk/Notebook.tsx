@@ -23,10 +23,11 @@ export const NOTEBOOK = {
 const PAPER_CREAM = '#f4efe3'
 const PAGE_CLEARANCE = 0.002
 const PAGE_HEIGHT = NOTEBOOK.pages - PAGE_CLEARANCE
-// Spine tape is a 0.10-wide box centered at x=0.05 (occupies 0–0.10).
-const PAGE_SPINE_INSET = 0.12
-const PAGE_OUTER_INSET = 0.04
-const PAGE_EDGE_INSET = 0.04
+// Cloth spine is 0.10 wide at x=0.05 (occupies 0–0.10). Tiny clearance only —
+// pages read flush with the marble cover, bound at the black tape.
+const PAGE_SPINE_INSET = 0.105
+const PAGE_OUTER_INSET = 0.015
+const PAGE_EDGE_INSET = 0.015
 export const PAGE_WIDTH = NOTEBOOK.width - PAGE_SPINE_INSET - PAGE_OUTER_INSET
 export const PAGE_DEPTH = NOTEBOOK.depth - PAGE_EDGE_INSET * 2
 export const PAGE_CENTER_X = PAGE_SPINE_INSET + PAGE_WIDTH / 2
