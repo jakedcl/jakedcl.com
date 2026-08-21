@@ -33,12 +33,11 @@ export const shots: Record<ShotName, Shot> = {
     duration: 2.7,
   },
   page: {
-    // Aerial overlook of the OPEN notebook: high +Y, enough +Z and FOV that
-    // wood, folders, and polaroids stay readable around the book (~45% of
-    // viewport height). Not edge-to-edge paper, and not the far intro `aerial`.
-    position: [0.22, 5.85, 1.45],
-    target: [PAGE_FOCUS[0] - 0.04, 0.02, 0.06],
-    fov: 38,
+    // Close overhead of the open page — paper dominates for legibility,
+    // with only a thin desk rim (ruler/folder edge) still in frame.
+    position: [PAGE_FOCUS[0], 2.72, 0.48],
+    target: [PAGE_FOCUS[0], 0.02, 0.02],
+    fov: 27,
   },
   desk: {
     position: [0.35, 4.7, 5.15],
