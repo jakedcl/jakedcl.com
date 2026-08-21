@@ -7,6 +7,8 @@ import { ORBIT_SHOTS, shots } from './shots'
 import type { ShotName } from './types'
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
+const easeInOutCubic = (t: number) =>
+  t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
 
 export default function CameraRig({
   shot,
@@ -49,7 +51,8 @@ export default function CameraRig({
     if (orbitEnabled && arrived.current) return
 
     progress.current = Math.min(1, progress.current + delta / duration.current)
-    const t = easeOutCubic(progress.current)
+    const easing = duration.current >= 2.2 ? easeInOutCubic : easeOutCubic
+    const t = easing(progress.current)
     const dest = shots[currentShot.current]
 
     camera.position.lerpVectors(startPos.current, destPos.current, t)

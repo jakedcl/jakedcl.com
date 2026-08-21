@@ -7,17 +7,28 @@ export type Shot = {
   duration?: number
 }
 
+// Closed notebook cover center after the leftward shift (hinge at x = -0.5, width 1.52).
+const NOTEBOOK_FOCUS: [number, number, number] = [0.26, 0.07, 0]
+
 export const shots: Record<ShotName, Shot> = {
   intro: {
-    position: [0.85, 3.15, 2.75],
-    target: [0.24, 0.08, 0.04],
-    fov: 34,
+    // Low, slightly oblique approach — start of the swoop, not a held pose.
+    position: [2.05, 1.18, 3.95],
+    target: [NOTEBOOK_FOCUS[0], 0.18, 0.12],
+    fov: 40,
   },
   cover: {
-    position: [0.26, 1.95, 1.38],
-    target: [0.26, 0.07, 0.02],
+    position: [NOTEBOOK_FOCUS[0], 1.95, 1.38],
+    target: NOTEBOOK_FOCUS,
     fov: 28,
     duration: 2.4,
+  },
+  aerial: {
+    // High +Y, nearly top-down over the closed book (tiny +Z keeps lookAt stable).
+    position: [NOTEBOOK_FOCUS[0], 4.55, 0.68],
+    target: NOTEBOOK_FOCUS,
+    fov: 32,
+    duration: 2.7,
   },
   page: {
     position: [0.34, 2.48, 0.05],
@@ -28,7 +39,7 @@ export const shots: Record<ShotName, Shot> = {
     position: [0.35, 4.7, 5.15],
     target: [0.25, 0, 0.12],
     fov: 38,
-    duration: 2.15,
+    duration: 2.45,
   },
   projects: {
     position: [-1.55, 2.25, 2.35],

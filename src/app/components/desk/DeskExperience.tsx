@@ -55,15 +55,16 @@ export default function DeskExperience({
       return
     }
 
-    const zoom = window.setTimeout(() => setShot('cover'), 500)
-    const pullBack = window.setTimeout(() => {
+    const toAerial = window.setTimeout(() => setShot('aerial'), 120)
+    const toDesk = window.setTimeout(() => {
       setShot('desk')
       setIntroDone(true)
-    }, 3800)
+      setArrived(false)
+    }, 3950)
 
     return () => {
-      window.clearTimeout(zoom)
-      window.clearTimeout(pullBack)
+      window.clearTimeout(toAerial)
+      window.clearTimeout(toDesk)
     }
   }, [mode, skipIntro])
 
@@ -71,7 +72,7 @@ export default function DeskExperience({
     setShot(next)
     setArrived(false)
     if (next === 'page') setOpened(true)
-    if (next !== 'page' && next !== 'cover' && next !== 'intro') {
+    if (next !== 'page' && next !== 'cover' && next !== 'intro' && next !== 'aerial') {
       setIntroDone(true)
     }
   }, [])
