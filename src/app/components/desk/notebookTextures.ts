@@ -449,8 +449,8 @@ export function drawCompositionPageResume(
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
 
-  // Name baseline on the 2nd blue rule (first empty ruled line above).
-  let row = ruleStart + 1
+  // Name baseline on the 3rd blue rule (first empty ruled line above).
+  let row = ruleStart + 2
   const remaining = () => row * line <= height - line
   const baselineY = () => row * line - baselineLift
 
