@@ -1,12 +1,7 @@
-import dynamic from 'next/dynamic'
+import DeskLander from './components/desk/DeskLander'
 import { getSiteContent } from '@/sanity/lib/site'
 
 export const revalidate = 0
-
-const DeskExperience = dynamic(() => import('./components/desk/DeskExperience'), {
-  ssr: false,
-  loading: () => <div className="h-svh bg-[#b7a48d]" aria-hidden />,
-})
 
 export default async function Home() {
   const { projects, settings } = await getSiteContent()
@@ -26,7 +21,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <DeskExperience projects={projects} photos={settings?.galleryPhotos ?? []} />
+      <DeskLander projects={projects} photos={settings?.galleryPhotos ?? []} />
     </>
   )
 }
