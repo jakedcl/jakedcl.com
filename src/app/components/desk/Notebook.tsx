@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, type RefObject } from 'react'
 import { Html, RoundedBox, useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -133,7 +133,7 @@ export default function Notebook({
         {resumeVisible ? (
           <Html
             transform
-            occlude={[coverRef]}
+            occlude={[coverRef as RefObject<THREE.Object3D>]}
             position={[NOTEBOOK.width / 2 + 0.02, coverHingeY + 0.002, 0]}
             rotation={[-Math.PI / 2, 0, 0]}
             distanceFactor={HTML_DISTANCE_FACTOR}
