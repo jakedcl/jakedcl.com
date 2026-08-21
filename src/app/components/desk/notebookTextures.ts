@@ -367,8 +367,8 @@ export function drawCompositionPageResume(
   const designWidth = 400
   const scaledLine = designLine * (width / designWidth)
   // Cap row height so the full resume fits on the mesh (no HTML scroll).
-  // /38 leaves room for a blank top rule, wraps, and tight section gaps without clipping education.
-  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 38)))
+  // /41 leaves room for ~4 blank top rules, wraps, and tight section gaps without clipping education.
+  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 41)))
   const margin = Math.round(width * (40 / 400))
   const textX = margin + Math.round(width * (12 / 400))
   const maxWidth = width - textX - Math.round(width * (20 / 400))
@@ -407,8 +407,8 @@ export function drawCompositionPageResume(
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
 
-  // Leave a top rule empty so the name is not jammed into the page edge.
-  let row = 2
+  // Classic looseleaf header: ~4 blank ruled lines above the name.
+  let row = 5
   const remaining = () => row * line <= height - line
   const baselineY = () => row * line - baselineLift
 
