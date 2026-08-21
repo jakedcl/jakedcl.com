@@ -6,6 +6,7 @@ import { portableTextToPlain } from '@/lib/portableText'
 import type { Project, SanityImage } from '@/types/sanity'
 import Hotspot from './Hotspot'
 import type { ShotName } from './types'
+import { useSafeTexture } from './useSafeTexture'
 
 function Folder({
   position,
@@ -51,9 +52,8 @@ function Polaroid({
 }) {
   const src = image?.asset?.url
     ? `${image.asset.url}?w=640&h=640&fit=crop`
-    : '/desk/paper-cream.jpg'
-  const texture = useTexture(src)
-  texture.colorSpace = THREE.SRGBColorSpace
+    : null
+  const texture = useSafeTexture(src, '/desk/paper-cream.jpg')
 
   return (
     <group position={position} rotation={rotation}>
@@ -63,7 +63,7 @@ function Polaroid({
       </mesh>
       <mesh position={[0, 0.008, 0.04]}>
         <planeGeometry args={[0.48, 0.48]} />
-        <meshStandardMaterial map={texture} roughness={0.7} />
+        <meshStandardMaterial map={texture ?? undefined} color="#ece6d8" roughness={0.7} />
       </mesh>
     </group>
   )

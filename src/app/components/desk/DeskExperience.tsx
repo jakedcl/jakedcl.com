@@ -27,8 +27,14 @@ export default function DeskExperience({
   const [skipIntro, setSkipIntro] = useState(false)
 
   useEffect(() => {
-    const allow3d = canUseWebGL() && !prefersReducedMotion() && !isCompactViewport()
-    setMode(allow3d ? '3d' : '2d')
+    const decide = () => {
+      const allow3d = canUseWebGL() && !isCompactViewport()
+      if (prefersReducedMotion()) setSkipIntro(true)
+      setMode(allow3d ? '3d' : '2d')
+    }
+
+    const frame = window.requestAnimationFrame(decide)
+    return () => window.cancelAnimationFrame(frame)
   }, [])
 
   useEffect(() => {
@@ -101,7 +107,7 @@ export default function DeskExperience({
   const orbitEnabled = introDone && arrived && canOrbit(shot)
 
   return (
-    <CanvasErrorBoundary fallback={fallback}>
+    <CanvasErrorBoundary key={mode} fallback={fallback}>
       <div className="relative h-svh overflow-hidden bg-[#b7a48d]">
         <DeskScene
           shot={shot}

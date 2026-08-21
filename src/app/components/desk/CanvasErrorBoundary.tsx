@@ -14,6 +14,10 @@ export default class CanvasErrorBoundary extends Component<Props, { hasError: bo
     return { hasError: true }
   }
 
+  componentDidCatch(error: Error) {
+    console.error('3D desk failed to render', error)
+  }
+
   render() {
     if (this.state.hasError) return this.props.fallback
     return this.props.children

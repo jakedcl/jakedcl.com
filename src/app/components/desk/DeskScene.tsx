@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useMemo } from 'react'
-import { ContactShadows, Environment, OrbitControls } from '@react-three/drei'
+import { ContactShadows, OrbitControls } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import CameraRig from './CameraRig'
 import Desk from './Desk'
@@ -39,6 +39,7 @@ function SceneContents({
       <color attach="background" args={['#b7a48d']} />
       <fog attach="fog" args={['#b7a48d', 10, 22]} />
       <ambientLight intensity={0.52} />
+      <hemisphereLight args={['#f3efe8', '#8d7d6c', 0.7]} />
       <directionalLight
         position={[4.2, 7.2, 3.6]}
         intensity={1.35}
@@ -52,7 +53,6 @@ function SceneContents({
         shadow-camera-top={6}
         shadow-camera-bottom={-6}
       />
-      <Environment preset="warehouse" environmentIntensity={0.28} />
       <CameraRig shot={shot} orbitEnabled={orbitEnabled} onArrived={onCameraArrived} />
       <OrbitControls
         enabled={orbitEnabled}
