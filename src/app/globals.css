@@ -119,6 +119,11 @@ body {
 
 .notebook-page {
   touch-action: pan-y;
+  cursor: pointer;
+}
+
+.notebook-page a[href] {
+  cursor: pointer;
 }
 
 .desk-label {

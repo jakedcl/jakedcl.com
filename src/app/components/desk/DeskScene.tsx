@@ -73,6 +73,7 @@ function SceneContents({
         pageInteractive={pageInteractive}
         interactive={hotspotsActive}
         onOpenPage={() => onSelectShot(shot === 'page' ? 'desk' : 'page')}
+        onClosePage={() => onSelectShot('desk')}
       />
       <DeskProps
         projects={projects}

@@ -25,21 +25,30 @@ const HTML_DISTANCE_FACTOR = PAPER_CSS.width
 // so CSS3D resume text cannot punch through the still-closed marble.
 const RESUME_REVEAL = 0.62
 
+const CLICK_SLOP_PX = 8
+
+function isPaperLink(target: EventTarget | null) {
+  return target instanceof Element && Boolean(target.closest('a[href]'))
+}
+
 export default function Notebook({
   opened,
   pageInteractive,
   interactive = true,
   onOpenPage,
+  onClosePage,
 }: {
   opened: boolean
   pageInteractive: boolean
   interactive?: boolean
   onOpenPage: () => void
+  onClosePage: () => void
 }) {
   const coverRef = useRef<THREE.Group>(null)
   const openAmount = useRef(opened ? 1 : 0)
   const resumeVisibleRef = useRef(openAmount.current > RESUME_REVEAL)
   const [resumeVisible, setResumeVisible] = useState(resumeVisibleRef.current)
+  const pressRef = useRef<{ x: number; y: number; scroll: number } | null>(null)
   const [coverMap, paperMap] = useTexture([
     '/desk/notebook-cover.jpg',
     '/desk/paper-cream.jpg',
@@ -87,7 +96,7 @@ export default function Notebook({
   const coverHingeY = NOTEBOOK.cover + NOTEBOOK.pages
 
   return (
-    <Hotspot disabled={!interactive} label="Resume notebook" onSelect={onOpenPage}>
+    <Hotspot disabled={!interactive || pageInteractive} label="Resume notebook" onSelect={onOpenPage}>
       <group position={[-0.5, 0, 0]}>
         <RoundedBox
           args={[NOTEBOOK.width, NOTEBOOK.cover, NOTEBOOK.depth]}
@@ -143,11 +152,40 @@ export default function Notebook({
           >
             <div
               className="lined-paper notebook-page"
-              onPointerDown={(event) => event.stopPropagation()}
+              tabIndex={0}
+              aria-label="Resume. Click the page to close the notebook and return to the desk."
+              onPointerDown={(event) => {
+                event.stopPropagation()
+                pressRef.current = {
+                  x: event.clientX,
+                  y: event.clientY,
+                  scroll: event.currentTarget.scrollTop,
+                }
+              }}
+              onPointerUp={(event) => {
+                event.stopPropagation()
+                const press = pressRef.current
+                pressRef.current = null
+                if (!press || isPaperLink(event.target)) return
+                const dragged =
+                  Math.hypot(event.clientX - press.x, event.clientY - press.y) > CLICK_SLOP_PX
+                const scrolled = Math.abs(event.currentTarget.scrollTop - press.scroll) > 4
+                if (dragged || scrolled) return
+                onClosePage()
+              }}
+              onClick={(event) => event.stopPropagation()}
               onWheel={(event) => event.stopPropagation()}
-              onClick={(event) => {
-                if ((event.target as HTMLElement).closest('a')) return
-                onOpenPage()
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  event.preventDefault()
+                  onClosePage()
+                  return
+                }
+                if (event.target !== event.currentTarget) return
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  onClosePage()
+                }
               }}
             >
               <Resume variant="paper" />
