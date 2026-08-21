@@ -19,8 +19,24 @@ export interface Project {
   displayOrder?: number
 }
 
+export interface NotebookCoverSettings {
+  name?: string
+  subject?: string
+  email?: string
+}
+
+export interface NotebookInsideSettings {
+  name?: string
+  address?: string
+  email?: string
+  phone?: string
+  school?: string
+  class?: string
+}
+
 export interface Settings {
   bioText?: PortableTextBlock[]
   galleryPhotos?: SanityImage[]
+  notebookCover?: NotebookCoverSettings
+  notebookInside?: NotebookInsideSettings
 }
-

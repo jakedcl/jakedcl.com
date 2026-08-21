@@ -9,6 +9,7 @@ import DeskProps from './DeskProps'
 import Notebook from './Notebook'
 import { shots } from './shots'
 import type { ShotName } from './types'
+import type { NotebookCopy } from '@/data/notebook'
 import type { Project, SanityImage } from '@/types/sanity'
 
 function SceneContents({
@@ -20,6 +21,7 @@ function SceneContents({
   snapCamera,
   projects,
   photos,
+  notebook,
   onSelectShot,
   onCameraArrived,
 }: {
@@ -31,6 +33,7 @@ function SceneContents({
   snapCamera?: boolean
   projects: Project[]
   photos: SanityImage[]
+  notebook: NotebookCopy
   onSelectShot: (shot: ShotName) => void
   onCameraArrived: (shot: ShotName) => void
 }) {
@@ -72,6 +75,7 @@ function SceneContents({
         opened={opened}
         pageInteractive={pageInteractive}
         interactive={hotspotsActive}
+        notebook={notebook}
         onOpenPage={() => onSelectShot(shot === 'page' ? 'desk' : 'page')}
         onClosePage={() => onSelectShot('desk')}
       />
@@ -95,6 +99,7 @@ export default function DeskScene({
   snapCamera,
   projects,
   photos,
+  notebook,
   onSelectShot,
   onCameraArrived,
 }: {
@@ -106,6 +111,7 @@ export default function DeskScene({
   snapCamera?: boolean
   projects: Project[]
   photos: SanityImage[]
+  notebook: NotebookCopy
   onSelectShot: (shot: ShotName) => void
   onCameraArrived: (shot: ShotName) => void
 }) {
@@ -128,6 +134,7 @@ export default function DeskScene({
           snapCamera={snapCamera}
           projects={projects}
           photos={photos}
+          notebook={notebook}
           onSelectShot={onSelectShot}
           onCameraArrived={onCameraArrived}
         />

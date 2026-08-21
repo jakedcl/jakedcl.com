@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import type { NotebookCopy } from '@/data/notebook'
 import type { Project, SanityImage } from '@/types/sanity'
 
 const DeskExperience = dynamic(() => import('./DeskExperience'), {
@@ -11,9 +12,11 @@ const DeskExperience = dynamic(() => import('./DeskExperience'), {
 export default function DeskLander({
   projects,
   photos,
+  notebook,
 }: {
   projects: Project[]
   photos: SanityImage[]
+  notebook: NotebookCopy
 }) {
-  return <DeskExperience projects={projects} photos={photos} />
+  return <DeskExperience projects={projects} photos={photos} notebook={notebook} />
 }

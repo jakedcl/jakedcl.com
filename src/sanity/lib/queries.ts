@@ -28,7 +28,19 @@ export const settingsQuery = groq`
       },
       alt,
       caption
+    },
+    notebookCover {
+      name,
+      subject,
+      email
+    },
+    notebookInside {
+      name,
+      address,
+      email,
+      phone,
+      school,
+      class
     }
   }
 `
-

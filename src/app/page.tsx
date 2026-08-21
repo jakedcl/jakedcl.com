@@ -1,4 +1,5 @@
 import DeskLander from './components/desk/DeskLander'
+import { resolveNotebookCopy } from '@/data/notebook'
 import { getSiteContent } from '@/sanity/lib/site'
 
 export const revalidate = 0
@@ -21,7 +22,11 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <DeskLander projects={projects} photos={settings?.galleryPhotos ?? []} />
+      <DeskLander
+        projects={projects}
+        photos={settings?.galleryPhotos ?? []}
+        notebook={resolveNotebookCopy(settings)}
+      />
     </>
   )
 }

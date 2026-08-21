@@ -8,6 +8,7 @@ import DeskHud from './DeskHud'
 import DeskScene from './DeskScene'
 import { canOrbit } from './CameraRig'
 import type { ShotName } from './types'
+import type { NotebookCopy } from '@/data/notebook'
 import type { Project, SanityImage } from '@/types/sanity'
 
 type Mode = 'boot' | '3d' | '2d'
@@ -15,9 +16,11 @@ type Mode = 'boot' | '3d' | '2d'
 export default function DeskExperience({
   projects,
   photos,
+  notebook,
 }: {
   projects: Project[]
   photos: SanityImage[]
+  notebook: NotebookCopy
 }) {
   const [mode, setMode] = useState<Mode>('boot')
   const [shot, setShot] = useState<ShotName>('intro')
@@ -122,6 +125,7 @@ export default function DeskExperience({
           snapCamera={snapCamera}
           projects={projects}
           photos={photos}
+          notebook={notebook}
           onSelectShot={onSelectShot}
           onCameraArrived={() => {
             setArrived(true)
