@@ -10,9 +10,6 @@ import type { ShotName } from './types'
 const NAV: { shot: ShotName; label: string }[] = [
   { shot: 'desk', label: 'Desk' },
   { shot: 'page', label: 'Resume' },
-  { shot: 'projects', label: 'Projects' },
-  { shot: 'gallery', label: 'Photos' },
-  { shot: 'contact', label: 'Contact' },
 ]
 
 export default function DeskHud({
