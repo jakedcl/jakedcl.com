@@ -7,9 +7,11 @@ import { urlFor } from '@/sanity/lib/image';
 
 interface FilmstripProps {
   photos: SanityImage[];
+  variant?: 'page' | 'overlay';
 }
 
-export default function Filmstrip({ photos }: FilmstripProps) {
+export default function Filmstrip({ photos, variant = 'page' }: FilmstripProps) {
+  const isOverlay = variant === 'overlay';
   const [shuffledPhotos, setShuffledPhotos] = useState<SanityImage[]>([]);
   const [originalPhotoOrder, setOriginalPhotoOrder] = useState<number[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
@@ -346,8 +348,16 @@ export default function Filmstrip({ photos }: FilmstripProps) {
 
   return (
     <>
-      <section className="w-full overflow-hidden bg-white pt-2">
-        <div className="relative h-48 md:h-64">
+      <section
+        className={`w-full overflow-hidden ${isOverlay ? 'bg-transparent' : 'bg-white pt-2'}`}
+      >
+        <div className={`relative ${isOverlay ? 'h-24 md:h-32' : 'h-48 md:h-64'}`}>
+          {isOverlay ? (
+            <>
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[#b7a48d]/90 to-transparent" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[#b7a48d]/90 to-transparent" />
+            </>
+          ) : null}
           <div 
             ref={containerRef}
             className="flex h-full gap-2 cursor-grab active:cursor-grabbing"

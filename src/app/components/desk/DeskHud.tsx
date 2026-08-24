@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { resume } from '@/data/resume'
 import { urlFor } from '@/sanity/lib/image'
 import type { Project, SanityImage } from '@/types/sanity'
+import Filmstrip from '../Filmstrip'
 import ProjectCard from '../ProjectCard'
 import type { ShotName } from './types'
 
@@ -27,8 +28,16 @@ export default function DeskHud({
   onSkip: () => void
   onSelectShot: (shot: ShotName) => void
 }) {
+  const showFilmstrip = photos.length > 0 && shot !== 'page'
+
   return (
     <>
+      {showFilmstrip ? (
+        <div className="pointer-events-auto absolute inset-x-0 top-0 z-10">
+          <Filmstrip photos={photos} variant="overlay" />
+        </div>
+      ) : null}
+
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between p-4 md:p-5">
         <p className="pointer-events-none text-xs tracking-wide text-black/70 md:text-sm">
           Jake DCL
@@ -144,8 +153,12 @@ export default function DeskHud({
       ) : null}
 
       {shot === 'desk' && introDone ? (
-        <p className="pointer-events-none absolute left-1/2 top-14 z-20 -translate-x-1/2 text-center text-xs text-black/60 md:text-sm">
-          Drag to look around. Click the notebook to open the resume, or the folders, photos, or pencil cup.
+        <p
+          className={`pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 text-center text-xs text-black/60 md:text-sm ${
+            showFilmstrip ? 'top-28 md:top-36' : 'top-14'
+          }`}
+        >
+          Drag to look around · click the notebook to open the resume
         </p>
       ) : null}
     </>
