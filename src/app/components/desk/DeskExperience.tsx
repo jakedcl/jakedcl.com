@@ -34,7 +34,7 @@ export default function DeskExperience({
       const allow3d = canUseWebGL() && !isCompactViewport()
       if (prefersReducedMotion()) {
         setSkipIntro(true)
-        setShot('desk')
+        setShot('page')
         setIntroDone(true)
         setSnapCamera(true)
       }
@@ -49,23 +49,26 @@ export default function DeskExperience({
     if (mode !== '3d') return
 
     if (skipIntro) {
-      setShot('desk')
+      setShot('page')
       setIntroDone(true)
       setArrived(false)
       setSnapCamera(true)
       return
     }
 
+    // Swoop: closed book → desk overview → settle on notebook-forward home.
     const toAerial = window.setTimeout(() => setShot('aerial'), 120)
-    const toDesk = window.setTimeout(() => {
-      setShot('desk')
+    const toDesk = window.setTimeout(() => setShot('desk'), 2100)
+    const toPage = window.setTimeout(() => {
+      setShot('page')
       setIntroDone(true)
       setArrived(false)
-    }, 3950)
+    }, 4300)
 
     return () => {
       window.clearTimeout(toAerial)
       window.clearTimeout(toDesk)
+      window.clearTimeout(toPage)
     }
   }, [mode, skipIntro])
 

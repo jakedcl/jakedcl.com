@@ -7,11 +7,13 @@ import { urlFor } from '@/sanity/lib/image';
 
 interface FilmstripProps {
   photos: SanityImage[];
-  variant?: 'page' | 'overlay';
+  variant?: 'page' | 'overlay' | 'pageMargin';
 }
 
 export default function Filmstrip({ photos, variant = 'page' }: FilmstripProps) {
   const isOverlay = variant === 'overlay';
+  const isPageMargin = variant === 'pageMargin';
+  const isFloating = isOverlay || isPageMargin;
   const [shuffledPhotos, setShuffledPhotos] = useState<SanityImage[]>([]);
   const [originalPhotoOrder, setOriginalPhotoOrder] = useState<number[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
@@ -346,16 +348,27 @@ export default function Filmstrip({ photos, variant = 'page' }: FilmstripProps) 
     setSelectedPhoto(null);
   };
 
+  const heightClass = isPageMargin
+    ? 'h-32 md:h-44'
+    : isOverlay
+      ? 'h-24 md:h-32'
+      : 'h-48 md:h-64';
+  const edgeFade = isPageMargin
+    ? 'from-[#f3eee2]/95'
+    : isOverlay
+      ? 'from-[#b7a48d]/90'
+      : null;
+
   return (
     <>
       <section
-        className={`w-full overflow-hidden ${isOverlay ? 'bg-transparent' : 'bg-white pt-2'}`}
+        className={`w-full overflow-hidden ${isFloating ? 'bg-transparent' : 'bg-white pt-2'}`}
       >
-        <div className={`relative ${isOverlay ? 'h-24 md:h-32' : 'h-48 md:h-64'}`}>
-          {isOverlay ? (
+        <div className={`relative ${heightClass}`}>
+          {edgeFade ? (
             <>
-              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[#b7a48d]/90 to-transparent" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[#b7a48d]/90 to-transparent" />
+              <div className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r ${edgeFade} to-transparent md:w-12`} />
+              <div className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l ${edgeFade} to-transparent md:w-12`} />
             </>
           ) : null}
           <div 

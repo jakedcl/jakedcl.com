@@ -28,13 +28,22 @@ export default function DeskHud({
   onSkip: () => void
   onSelectShot: (shot: ShotName) => void
 }) {
-  const showFilmstrip = photos.length > 0 && shot !== 'page'
+  // Filmstrip sits in the looseleaf top margin (page shot), not screen chrome.
+  const showPageFilmstrip = photos.length > 0 && introDone && shot === 'page'
 
   return (
     <>
-      {showFilmstrip ? (
-        <div className="pointer-events-auto absolute inset-x-0 top-0 z-10">
-          <Filmstrip photos={photos} variant="overlay" />
+      {showPageFilmstrip ? (
+        <div
+          className="pointer-events-auto absolute z-10"
+          style={{
+            // Align with the open page header band under the page camera.
+            top: '3.5%',
+            left: '20%',
+            width: '54%',
+          }}
+        >
+          <Filmstrip photos={photos} variant="pageMargin" />
         </div>
       ) : null}
 
@@ -78,16 +87,6 @@ export default function DeskHud({
             ))}
           </nav>
         </div>
-      ) : null}
-
-      {introDone && shot === 'page' ? (
-        <button
-          type="button"
-          onClick={() => onSelectShot('desk')}
-          className="absolute bottom-20 left-1/2 z-20 -translate-x-1/2 rounded-full bg-black px-4 py-2 text-xs text-white shadow md:bottom-24 md:text-sm"
-        >
-          Look around
-        </button>
       ) : null}
 
       {shot === 'projects' ? (
@@ -153,11 +152,7 @@ export default function DeskHud({
       ) : null}
 
       {shot === 'desk' && introDone ? (
-        <p
-          className={`pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 text-center text-xs text-black/60 md:text-sm ${
-            showFilmstrip ? 'top-28 md:top-36' : 'top-14'
-          }`}
-        >
+        <p className="pointer-events-none absolute left-1/2 top-14 z-20 -translate-x-1/2 text-center text-xs text-black/60 md:text-sm">
           Drag to look around · click the notebook to open the resume
         </p>
       ) : null}

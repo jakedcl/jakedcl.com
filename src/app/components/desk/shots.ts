@@ -12,11 +12,11 @@ const NOTEBOOK_FOCUS: [number, number, number] = [0.26, 0.07, 0]
 // Open page center (local PAGE_CENTER_X ≈ 0.805, then group x = -0.5).
 const PAGE_FOCUS: [number, number, number] = [0.305, 0.05, 0]
 
-/** Page overhead knobs — book ~70–80% of frame, thin desk rim (ruler/folder). */
+/** Page overhead knobs — open notebook nearly fills frame; thin desk rim only. */
 export const PAGE_CAM = {
-  y: 3.72,
-  z: 0.72,
-  fov: 31,
+  y: 3.22,
+  z: 0.5,
+  fov: 27,
 } as const
 
 /**
@@ -58,11 +58,12 @@ export const shots: Record<ShotName, Shot> = {
     duration: 2.7,
   },
   page: {
-    // Middle-distance overhead: open composition page fills most of frame.
+    // Homepage resting shot: open looseleaf nearly fills the viewport.
     // Aspect tweaks live in pageCameraForAspect (used by CameraRig).
     position: [PAGE_FOCUS[0], PAGE_CAM.y, PAGE_CAM.z],
     target: [PAGE_FOCUS[0], 0.02, 0.02],
     fov: PAGE_CAM.fov,
+    duration: 2.35,
   },
   desk: {
     position: [0.35, 4.7, 5.15],
