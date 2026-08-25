@@ -404,8 +404,8 @@ export function drawCompositionPageResume(
   const designWidth = 400
   const scaledLine = designLine * (width / designWidth)
   // Cap row height so the full resume fits on the mesh (no HTML scroll).
-  // /49: room for ~0.78×line body wraps after tall blank header + 2-row name.
-  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 49)))
+  // /44: room for ~0.78×line body wraps after blank header + 2-row name.
+  const line = Math.max(1, Math.round(Math.min(scaledLine, height / 44)))
   const margin = Math.round(width * (40 / 400))
   // Body column — name + contact must share this x (right of the red margin).
   const textX = margin + Math.round(width * (12 / 400))
@@ -429,8 +429,8 @@ export function drawCompositionPageResume(
   paintPaperGrain(ctx, width, height)
 
   // Ruled area origin — keep fixed (do not slide with content bumps).
-  // Tall blank header for the in-page filmstrip; first blue rule at ruleStart * line.
-  const ruleStart = 10
+  // Blank header band above; first blue rule at ruleStart * line.
+  const ruleStart = 5
   ctx.strokeStyle = ruleBlue
   ctx.lineWidth = Math.max(1, fontScale * 0.85)
   for (let y = ruleStart * line; y < height; y += line) {

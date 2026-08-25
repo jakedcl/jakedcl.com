@@ -9,14 +9,15 @@ export type Shot = {
 
 // Closed notebook cover center after the leftward shift (hinge at x = -0.5, width 1.52).
 const NOTEBOOK_FOCUS: [number, number, number] = [0.26, 0.07, 0]
-// Open page center (local PAGE_CENTER_X ≈ 0.805, then group x = -0.5).
-const PAGE_FOCUS: [number, number, number] = [0.305, 0.05, 0]
+// Open-book center: between flipped inside cover + ruled page (group x = -0.5).
+// Prefer full spine+cover+page in frame over max zoom on the looseleaf alone.
+const PAGE_FOCUS: [number, number, number] = [0.02, 0.05, 0]
 
-/** Page overhead knobs — open notebook nearly fills frame; thin desk rim only. */
+/** Page overhead knobs — full open notebook readable; thin desk rim OK. */
 export const PAGE_CAM = {
-  y: 3.22,
-  z: 0.5,
-  fov: 27,
+  y: 3.95,
+  z: 0.82,
+  fov: 32,
 } as const
 
 /**
@@ -58,7 +59,7 @@ export const shots: Record<ShotName, Shot> = {
     duration: 2.7,
   },
   page: {
-    // Homepage resting shot: open looseleaf nearly fills the viewport.
+    // Homepage resting shot: full open notebook (spine + cover + page) in frame.
     // Aspect tweaks live in pageCameraForAspect (used by CameraRig).
     position: [PAGE_FOCUS[0], PAGE_CAM.y, PAGE_CAM.z],
     target: [PAGE_FOCUS[0], 0.02, 0.02],

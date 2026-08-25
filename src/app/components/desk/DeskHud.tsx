@@ -28,22 +28,14 @@ export default function DeskHud({
   onSkip: () => void
   onSelectShot: (shot: ShotName) => void
 }) {
-  // Filmstrip sits in the looseleaf top margin (page shot), not screen chrome.
-  const showPageFilmstrip = photos.length > 0 && introDone && shot === 'page'
+  // Clean top-of-viewport bar (OG layout) — not a fake in-page paper overlay.
+  const showFilmstrip = photos.length > 0 && introDone && shot === 'page'
 
   return (
     <>
-      {showPageFilmstrip ? (
-        <div
-          className="pointer-events-auto absolute z-10"
-          style={{
-            // Align with the open page header band under the page camera.
-            top: '3.5%',
-            left: '20%',
-            width: '54%',
-          }}
-        >
-          <Filmstrip photos={photos} variant="pageMargin" />
+      {showFilmstrip ? (
+        <div className="pointer-events-auto absolute inset-x-0 top-0 z-10">
+          <Filmstrip photos={photos} variant="overlay" />
         </div>
       ) : null}
 
