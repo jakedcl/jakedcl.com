@@ -282,34 +282,29 @@ export default function Filmstrip({ photos, variant = 'page' }: FilmstripProps) 
     window.addEventListener('mouseup', handleGlobalMouseUp);
   };
 
-  // Define navigateLightbox before useEffect that uses it
+  // Walk the shuffled strip order (first half only — second half is the loop duplicate).
   const navigateLightbox = useCallback((direction: 'prev' | 'next') => {
-    if (selectedPhoto === null || !photos) return;
-    
-    // Get array of valid photo indices (photos with assets)
-    const validIndices = photos
-      .map((photo, index) => photo?.asset ? index : -1)
-      .filter((index) => index !== -1);
-    
-    if (validIndices.length === 0) return;
-    
-    // Find current index in valid indices array
-    const currentValidIndex = validIndices.indexOf(selectedPhoto);
-    if (currentValidIndex === -1) {
-      // If current photo is invalid, go to first valid photo
-      setSelectedPhoto(validIndices[0]);
+    if (selectedPhoto === null || originalPhotoOrder.length === 0 || !photos) return;
+
+    const stripOrder = originalPhotoOrder
+      .slice(0, originalPhotoOrder.length / 2)
+      .filter((index) => photos[index]?.asset);
+    if (stripOrder.length === 0) return;
+
+    const currentStripIndex = stripOrder.indexOf(selectedPhoto);
+    if (currentStripIndex === -1) {
+      setSelectedPhoto(stripOrder[0]);
       return;
     }
-    
-    // Navigate to next/prev valid photo
+
     if (direction === 'prev') {
-      const newValidIndex = currentValidIndex === 0 ? validIndices.length - 1 : currentValidIndex - 1;
-      setSelectedPhoto(validIndices[newValidIndex]);
+      const prevIndex = currentStripIndex === 0 ? stripOrder.length - 1 : currentStripIndex - 1;
+      setSelectedPhoto(stripOrder[prevIndex]);
     } else {
-      const newValidIndex = currentValidIndex === validIndices.length - 1 ? 0 : currentValidIndex + 1;
-      setSelectedPhoto(validIndices[newValidIndex]);
+      const nextIndex = currentStripIndex === stripOrder.length - 1 ? 0 : currentStripIndex + 1;
+      setSelectedPhoto(stripOrder[nextIndex]);
     }
-  }, [selectedPhoto, photos]);
+  }, [selectedPhoto, originalPhotoOrder, photos]);
 
   useEffect(() => {
     if (selectedPhoto === null) return;
