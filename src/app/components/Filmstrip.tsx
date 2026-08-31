@@ -419,7 +419,7 @@ export default function Filmstrip({ photos, variant = 'page' }: FilmstripProps) 
               e.stopPropagation();
               closeLightbox();
             }}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+            className="absolute top-4 right-4 cursor-pointer p-2 text-white transition-colors hover:text-gray-300"
             aria-label="Close"
           >
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -433,7 +433,7 @@ export default function Filmstrip({ photos, variant = 'page' }: FilmstripProps) 
               e.stopPropagation();
               navigateLightbox('prev');
             }}
-            className="absolute left-4 text-white hover:text-gray-300 transition-colors"
+            className="absolute left-4 cursor-pointer p-2 text-white transition-colors hover:text-gray-300"
             aria-label="Previous"
           >
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -447,7 +447,7 @@ export default function Filmstrip({ photos, variant = 'page' }: FilmstripProps) 
               e.stopPropagation();
               navigateLightbox('next');
             }}
-            className="absolute right-4 text-white hover:text-gray-300 transition-colors"
+            className="absolute right-4 cursor-pointer p-2 text-white transition-colors hover:text-gray-300"
             aria-label="Next"
           >
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">

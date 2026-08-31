@@ -48,14 +48,14 @@ export default function DeskHud({
             <button
               type="button"
               onClick={onSkip}
-              className="rounded-full bg-white/85 px-3 py-1.5 text-black shadow-sm backdrop-blur hover:bg-white"
+              className="cursor-pointer rounded-full bg-white/85 px-3 py-1.5 text-black shadow-sm backdrop-blur hover:bg-white"
             >
               Skip intro
             </button>
           ) : null}
           <Link
             href="/resume"
-            className="rounded-full bg-white/85 px-3 py-1.5 text-black shadow-sm backdrop-blur hover:bg-white"
+            className="cursor-pointer rounded-full bg-white/85 px-3 py-1.5 text-black shadow-sm backdrop-blur hover:bg-white"
           >
             Text resume
           </Link>
@@ -70,7 +70,7 @@ export default function DeskHud({
                 key={item.shot}
                 type="button"
                 onClick={() => onSelectShot(item.shot)}
-                className={`rounded-full px-3 py-1.5 transition-colors ${
+                className={`cursor-pointer rounded-full px-3 py-1.5 transition-colors ${
                   shot === item.shot ? 'bg-black text-white' : 'text-black hover:bg-black/5'
                 }`}
               >
