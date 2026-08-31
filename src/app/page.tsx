@@ -3,7 +3,7 @@ import { projectsQuery, settingsQuery } from '@/sanity/lib/queries';
 import { Project, Settings } from '@/types/sanity';
 import ProjectCard from './components/ProjectCard';
 import Filmstrip from './components/Filmstrip';
-import Resume from './components/Resume';
+import ResumeSection from './components/ResumeSection';
 
 export const revalidate = 0; // Always fetch fresh data
 
@@ -63,7 +63,7 @@ export default async function Home() {
         <div className="px-6 pb-10 pt-10 md:px-10 lg:grid lg:grid-cols-[minmax(0,1fr)_min(19rem,26%)] lg:items-start lg:gap-x-12 xl:grid-cols-[minmax(0,1fr)_min(22rem,28%)] xl:gap-x-14">
           <header className="min-w-0 pb-6 lg:pb-0">
             <h1 className="sr-only">Jake DCL</h1>
-            <Resume />
+            <ResumeSection />
           </header>
 
           {/* Desktop: sticky sidebar */}
