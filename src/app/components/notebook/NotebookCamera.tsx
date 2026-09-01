@@ -4,7 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
 const COVER_FOCUS = new THREE.Vector3(0.26, 0.07, 0)
-const PAGE_FOCUS = new THREE.Vector3(0.02, 0.02, 0.02)
+export const PAGE_FOCUS = new THREE.Vector3(0.02, 0.02, 0.02)
 
 export const CORNER_VIEW = {
   position: new THREE.Vector3(0.26, 2.9, 3.75),
