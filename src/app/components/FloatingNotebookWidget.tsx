@@ -6,11 +6,14 @@ import { canUseWebGL } from './notebook/capabilities'
 
 const NotebookScene = dynamic(() => import('./notebook/NotebookScene'), { ssr: false })
 
-/** Corner slot — canvas must be big enough for the framed notebook (WebGL clips at edges). */
+/**
+ * Corner canvas — deliberately oversized so WebGL never clips the mesh.
+ * Anchored bottom-right; extra space extends left/up (invisible padding).
+ */
 export const NOTEBOOK_ICON = {
-  widthRem: 5.5,
-  heightRem: 7.25,
-  insetRem: 0.75,
+  widthRem: 9,
+  heightRem: 10,
+  insetRem: 0.5,
 } as const
 
 /** Static corner preview of the 3D notebook. No animation yet. */

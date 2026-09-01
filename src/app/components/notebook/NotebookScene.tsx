@@ -5,11 +5,11 @@ import { Canvas } from '@react-three/fiber'
 import * as THREE from 'three'
 import Notebook from './Notebook'
 
-/** Pulled back so the full cover fits inside the corner canvas without edge clipping. */
+/** Framed with generous margin inside the corner canvas. */
 export const NOTEBOOK_CAMERA = {
-  position: new THREE.Vector3(0.26, 2.35, 2.65),
+  position: new THREE.Vector3(0.26, 2.9, 3.75),
   target: new THREE.Vector3(0.26, 0.07, 0),
-  fov: 30,
+  fov: 34,
 }
 
 export default function NotebookScene() {
