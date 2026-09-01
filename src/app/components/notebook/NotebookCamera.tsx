@@ -7,10 +7,11 @@ import * as THREE from 'three'
 const COVER_FOCUS = new THREE.Vector3(0.26, 0.06, 0)
 const PAGE_FOCUS = new THREE.Vector3(0.3, 0.04, 0)
 
+/** Tiny icon in the corner — camera far back, tight fov. */
 export const CORNER_VIEW = {
-  position: new THREE.Vector3(0.32, 0.48, 2.05),
-  target: new THREE.Vector3(0.26, 0.02, 0),
-  fov: 26,
+  position: new THREE.Vector3(0.26, 0.22, 4.35),
+  target: new THREE.Vector3(0.26, 0.04, 0),
+  fov: 17,
 }
 
 export const CENTER_VIEW = {
@@ -25,53 +26,39 @@ export const PAGE_VIEW = {
   fov: 31,
 }
 
-export type NotebookView = 'corner' | 'center' | 'page'
-
-const VIEW_BY_MODE: Record<NotebookView, typeof CORNER_VIEW> = {
-  corner: CORNER_VIEW,
-  center: CENTER_VIEW,
-  page: PAGE_VIEW,
+function lerpView(
+  a: typeof CORNER_VIEW,
+  b: typeof CORNER_VIEW,
+  t: number,
+): typeof CORNER_VIEW {
+  return {
+    position: a.position.clone().lerp(b.position, t),
+    target: a.target.clone().lerp(b.target, t),
+    fov: THREE.MathUtils.lerp(a.fov, b.fov, t),
+  }
 }
 
-const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
-
-export default function NotebookCamera({ view }: { view: NotebookView }) {
+export default function NotebookCamera({
+  prominence,
+  opened,
+}: {
+  prominence: number
+  opened: boolean
+}) {
   const { camera } = useThree()
-  const lookAt = useRef(CORNER_VIEW.target.clone())
-  const startPos = useRef(CORNER_VIEW.position.clone())
-  const startTarget = useRef(CORNER_VIEW.target.clone())
-  const destPos = useRef(CORNER_VIEW.position.clone())
-  const destTarget = useRef(CORNER_VIEW.target.clone())
-  const startFov = useRef(CORNER_VIEW.fov)
-  const progress = useRef(1)
-  const duration = useRef(0.85)
-  const currentView = useRef<NotebookView>(view)
-
-  useEffect(() => {
-    const dest = VIEW_BY_MODE[view]
-    startPos.current.copy(camera.position)
-    startTarget.current.copy(lookAt.current)
-    destPos.current.copy(dest.position)
-    destTarget.current.copy(dest.target)
-    startFov.current = 'fov' in camera ? camera.fov : dest.fov
-    duration.current = view === 'page' || currentView.current === 'page' ? 1.2 : 0.85
-    progress.current = 0
-    currentView.current = view
-  }, [camera, view])
+  const openMix = useRef(0)
 
   useFrame((_, delta) => {
-    if (progress.current >= 1) return
+    const centerMix = THREE.MathUtils.clamp(prominence, 0, 1)
+    openMix.current = THREE.MathUtils.damp(openMix.current, opened ? 1 : 0, 5, delta)
 
-    progress.current = Math.min(1, progress.current + delta / duration.current)
-    const t = easeOutCubic(progress.current)
-    const dest = VIEW_BY_MODE[currentView.current]
+    const centered = lerpView(CORNER_VIEW, CENTER_VIEW, centerMix)
+    const target = lerpView(centered, PAGE_VIEW, openMix.current)
 
-    camera.position.lerpVectors(startPos.current, destPos.current, t)
-    lookAt.current.lerpVectors(startTarget.current, destTarget.current, t)
-    camera.lookAt(lookAt.current)
-
+    camera.position.copy(target.position)
+    camera.lookAt(target.target)
     if ('fov' in camera) {
-      camera.fov = THREE.MathUtils.lerp(startFov.current, dest.fov, t)
+      camera.fov = target.fov
       camera.updateProjectionMatrix()
     }
   })
