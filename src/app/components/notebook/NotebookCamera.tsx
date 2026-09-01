@@ -44,6 +44,7 @@ export default function NotebookCamera({ progress }: { progress: number }) {
     camera.lookAt(view.target)
     if ('fov' in camera) {
       camera.fov = view.fov
+      camera.aspect = aspect
       camera.updateProjectionMatrix()
     }
   })

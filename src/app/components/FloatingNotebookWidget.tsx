@@ -3,12 +3,11 @@
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { canUseWebGL } from './notebook/capabilities'
-import { NOTEBOOK_STAGE } from './notebook/stage'
+import { cornerClipPath } from './notebook/stage'
 
 const NotebookScene = dynamic(() => import('./notebook/NotebookScene'), { ssr: false })
 
 const MOVE_MS = 860
-const { canvasWidthRem, canvasHeightRem, insetRem } = NOTEBOOK_STAGE
 
 const easeInOutCubic = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
@@ -87,13 +86,8 @@ export default function FloatingNotebookWidget() {
       )}
 
       <div
-        className="fixed z-[50] overflow-visible"
-        style={{
-          bottom: `calc(${insetRem}rem * ${1 - p})`,
-          right: `calc(${insetRem}rem * ${1 - p})`,
-          width: `calc(${canvasWidthRem}rem + ${p} * (100vw - ${canvasWidthRem}rem))`,
-          height: `calc(${canvasHeightRem}rem + ${p} * (100dvh - ${canvasHeightRem}rem))`,
-        }}
+        className="fixed inset-0 z-[50]"
+        style={{ clipPath: cornerClipPath(p) }}
         aria-live="polite"
       >
         <NotebookScene
