@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 
-/** Corner canvas size — oversized on purpose so WebGL doesn't clip the mesh. */
+/** Visual anchor for the corner icon (fullscreen canvas, no clip-path). */
 export const NOTEBOOK_STAGE = {
   canvasWidthRem: 9,
   canvasHeightRem: 10,
@@ -19,31 +19,22 @@ function remPx() {
   return parseFloat(getComputedStyle(document.documentElement).fontSize)
 }
 
-/** Reveal corner → fullscreen without resizing the WebGL canvas. */
-export function cornerClipPath(progress: number): string {
-  const p = Math.min(1, Math.max(0, progress))
-  const { canvasWidthRem, canvasHeightRem, insetRem } = NOTEBOOK_STAGE
-  const k = 1 - p
-  const top = `calc((100dvh - ${canvasHeightRem}rem - ${insetRem}rem) * ${k})`
-  const left = `calc((100vw - ${canvasWidthRem}rem - ${insetRem}rem) * ${k})`
-  const bottom = `calc(${insetRem}rem * ${k})`
-  const right = `calc(${insetRem}rem * ${k})`
-  return `inset(${top} ${right} ${bottom} ${left})`
+function viewportSize() {
+  if (typeof window === 'undefined') return { width: 1280, height: 720 }
+  return { width: window.innerWidth, height: window.innerHeight }
 }
 
 /** Where the cover should sit on screen for this progress (corner → center). */
-export function coverScreenPosition(
-  progress: number,
-  size: { width: number; height: number },
-) {
+export function coverScreenPosition(progress: number) {
   const p = Math.min(1, Math.max(0, progress))
   const root = remPx()
+  const { width, height } = viewportSize()
   const { canvasWidthRem, canvasHeightRem, insetRem } = NOTEBOOK_STAGE
-  const cornerX = size.width - (insetRem + canvasWidthRem / 2) * root
-  const cornerY = size.height - (insetRem + canvasHeightRem / 2) * root
+  const cornerX = width - (insetRem + canvasWidthRem / 2) * root
+  const cornerY = height - (insetRem + canvasHeightRem / 2) * root
   return {
-    x: THREE.MathUtils.lerp(cornerX, size.width / 2, p),
-    y: THREE.MathUtils.lerp(cornerY, size.height / 2, p),
+    x: THREE.MathUtils.lerp(cornerX, width / 2, p),
+    y: THREE.MathUtils.lerp(cornerY, height / 2, p),
   }
 }
 
@@ -54,6 +45,8 @@ export function worldOffsetForScreenPoint(
   screenX: number,
   screenY: number,
 ) {
+  if (size.width < 2 || size.height < 2) return { x: 0, y: 0 }
+
   ndc.set((screenX / size.width) * 2 - 1, -(screenY / size.height) * 2 + 1)
   raycaster.setFromCamera(ndc, camera)
   if (!raycaster.ray.intersectPlane(deskPlane, hit)) {

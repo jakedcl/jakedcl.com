@@ -1,13 +1,13 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import NotebookScene from './notebook/NotebookScene'
+import { NotebookErrorBoundary } from './notebook/NotebookErrorBoundary'
 import { canUseWebGL } from './notebook/capabilities'
-import { cornerClipPath } from './notebook/stage'
-
-const NotebookScene = dynamic(() => import('./notebook/NotebookScene'), { ssr: false })
+import { NOTEBOOK_STAGE } from './notebook/stage'
 
 const MOVE_MS = 860
+const { canvasWidthRem, canvasHeightRem, insetRem } = NOTEBOOK_STAGE
 
 const easeInOutCubic = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
@@ -30,13 +30,13 @@ function animateValue(
 }
 
 export default function FloatingNotebookWidget() {
-  const [webgl, setWebgl] = useState(false)
+  const [webgl, setWebgl] = useState<boolean | null>(null)
   const [active, setActive] = useState(false)
   const [progress, setProgress] = useState(0)
   const [opened, setOpened] = useState(false)
   const busy = useRef(false)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setWebgl(canUseWebGL())
   }, [])
 
@@ -69,12 +69,12 @@ export default function FloatingNotebookWidget() {
     return () => window.removeEventListener('keydown', onKey)
   }, [active, beginClose])
 
-  if (!webgl) return null
+  if (webgl === null || !webgl) return null
 
   const p = progress
 
   return (
-    <>
+    <NotebookErrorBoundary>
       {active && p > 0.06 && (
         <button
           type="button"
@@ -85,9 +85,10 @@ export default function FloatingNotebookWidget() {
         />
       )}
 
+      {/* Fullscreen transparent stage — notebook positioned in screen space, no clip-path. */}
       <div
         className="fixed inset-0 z-[50]"
-        style={{ clipPath: cornerClipPath(p) }}
+        style={{ pointerEvents: active ? 'auto' : 'none' }}
         aria-live="polite"
       >
         <NotebookScene
@@ -96,7 +97,23 @@ export default function FloatingNotebookWidget() {
           onOpen={beginOpen}
           onClose={beginClose}
         />
+
+        {!active && (
+          <button
+            type="button"
+            className="absolute cursor-pointer bg-transparent"
+            style={{
+              right: `${insetRem}rem`,
+              bottom: `${insetRem}rem`,
+              width: `${canvasWidthRem}rem`,
+              height: `${canvasHeightRem}rem`,
+              pointerEvents: 'auto',
+            }}
+            aria-label="Open resume notebook"
+            onClick={beginOpen}
+          />
+        )}
       </div>
-    </>
+    </NotebookErrorBoundary>
   )
 }

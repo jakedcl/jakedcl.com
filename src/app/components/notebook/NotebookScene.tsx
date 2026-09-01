@@ -1,12 +1,18 @@
 'use client'
 
 import { Suspense, useRef } from 'react'
-import { ContactShadows } from '@react-three/drei'
+import { ContactShadows, useTexture } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import Notebook from './Notebook'
 import NotebookCamera, { CORNER_VIEW } from './NotebookCamera'
 import { coverScreenPosition, worldOffsetForScreenPoint } from './stage'
+
+function TexturePreload() {
+  useTexture.preload('/notebook/notebook-cover.jpg')
+  useTexture.preload('/notebook/paper-cream.jpg')
+  return null
+}
 
 function NotebookStage({
   progress,
@@ -23,8 +29,8 @@ function NotebookStage({
   const { camera, size } = useThree()
 
   useFrame(() => {
-    if (!group.current) return
-    const screen = coverScreenPosition(progress, size)
+    if (!group.current || size.width < 2) return
+    const screen = coverScreenPosition(progress)
     const offset = worldOffsetForScreenPoint(camera, size, screen.x, screen.y)
     group.current.position.set(offset.x, offset.y, 0)
   })
@@ -74,7 +80,7 @@ export default function NotebookScene({
         near: 0.1,
         far: 40,
       }}
-      gl={{ antialias: true, alpha: true }}
+      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       onCreated={({ camera, gl }) => {
         camera.lookAt(CORNER_VIEW.target)
         gl.setClearColor(0x000000, 0)
@@ -82,6 +88,7 @@ export default function NotebookScene({
       }}
       style={{ background: 'transparent', width: '100%', height: '100%', display: 'block' }}
     >
+      <TexturePreload />
       <Suspense fallback={null}>
         <ambientLight intensity={0.92} />
         <directionalLight position={[2, 4, 5]} intensity={1.2} />
