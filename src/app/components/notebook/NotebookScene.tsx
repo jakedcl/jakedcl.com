@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useRef } from 'react'
+import { ContactShadows } from '@react-three/drei'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import Notebook from './Notebook'
@@ -48,10 +49,18 @@ function SceneContents({
 }) {
   return (
     <>
-      <ambientLight intensity={0.85} />
-      <directionalLight position={[3, 5, 4]} intensity={1.25} />
-      <directionalLight position={[-2, 2, -3]} intensity={0.35} />
+      <ambientLight intensity={0.9} />
+      <directionalLight position={[3, 5, 4]} intensity={1.15} castShadow />
+      <directionalLight position={[-2, 2, -3]} intensity={0.3} />
       <FloatingNotebook opened={opened} onOpen={onOpen} onClose={onClose} />
+      <ContactShadows
+        position={[0, -0.22, 0]}
+        opacity={0.28}
+        scale={3.2}
+        blur={2.4}
+        far={1.1}
+        color="#171717"
+      />
     </>
   )
 }
