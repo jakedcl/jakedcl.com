@@ -6,13 +6,13 @@ import { canUseWebGL } from './notebook/capabilities'
 
 const NotebookScene = dynamic(() => import('./notebook/NotebookScene'), { ssr: false })
 
-const GROW_MS = 680
-const COVER_CLOSE_MS = 1050
-const ICON_W = 5.25 // rem
-const ICON_H = 6.75 // rem
-const ICON_INSET = 1.25 // rem
+const MOVE_MS = 680
+const ICON_W = 5.75
+const ICON_H = 7.25
+const ICON_INSET = 1.25
 
-const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
+const easeInOutCubic = (t: number) =>
+  t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
 
 function animateValue(
   from: number,
@@ -24,7 +24,7 @@ function animateValue(
   const start = performance.now()
   const tick = (now: number) => {
     const t = Math.min(1, (now - start) / duration)
-    onUpdate(from + (to - from) * easeOutCubic(t))
+    onUpdate(from + (to - from) * easeInOutCubic(t))
     if (t < 1) requestAnimationFrame(tick)
     else onDone?.()
   }
@@ -34,30 +34,20 @@ function animateValue(
 export default function FloatingNotebookWidget() {
   const [webgl, setWebgl] = useState(false)
   const [active, setActive] = useState(false)
-  const [prominence, setProminence] = useState(0)
+  const [progress, setProgress] = useState(0)
   const [opened, setOpened] = useState(false)
   const busy = useRef(false)
-  const closeTimer = useRef<number | null>(null)
 
   useEffect(() => {
     setWebgl(canUseWebGL())
   }, [])
 
-  const clearCloseTimer = () => {
-    if (closeTimer.current !== null) {
-      window.clearTimeout(closeTimer.current)
-      closeTimer.current = null
-    }
-  }
-
   const beginOpen = useCallback(() => {
     if (busy.current || active) return
     busy.current = true
-    clearCloseTimer()
-    setOpened(false)
     setActive(true)
-    animateValue(0, 1, GROW_MS, setProminence, () => {
-      setOpened(true)
+    setOpened(true)
+    animateValue(0, 1, MOVE_MS, setProgress, () => {
       busy.current = false
     })
   }, [active])
@@ -65,15 +55,12 @@ export default function FloatingNotebookWidget() {
   const beginClose = useCallback(() => {
     if (busy.current || !active) return
     busy.current = true
-    clearCloseTimer()
     setOpened(false)
-    closeTimer.current = window.setTimeout(() => {
-      animateValue(prominence, 0, GROW_MS, setProminence, () => {
-        setActive(false)
-        busy.current = false
-      })
-    }, COVER_CLOSE_MS)
-  }, [active, prominence])
+    animateValue(progress, 0, MOVE_MS, setProgress, () => {
+      setActive(false)
+      busy.current = false
+    })
+  }, [active, progress])
 
   useEffect(() => {
     if (!active) return
@@ -84,19 +71,17 @@ export default function FloatingNotebookWidget() {
     return () => window.removeEventListener('keydown', onKey)
   }, [active, beginClose])
 
-  useEffect(() => clearCloseTimer, [])
-
   if (!webgl) return null
 
-  const p = prominence
+  const p = progress
 
   return (
     <>
-      {active && p > 0.12 && (
+      {active && p > 0.08 && (
         <button
           type="button"
           className="fixed inset-0 z-[45] cursor-default bg-black/12"
-          style={{ opacity: Math.min(1, (p - 0.12) * 1.4) }}
+          style={{ opacity: Math.min(1, p * 1.1) }}
           aria-label="Close resume notebook"
           onClick={beginClose}
         />
@@ -113,7 +98,7 @@ export default function FloatingNotebookWidget() {
         aria-live="polite"
       >
         <NotebookScene
-          prominence={prominence}
+          progress={progress}
           opened={opened}
           onCornerClick={beginOpen}
           onClosePage={beginClose}

@@ -40,20 +40,19 @@ const COVER_TEX_WIDTH = 2048
 const COVER_TEX_HEIGHT = Math.round(COVER_TEX_WIDTH * (NOTEBOOK.depth / NOTEBOOK.width))
 
 export default function Notebook({
-  opened,
+  progress,
   pageInteractive,
   interactive = true,
   onOpenPage,
   onClosePage,
 }: {
-  opened: boolean
+  progress: number
   pageInteractive: boolean
   interactive?: boolean
   onOpenPage: () => void
   onClosePage: () => void
 }) {
   const coverRef = useRef<THREE.Group>(null)
-  const openAmount = useRef(opened ? 1 : 0)
   const [pageHover, setPageHover] = useState(false)
   const [coverMap, paperMap] = useTexture([
     '/notebook/notebook-cover.jpg',
@@ -111,11 +110,9 @@ export default function Notebook({
 
   useCursor(pageHover && pageInteractive)
 
-  useFrame((_, delta) => {
-    const target = opened ? 1 : 0
-    openAmount.current = THREE.MathUtils.damp(openAmount.current, target, 2.15, delta)
+  useFrame(() => {
     if (coverRef.current) {
-      coverRef.current.rotation.z = openAmount.current * Math.PI * 0.93
+      coverRef.current.rotation.z = THREE.MathUtils.clamp(progress, 0, 1) * Math.PI * 0.93
     }
   })
 

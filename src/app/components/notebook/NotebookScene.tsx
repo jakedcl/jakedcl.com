@@ -7,52 +7,50 @@ import * as THREE from 'three'
 import Notebook from './Notebook'
 import NotebookCamera, { CORNER_VIEW } from './NotebookCamera'
 
-const ICON_SCALE = 0.46
+const ICON_SCALE = 0.62
 
 function FloatingNotebook({
-  prominence,
+  progress,
   opened,
   onCornerClick,
   onClosePage,
 }: {
-  prominence: number
+  progress: number
   opened: boolean
   onCornerClick: () => void
   onClosePage: () => void
 }) {
   const group = useRef<THREE.Group>(null)
-  const tilt = useRef({ x: -0.09, y: 0.22, z: 0.14 })
 
-  useFrame((state, delta) => {
+  useFrame((state) => {
     if (!group.current) return
     const t = state.clock.elapsedTime
-    const iconMode = prominence < 0.08 && !opened
+    const p = THREE.MathUtils.clamp(progress, 0, 1)
+    const iconMode = p < 0.02
 
-    const targetScale = THREE.MathUtils.lerp(ICON_SCALE, 1, THREE.MathUtils.clamp(prominence, 0, 1))
-    const s = THREE.MathUtils.damp(group.current.scale.x, targetScale, 6, delta)
-    group.current.scale.setScalar(s)
+    group.current.scale.setScalar(THREE.MathUtils.lerp(ICON_SCALE, 1, p))
 
     if (iconMode) {
-      group.current.position.y = Math.sin(t * 0.55) * 0.035
-      group.current.rotation.x = tilt.current.x + Math.sin(t * 0.33) * 0.02
-      group.current.rotation.y = tilt.current.y + Math.sin(t * 0.35) * 0.045
-      group.current.rotation.z = tilt.current.z + Math.sin(t * 0.4) * 0.03
+      group.current.position.y = Math.sin(t * 0.55) * 0.024
+      group.current.rotation.set(
+        Math.sin(t * 0.4) * 0.015,
+        Math.sin(t * 0.35) * 0.02,
+        Math.sin(t * 0.45) * 0.015,
+      )
       return
     }
 
-    group.current.position.y = THREE.MathUtils.damp(group.current.position.y, 0, 5, delta)
-    group.current.rotation.x = THREE.MathUtils.damp(group.current.rotation.x, 0, 5, delta)
-    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, 0, 5, delta)
-    group.current.rotation.z = THREE.MathUtils.damp(group.current.rotation.z, 0, 5, delta)
+    group.current.position.y = 0
+    group.current.rotation.set(0, 0, 0)
   })
 
-  const iconMode = prominence < 0.08 && !opened
+  const iconMode = progress < 0.02
 
   return (
     <group ref={group}>
       <Notebook
-        opened={opened}
-        pageInteractive={opened}
+        progress={progress}
+        pageInteractive={opened && progress > 0.72}
         interactive={iconMode}
         onOpenPage={onCornerClick}
         onClosePage={onClosePage}
@@ -62,34 +60,32 @@ function FloatingNotebook({
 }
 
 function SceneContents({
-  prominence,
+  progress,
   opened,
   onCornerClick,
   onClosePage,
 }: {
-  prominence: number
+  progress: number
   opened: boolean
   onCornerClick: () => void
   onClosePage: () => void
 }) {
-  const showShadow = prominence > 0.35
-
   return (
     <>
-      <ambientLight intensity={0.9} />
-      <directionalLight position={[3, 5, 4]} intensity={1.15} castShadow />
-      <directionalLight position={[-2, 2, -3]} intensity={0.3} />
-      <NotebookCamera prominence={prominence} opened={opened} />
+      <ambientLight intensity={0.92} />
+      <directionalLight position={[2, 4, 5]} intensity={1.2} />
+      <directionalLight position={[-1.5, 2, 2]} intensity={0.35} />
+      <NotebookCamera progress={progress} />
       <FloatingNotebook
-        prominence={prominence}
+        progress={progress}
         opened={opened}
         onCornerClick={onCornerClick}
         onClosePage={onClosePage}
       />
-      {showShadow && (
+      {progress > 0.2 && (
         <ContactShadows
           position={[0, -0.22, 0]}
-          opacity={0.2}
+          opacity={0.18 * progress}
           scale={3.2}
           blur={2.4}
           far={1.1}
@@ -101,12 +97,12 @@ function SceneContents({
 }
 
 export default function NotebookScene({
-  prominence,
+  progress,
   opened,
   onCornerClick,
   onClosePage,
 }: {
-  prominence: number
+  progress: number
   opened: boolean
   onCornerClick: () => void
   onClosePage: () => void
@@ -129,7 +125,7 @@ export default function NotebookScene({
     >
       <Suspense fallback={null}>
         <SceneContents
-          prominence={prominence}
+          progress={progress}
           opened={opened}
           onCornerClick={onCornerClick}
           onClosePage={onClosePage}

@@ -1,30 +1,32 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const COVER_FOCUS = new THREE.Vector3(0.26, 0.06, 0)
-const PAGE_FOCUS = new THREE.Vector3(0.3, 0.04, 0)
+// Closed cover center (hinge at x = -0.5, width 1.52).
+const COVER_FOCUS = new THREE.Vector3(0.26, 0.07, 0)
+const PAGE_FOCUS = new THREE.Vector3(0.02, 0.02, 0.02)
 
-/** Tiny icon in the corner — camera far back, tight fov. */
+/** Elevated front angle — marble cover faces you, not the thin edge. */
 export const CORNER_VIEW = {
-  position: new THREE.Vector3(0.26, 0.22, 4.35),
-  target: new THREE.Vector3(0.26, 0.04, 0),
-  fov: 17,
-}
-
-export const CENTER_VIEW = {
-  position: new THREE.Vector3(0.26, 0.42, 2.35),
+  position: new THREE.Vector3(0.26, 1.95, 1.38),
   target: COVER_FOCUS,
-  fov: 30,
+  fov: 28,
 }
 
-export const PAGE_VIEW = {
-  position: new THREE.Vector3(0.3, 2.65, 0.72),
-  target: PAGE_FOCUS,
-  fov: 31,
+const PAGE_CAM = { y: 3.95, z: 0.82, fov: 32 } as const
+
+function pageViewForAspect(aspect: number) {
+  const ref = 16 / 9
+  const pull = Math.min(1.16, Math.max(0.92, Math.sqrt(ref / Math.max(aspect, 0.5))))
+  return {
+    position: new THREE.Vector3(PAGE_FOCUS.x, PAGE_CAM.y * pull, PAGE_CAM.z * pull),
+    target: PAGE_FOCUS.clone(),
+    fov: PAGE_CAM.fov * (0.98 + (pull - 1) * 0.4),
+  }
 }
+
+export const PAGE_VIEW = pageViewForAspect(16 / 9)
 
 function lerpView(
   a: typeof CORNER_VIEW,
@@ -38,27 +40,17 @@ function lerpView(
   }
 }
 
-export default function NotebookCamera({
-  prominence,
-  opened,
-}: {
-  prominence: number
-  opened: boolean
-}) {
-  const { camera } = useThree()
-  const openMix = useRef(0)
+export default function NotebookCamera({ progress }: { progress: number }) {
+  const { camera, size } = useThree()
 
-  useFrame((_, delta) => {
-    const centerMix = THREE.MathUtils.clamp(prominence, 0, 1)
-    openMix.current = THREE.MathUtils.damp(openMix.current, opened ? 1 : 0, 5, delta)
-
-    const centered = lerpView(CORNER_VIEW, CENTER_VIEW, centerMix)
-    const target = lerpView(centered, PAGE_VIEW, openMix.current)
-
-    camera.position.copy(target.position)
-    camera.lookAt(target.target)
+  useFrame(() => {
+    const t = THREE.MathUtils.clamp(progress, 0, 1)
+    const pageView = pageViewForAspect(size.width / Math.max(size.height, 1))
+    const view = lerpView(CORNER_VIEW, pageView, t)
+    camera.position.copy(view.position)
+    camera.lookAt(view.target)
     if ('fov' in camera) {
-      camera.fov = target.fov
+      camera.fov = view.fov
       camera.updateProjectionMatrix()
     }
   })
