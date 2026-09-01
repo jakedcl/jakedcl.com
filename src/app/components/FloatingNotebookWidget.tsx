@@ -2,14 +2,13 @@
 
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { ICON_LAYOUT } from './notebook/iconLayout'
 import { canUseWebGL } from './notebook/capabilities'
 
 const NotebookScene = dynamic(() => import('./notebook/NotebookScene'), { ssr: false })
 
 const MOVE_MS = 760
-const ICON_W = 4.25
-const ICON_H = 5.5
-const ICON_INSET = 1.25
+const { widthRem: ICON_W, heightRem: ICON_H, insetRem: ICON_INSET } = ICON_LAYOUT
 
 const easeInOutCubic = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2

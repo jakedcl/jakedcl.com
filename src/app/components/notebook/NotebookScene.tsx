@@ -31,10 +31,10 @@ function FloatingNotebook({
 
     group.current.scale.setScalar(THREE.MathUtils.lerp(ICON_SCALE, 1, t))
 
-    const { width, height } = state.viewport
-    group.current.position.x = (1 - t) * (width / 2 - CORNER_MARGIN_X)
+    const corner = cornerCenterWorld(state.viewport, state.size)
+    group.current.position.x = (1 - t) * corner.x
     group.current.position.y =
-      (1 - t) * (-(height / 2 - CORNER_MARGIN_Y)) + Math.sin(clock * 0.55) * 0.024 * wobble
+      (1 - t) * corner.y + Math.sin(clock * 0.55) * 0.024 * wobble
 
     group.current.rotation.x = Math.sin(clock * 0.4) * 0.015 * wobble
     group.current.rotation.y = Math.sin(clock * 0.35) * 0.02 * wobble
