@@ -1,9 +1,10 @@
 import { client } from '@/sanity/lib/client';
 import { projectsQuery, settingsQuery } from '@/sanity/lib/queries';
 import { Project, Settings } from '@/types/sanity';
+import FloatingNotebookWidget from './components/FloatingNotebookWidget';
+import HomeIntro from './components/HomeIntro';
 import ProjectCard from './components/ProjectCard';
 import Filmstrip from './components/Filmstrip';
-import ResumeSection from './components/ResumeSection';
 
 export const revalidate = 0; // Always fetch fresh data
 
@@ -60,25 +61,23 @@ export default async function Home() {
           <Filmstrip photos={settings.galleryPhotos} />
         )}
 
-        <div className="px-6 pb-10 pt-10 md:px-10 lg:grid lg:grid-cols-[minmax(0,1fr)_min(19rem,26%)] lg:items-start lg:gap-x-12 xl:grid-cols-[minmax(0,1fr)_min(22rem,28%)] xl:gap-x-14">
-          <header className="min-w-0 pb-6 lg:pb-0">
-            <h1 className="sr-only">Jake DCL</h1>
-            <ResumeSection />
-          </header>
+        <div className="px-6 pb-16 pt-10 md:px-10 lg:grid lg:grid-cols-[minmax(0,1fr)_min(19rem,26%)] lg:items-start lg:gap-x-12 xl:grid-cols-[minmax(0,1fr)_min(22rem,28%)] xl:gap-x-14">
+          <div className="min-w-0 space-y-10 pb-8 lg:pb-0">
+            <HomeIntro />
+            <section className="lg:hidden">
+              <h2 className="mb-6 text-2xl font-bold text-black">Recent Projects</h2>
+              <ProjectsList projects={projects} className="space-y-10" />
+            </section>
+          </div>
 
-          {/* Desktop: sticky sidebar */}
           <aside className="hidden min-w-0 lg:block lg:sticky lg:top-8 lg:self-start">
             <h2 className="mb-5 text-lg font-bold text-black xl:text-xl">Recent Projects</h2>
             <ProjectsList projects={projects} compact className="space-y-6" />
           </aside>
-
-          {/* Mobile: full-width stack below resume */}
-          <section className="min-w-0 lg:hidden">
-            <h2 className="mb-6 text-2xl font-bold text-black">Recent Projects</h2>
-            <ProjectsList projects={projects} className="space-y-10" />
-          </section>
         </div>
       </main>
+
+      <FloatingNotebookWidget />
     </div>
   );
 }
