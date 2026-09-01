@@ -33,14 +33,11 @@ function lerpView(a: typeof CORNER_VIEW, b: typeof CORNER_VIEW, t: number) {
 }
 
 export default function NotebookCamera({ progress }: { progress: number }) {
-  const { camera } = useThree()
-  const aspect =
-    typeof window !== 'undefined'
-      ? window.innerWidth / Math.max(window.innerHeight, 1)
-      : 16 / 9
+  const { camera, size } = useThree()
 
   useFrame(() => {
     const t = THREE.MathUtils.clamp(progress, 0, 1)
+    const aspect = size.width / Math.max(size.height, 1)
     const pageView = pageViewForAspect(aspect)
     const view = lerpView(CORNER_VIEW, pageView, t)
     camera.position.copy(view.position)
