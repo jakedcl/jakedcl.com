@@ -14,7 +14,6 @@ import {
   createCompositionPageResumeTexture,
   createInsideCoverTexture,
 } from './notebookTextures'
-import { motionT } from './motion'
 
 export const NOTEBOOK = {
   width: 1.52,
@@ -113,7 +112,7 @@ export default function Notebook({
 
   useFrame(() => {
     if (coverRef.current) {
-      const t = motionT(THREE.MathUtils.clamp(progress, 0, 1))
+      const t = THREE.MathUtils.clamp(progress, 0, 1)
       coverRef.current.rotation.z = t * Math.PI * 0.93
     }
   })

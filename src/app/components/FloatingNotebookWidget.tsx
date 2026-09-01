@@ -2,13 +2,13 @@
 
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ICON_LAYOUT } from './notebook/iconLayout'
+import { ICON_LAYOUT, notebookStageTransform } from './notebook/iconLayout'
 import { canUseWebGL } from './notebook/capabilities'
 
 const NotebookScene = dynamic(() => import('./notebook/NotebookScene'), { ssr: false })
 
-const MOVE_MS = 820
-const { widthRem: ICON_W, heightRem: ICON_H, insetRem: ICON_INSET, closedScale } = ICON_LAYOUT
+const MOVE_MS = 880
+const { widthRem: ICON_W, heightRem: ICON_H, insetRem: ICON_INSET } = ICON_LAYOUT
 
 const easeInOutCubic = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
@@ -35,10 +35,18 @@ export default function FloatingNotebookWidget() {
   const [active, setActive] = useState(false)
   const [progress, setProgress] = useState(0)
   const [opened, setOpened] = useState(false)
+  const [viewport, setViewport] = useState({ width: 0, height: 0 })
   const busy = useRef(false)
 
   useEffect(() => {
     setWebgl(canUseWebGL())
+  }, [])
+
+  useEffect(() => {
+    const update = () => setViewport({ width: window.innerWidth, height: window.innerHeight })
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
   }, [])
 
   const beginOpen = useCallback(() => {
@@ -73,8 +81,8 @@ export default function FloatingNotebookWidget() {
   if (!webgl) return null
 
   const p = progress
-  const scale = closedScale + p * (1 - closedScale)
-  const origin = `calc(100% - ${ICON_INSET}rem) calc(100% - ${ICON_INSET}rem)`
+  const stage =
+    viewport.width > 0 ? notebookStageTransform(p, viewport) : { transform: 'scale(1)', scale: 1 }
 
   return (
     <>
@@ -88,12 +96,13 @@ export default function FloatingNotebookWidget() {
         />
       )}
 
+      {/* Fullscreen stage — motion is translate+scale on one wrapper, not a resizing box */}
       <div className="fixed inset-0 z-[50] pointer-events-none" aria-live="polite">
         <div
           className="h-full w-full"
           style={{
-            transformOrigin: origin,
-            transform: `scale(${scale})`,
+            transform: stage.transform,
+            transformOrigin: 'center center',
             willChange: 'transform',
             pointerEvents: active ? 'auto' : 'none',
           }}

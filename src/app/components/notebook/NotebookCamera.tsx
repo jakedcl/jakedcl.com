@@ -2,17 +2,16 @@
 
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { motionT } from './motion'
 
 // Closed cover center (hinge at x = -0.5, width 1.52).
 const COVER_FOCUS = new THREE.Vector3(0.26, 0.07, 0)
 const PAGE_FOCUS = new THREE.Vector3(0.02, 0.02, 0.02)
 
-/** Front-facing cover, framed for the corner icon at closed scale. */
+/** Front-facing cover — matches the desk lander cover shot. */
 export const CORNER_VIEW = {
-  position: new THREE.Vector3(0.26, 2.05, 2.15),
+  position: new THREE.Vector3(0.26, 1.95, 1.38),
   target: COVER_FOCUS,
-  fov: 32,
+  fov: 28,
 }
 
 const PAGE_CAM = { y: 3.95, z: 0.82, fov: 32 } as const
@@ -45,7 +44,7 @@ export default function NotebookCamera({ progress }: { progress: number }) {
   const { camera, size } = useThree()
 
   useFrame(() => {
-    const t = motionT(THREE.MathUtils.clamp(progress, 0, 1))
+    const t = THREE.MathUtils.clamp(progress, 0, 1)
     const pageView = pageViewForAspect(size.width / Math.max(size.height, 1))
     const view = lerpView(CORNER_VIEW, pageView, t)
     camera.position.copy(view.position)
