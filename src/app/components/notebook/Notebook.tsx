@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
-import { useTexture } from '@react-three/drei'
+import { useEffect, useMemo, useState } from 'react'
+import { useCursor, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import {
   COVER_CORNER_RADIUS,
@@ -34,8 +34,21 @@ const PAGE_TEX_HEIGHT = Math.round(PAGE_TEX_WIDTH * (PAGE_DEPTH / PAGE_WIDTH))
 const COVER_TEX_WIDTH = 2048
 const COVER_TEX_HEIGHT = Math.round(COVER_TEX_WIDTH * (NOTEBOOK.depth / NOTEBOOK.width))
 
-/** Marble composition notebook — geometry + textures only. Animation hooks up later. */
-export default function Notebook({ openAmount = 0 }: { openAmount?: number }) {
+/** Marble composition notebook — geometry + textures. */
+export default function Notebook({
+  openAmount = 0,
+  interactive = false,
+  pageInteractive = false,
+  onPress,
+  onClosePage,
+}: {
+  openAmount?: number
+  interactive?: boolean
+  pageInteractive?: boolean
+  onPress?: () => void
+  onClosePage?: () => void
+}) {
+  const [pageHover, setPageHover] = useState(false)
   const [coverMap, paperMap] = useTexture([
     '/notebook/notebook-cover.jpg',
     '/notebook/paper-cream.jpg',
@@ -87,12 +100,25 @@ export default function Notebook({ openAmount = 0 }: { openAmount?: number }) {
     }
   }, [pageResumeMap, classProgramMap, coverGeom, pageGeom])
 
+  useCursor(pageHover && (interactive || pageInteractive))
+
   const coverOpen = THREE.MathUtils.clamp(openAmount, 0, 1) * Math.PI * 0.93
   const pageY = NOTEBOOK.cover + PAGE_HEIGHT / 2
   const coverHingeY = NOTEBOOK.cover + NOTEBOOK.pages
 
   return (
-    <group position={[-0.5, 0, 0]}>
+    <group
+      position={[-0.5, 0, 0]}
+      onClick={(event) => {
+        event.stopPropagation()
+        if (interactive) onPress?.()
+      }}
+      onPointerOver={(event) => {
+        event.stopPropagation()
+        if (interactive) setPageHover(true)
+      }}
+      onPointerOut={() => setPageHover(false)}
+    >
       <mesh
         position={[NOTEBOOK.width / 2, NOTEBOOK.cover / 2, 0]}
         geometry={coverGeom}
@@ -102,7 +128,21 @@ export default function Notebook({ openAmount = 0 }: { openAmount?: number }) {
         <meshStandardMaterial map={paperMap} roughness={0.92} metalness={0} />
       </mesh>
 
-      <mesh position={[PAGE_CENTER_X, pageY, 0]} geometry={pageGeom} castShadow receiveShadow>
+      <mesh
+        position={[PAGE_CENTER_X, pageY, 0]}
+        geometry={pageGeom}
+        castShadow
+        receiveShadow
+        onClick={(event) => {
+          event.stopPropagation()
+          if (pageInteractive) onClosePage?.()
+        }}
+        onPointerOver={(event) => {
+          event.stopPropagation()
+          if (pageInteractive) setPageHover(true)
+        }}
+        onPointerOut={() => setPageHover(false)}
+      >
         <meshStandardMaterial attach="material-0" color={PAPER_CREAM} roughness={0.95} />
         <meshStandardMaterial attach="material-1" color={PAPER_CREAM} roughness={0.95} />
         <meshBasicMaterial attach="material-2" map={pageResumeMap} />
