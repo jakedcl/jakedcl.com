@@ -6,9 +6,9 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import Notebook from './Notebook'
 import NotebookCamera, { CORNER_VIEW } from './NotebookCamera'
-import { cornerCenterWorld } from './iconLayout'
+import { COVER_CENTER, cornerOffsetForCamera } from './iconLayout'
 
-const ICON_SCALE = 0.22
+const ICON_SCALE = 0.16
 
 function FloatingNotebook({
   progress,
@@ -22,6 +22,7 @@ function FloatingNotebook({
   onClosePage: () => void
 }) {
   const group = useRef<THREE.Group>(null)
+  const cornerCam = useRef<THREE.PerspectiveCamera | null>(null)
 
   useFrame((state) => {
     if (!group.current) return
@@ -31,7 +32,21 @@ function FloatingNotebook({
 
     group.current.scale.setScalar(THREE.MathUtils.lerp(ICON_SCALE, 1, t))
 
-    const corner = cornerCenterWorld(state.viewport, state.size)
+    if (!cornerCam.current) {
+      cornerCam.current = new THREE.PerspectiveCamera(
+        CORNER_VIEW.fov,
+        state.size.width / Math.max(state.size.height, 1),
+        0.1,
+        40,
+      )
+    }
+    const cam = cornerCam.current
+    cam.aspect = state.size.width / Math.max(state.size.height, 1)
+    cam.position.copy(CORNER_VIEW.position)
+    cam.lookAt(COVER_CENTER)
+    cam.updateProjectionMatrix()
+
+    const corner = cornerOffsetForCamera(cam, state.size)
     group.current.position.x = (1 - t) * corner.x
     group.current.position.y =
       (1 - t) * corner.y + Math.sin(clock * 0.55) * 0.024 * wobble
