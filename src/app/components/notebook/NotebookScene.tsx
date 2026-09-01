@@ -7,7 +7,9 @@ import * as THREE from 'three'
 import Notebook from './Notebook'
 import NotebookCamera, { CORNER_VIEW } from './NotebookCamera'
 
-const ICON_SCALE = 0.62
+const ICON_SCALE = 0.58
+const CORNER_MARGIN_X = 0.42
+const CORNER_MARGIN_Y = 0.52
 
 function FloatingNotebook({
   progress,
@@ -24,27 +26,23 @@ function FloatingNotebook({
 
   useFrame((state) => {
     if (!group.current) return
-    const t = state.clock.elapsedTime
-    const p = THREE.MathUtils.clamp(progress, 0, 1)
-    const iconMode = p < 0.02
+    const t = THREE.MathUtils.clamp(progress, 0, 1)
+    const clock = state.clock.elapsedTime
+    const wobble = 1 - t
 
-    group.current.scale.setScalar(THREE.MathUtils.lerp(ICON_SCALE, 1, p))
+    group.current.scale.setScalar(THREE.MathUtils.lerp(ICON_SCALE, 1, t))
 
-    if (iconMode) {
-      group.current.position.y = Math.sin(t * 0.55) * 0.024
-      group.current.rotation.set(
-        Math.sin(t * 0.4) * 0.015,
-        Math.sin(t * 0.35) * 0.02,
-        Math.sin(t * 0.45) * 0.015,
-      )
-      return
-    }
+    const { width, height } = state.viewport
+    group.current.position.x = (1 - t) * (width / 2 - CORNER_MARGIN_X)
+    group.current.position.y =
+      (1 - t) * (-(height / 2 - CORNER_MARGIN_Y)) + Math.sin(clock * 0.55) * 0.024 * wobble
 
-    group.current.position.y = 0
-    group.current.rotation.set(0, 0, 0)
+    group.current.rotation.x = Math.sin(clock * 0.4) * 0.015 * wobble
+    group.current.rotation.y = Math.sin(clock * 0.35) * 0.02 * wobble
+    group.current.rotation.z = Math.sin(clock * 0.45) * 0.015 * wobble
   })
 
-  const iconMode = progress < 0.02
+  const iconMode = progress < 0.04 && !opened
 
   return (
     <group ref={group}>

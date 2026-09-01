@@ -6,7 +6,7 @@ import { canUseWebGL } from './notebook/capabilities'
 
 const NotebookScene = dynamic(() => import('./notebook/NotebookScene'), { ssr: false })
 
-const MOVE_MS = 680
+const MOVE_MS = 760
 const ICON_W = 5.75
 const ICON_H = 7.25
 const ICON_INSET = 1.25
@@ -88,13 +88,8 @@ export default function FloatingNotebookWidget() {
       )}
 
       <div
-        className="fixed z-[50] overflow-hidden"
-        style={{
-          bottom: `calc(${ICON_INSET}rem * ${1 - p})`,
-          right: `calc(${ICON_INSET}rem * ${1 - p})`,
-          width: `calc(${ICON_W}rem + ${p} * (100vw - ${ICON_W}rem))`,
-          height: `calc(${ICON_H}rem + ${p} * (100dvh - ${ICON_H}rem))`,
-        }}
+        className="fixed inset-0 z-[50]"
+        style={{ pointerEvents: active ? 'auto' : 'none' }}
         aria-live="polite"
       >
         <NotebookScene
@@ -103,6 +98,21 @@ export default function FloatingNotebookWidget() {
           onCornerClick={beginOpen}
           onClosePage={beginClose}
         />
+        {!active && (
+          <button
+            type="button"
+            className="absolute cursor-pointer bg-transparent"
+            style={{
+              right: `${ICON_INSET}rem`,
+              bottom: `${ICON_INSET}rem`,
+              width: `${ICON_W}rem`,
+              height: `${ICON_H}rem`,
+              pointerEvents: 'auto',
+            }}
+            aria-label="Open resume notebook"
+            onClick={beginOpen}
+          />
+        )}
       </div>
     </>
   )

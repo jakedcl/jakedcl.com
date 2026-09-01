@@ -2,6 +2,7 @@
 
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import { motionT } from './motion'
 
 // Closed cover center (hinge at x = -0.5, width 1.52).
 const COVER_FOCUS = new THREE.Vector3(0.26, 0.07, 0)
@@ -44,7 +45,7 @@ export default function NotebookCamera({ progress }: { progress: number }) {
   const { camera, size } = useThree()
 
   useFrame(() => {
-    const t = THREE.MathUtils.clamp(progress, 0, 1)
+    const t = motionT(THREE.MathUtils.clamp(progress, 0, 1))
     const pageView = pageViewForAspect(size.width / Math.max(size.height, 1))
     const view = lerpView(CORNER_VIEW, pageView, t)
     camera.position.copy(view.position)
