@@ -7,9 +7,9 @@ import * as THREE from 'three'
 import Notebook from './Notebook'
 import NotebookCamera, { CORNER_VIEW } from './NotebookCamera'
 
-const ICON_SCALE = 0.58
-const CORNER_MARGIN_X = 0.42
-const CORNER_MARGIN_Y = 0.52
+const ICON_SCALE = 0.22
+const CORNER_MARGIN_X = 0.62
+const CORNER_MARGIN_Y = 0.72
 
 function FloatingNotebook({
   progress,

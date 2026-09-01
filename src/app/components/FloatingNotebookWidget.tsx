@@ -7,8 +7,8 @@ import { canUseWebGL } from './notebook/capabilities'
 const NotebookScene = dynamic(() => import('./notebook/NotebookScene'), { ssr: false })
 
 const MOVE_MS = 760
-const ICON_W = 5.75
-const ICON_H = 7.25
+const ICON_W = 4.25
+const ICON_H = 5.5
 const ICON_INSET = 1.25
 
 const easeInOutCubic = (t: number) =>
