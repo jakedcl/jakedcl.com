@@ -6,10 +6,9 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import Notebook from './Notebook'
 import NotebookCamera, { CORNER_VIEW } from './NotebookCamera'
+import { cornerCenterWorld } from './iconLayout'
 
 const ICON_SCALE = 0.22
-const CORNER_MARGIN_X = 0.62
-const CORNER_MARGIN_Y = 0.72
 
 function FloatingNotebook({
   progress,
