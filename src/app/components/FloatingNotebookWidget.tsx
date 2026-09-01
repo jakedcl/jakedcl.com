@@ -102,6 +102,21 @@ export default function FloatingNotebookWidget() {
           onClose={beginClose}
         />
       </div>
+
+      {!active && (
+        <button
+          type="button"
+          className="fixed z-[51] cursor-pointer bg-transparent"
+          style={{
+            right: `${insetRem}rem`,
+            bottom: `${insetRem}rem`,
+            width: `${canvasWidthRem}rem`,
+            height: `${canvasHeightRem}rem`,
+          }}
+          aria-label="Open resume notebook"
+          onClick={beginOpen}
+        />
+      )}
     </NotebookErrorBoundary>
   )
 }

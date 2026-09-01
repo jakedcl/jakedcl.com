@@ -5,6 +5,7 @@ import { ContactShadows, useTexture } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import Notebook from './Notebook'
 import NotebookCamera, { CORNER_VIEW } from './NotebookCamera'
+import { motionProgress } from './stage'
 
 function TexturePreload() {
   useTexture.preload('/notebook/notebook-cover.jpg')
@@ -24,6 +25,7 @@ export default function NotebookScene({
   onClose: () => void
 }) {
   const iconMode = progress < 0.04 && !opened
+  const motion = motionProgress(progress)
 
   return (
     <Canvas
@@ -47,18 +49,18 @@ export default function NotebookScene({
         <ambientLight intensity={0.92} />
         <directionalLight position={[2, 4, 5]} intensity={1.2} />
         <directionalLight position={[-1.5, 2, 2]} intensity={0.35} />
-        <NotebookCamera progress={progress} />
+        <NotebookCamera progress={motion} />
         <Notebook
-          openAmount={progress}
+          openAmount={motion}
           interactive={iconMode}
           pageInteractive={opened && progress > 0.65}
           onPress={onOpen}
           onClosePage={onClose}
         />
-        {progress > 0.15 && (
+        {motion > 0.12 && (
           <ContactShadows
             position={[0, -0.22, 0]}
-            opacity={0.16 * progress}
+            opacity={0.16 * motion}
             scale={3.2}
             blur={2.4}
             far={1.1}
