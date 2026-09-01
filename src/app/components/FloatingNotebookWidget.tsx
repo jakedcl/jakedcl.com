@@ -85,10 +85,14 @@ export default function FloatingNotebookWidget() {
         />
       )}
 
-      {/* Fullscreen transparent stage — notebook positioned in screen space, no clip-path. */}
       <div
-        className="fixed inset-0 z-[50]"
-        style={{ pointerEvents: active ? 'auto' : 'none' }}
+        className="fixed z-[50] overflow-visible"
+        style={{
+          bottom: `calc(${insetRem}rem * ${1 - p})`,
+          right: `calc(${insetRem}rem * ${1 - p})`,
+          width: `calc(${canvasWidthRem}rem + ${p} * (100vw - ${canvasWidthRem}rem))`,
+          height: `calc(${canvasHeightRem}rem + ${p} * (100dvh - ${canvasHeightRem}rem))`,
+        }}
         aria-live="polite"
       >
         <NotebookScene
@@ -97,22 +101,6 @@ export default function FloatingNotebookWidget() {
           onOpen={beginOpen}
           onClose={beginClose}
         />
-
-        {!active && (
-          <button
-            type="button"
-            className="absolute cursor-pointer bg-transparent"
-            style={{
-              right: `${insetRem}rem`,
-              bottom: `${insetRem}rem`,
-              width: `${canvasWidthRem}rem`,
-              height: `${canvasHeightRem}rem`,
-              pointerEvents: 'auto',
-            }}
-            aria-label="Open resume notebook"
-            onClick={beginOpen}
-          />
-        )}
       </div>
     </NotebookErrorBoundary>
   )

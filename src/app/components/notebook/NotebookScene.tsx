@@ -1,63 +1,15 @@
 'use client'
 
-import { Suspense, useRef } from 'react'
+import { Suspense } from 'react'
 import { ContactShadows, useTexture } from '@react-three/drei'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import * as THREE from 'three'
+import { Canvas } from '@react-three/fiber'
 import Notebook from './Notebook'
 import NotebookCamera, { CORNER_VIEW } from './NotebookCamera'
-import { coverScreenPosition, worldOffsetForScreenPoint } from './stage'
 
 function TexturePreload() {
   useTexture.preload('/notebook/notebook-cover.jpg')
   useTexture.preload('/notebook/paper-cream.jpg')
   return null
-}
-
-function NotebookStage({
-  progress,
-  opened,
-  onOpen,
-  onClose,
-}: {
-  progress: number
-  opened: boolean
-  onOpen: () => void
-  onClose: () => void
-}) {
-  const group = useRef<THREE.Group>(null)
-  const { camera, size } = useThree()
-
-  useFrame(() => {
-    if (!group.current || size.width < 2) return
-    const screen = coverScreenPosition(progress)
-    const offset = worldOffsetForScreenPoint(camera, size, screen.x, screen.y)
-    group.current.position.set(offset.x, offset.y, 0)
-  })
-
-  const iconMode = progress < 0.04 && !opened
-
-  return (
-    <group ref={group}>
-      <Notebook
-        openAmount={progress}
-        interactive={iconMode}
-        pageInteractive={opened && progress > 0.65}
-        onPress={onOpen}
-        onClosePage={onClose}
-      />
-      {progress > 0.15 && (
-        <ContactShadows
-          position={[0, -0.22, 0]}
-          opacity={0.16 * progress}
-          scale={3.2}
-          blur={2.4}
-          far={1.1}
-          color="#171717"
-        />
-      )}
-    </group>
-  )
 }
 
 export default function NotebookScene({
@@ -71,6 +23,8 @@ export default function NotebookScene({
   onOpen: () => void
   onClose: () => void
 }) {
+  const iconMode = progress < 0.04 && !opened
+
   return (
     <Canvas
       dpr={[1, 1.5]}
@@ -94,12 +48,23 @@ export default function NotebookScene({
         <directionalLight position={[2, 4, 5]} intensity={1.2} />
         <directionalLight position={[-1.5, 2, 2]} intensity={0.35} />
         <NotebookCamera progress={progress} />
-        <NotebookStage
-          progress={progress}
-          opened={opened}
-          onOpen={onOpen}
-          onClose={onClose}
+        <Notebook
+          openAmount={progress}
+          interactive={iconMode}
+          pageInteractive={opened && progress > 0.65}
+          onPress={onOpen}
+          onClosePage={onClose}
         />
+        {progress > 0.15 && (
+          <ContactShadows
+            position={[0, -0.22, 0]}
+            opacity={0.16 * progress}
+            scale={3.2}
+            blur={2.4}
+            far={1.1}
+            color="#171717"
+          />
+        )}
       </Suspense>
     </Canvas>
   )
