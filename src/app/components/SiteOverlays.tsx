@@ -8,7 +8,7 @@ import FloatingNotebookWidget from './FloatingNotebookWidget'
  */
 export default function SiteOverlays() {
   return (
-    <div id="site-overlays" className="pointer-events-none fixed inset-0 z-50">
+    <div id="site-overlays" className="pointer-events-none fixed inset-0 z-50 overflow-visible">
       <FloatingNotebookWidget />
     </div>
   )
