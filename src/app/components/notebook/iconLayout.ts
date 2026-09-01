@@ -1,28 +1,42 @@
+import * as THREE from 'three'
+
+/** Cover center when the floating group is at origin — matches NotebookCamera focus. */
+export const COVER_CENTER = new THREE.Vector3(0.26, 0.07, 0)
+
 export const ICON_LAYOUT = {
-  widthRem: 4.25,
-  heightRem: 5.5,
-  insetRem: 1.25,
+  widthRem: 3.25,
+  heightRem: 4,
+  insetRem: 0.625,
 } as const
 
-/** Match the transparent corner hit target in screen space → world units. */
-export function cornerCenterWorld(
-  viewport: { width: number; height: number },
+const raycaster = new THREE.Raycaster()
+const ndc = new THREE.Vector2()
+const hit = new THREE.Vector3()
+const deskPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -COVER_CENTER.y)
+
+function rootFontPx() {
+  if (typeof window === 'undefined') return 16
+  return parseFloat(getComputedStyle(document.documentElement).fontSize)
+}
+
+/** Offset from rest pose so the cover center lands on the bottom-right hit target. */
+export function cornerOffsetForCamera(
+  camera: THREE.Camera,
   size: { width: number; height: number },
 ) {
-  const rootPx =
-    typeof window !== 'undefined'
-      ? parseFloat(getComputedStyle(document.documentElement).fontSize)
-      : 16
-
+  const rootPx = rootFontPx()
   const { widthRem, heightRem, insetRem } = ICON_LAYOUT
-  const centerFromRightPx = (insetRem + widthRem / 2) * rootPx
-  const centerFromBottomPx = (insetRem + heightRem / 2) * rootPx
+  const screenX = size.width - (insetRem + widthRem / 2) * rootPx
+  const screenY = size.height - (insetRem + heightRem / 2) * rootPx
 
-  const centerFromLeftPx = size.width - centerFromRightPx
-  const centerFromTopPx = size.height - centerFromBottomPx
+  ndc.set((screenX / size.width) * 2 - 1, -(screenY / size.height) * 2 + 1)
+  raycaster.setFromCamera(ndc, camera)
+  if (!raycaster.ray.intersectPlane(deskPlane, hit)) {
+    return { x: 0, y: 0 }
+  }
 
   return {
-    x: (centerFromLeftPx / size.width - 0.5) * viewport.width,
-    y: (0.5 - centerFromTopPx / size.height) * viewport.height,
+    x: hit.x - COVER_CENTER.x,
+    y: hit.y - COVER_CENTER.y,
   }
 }
