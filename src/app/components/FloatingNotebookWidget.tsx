@@ -7,8 +7,8 @@ import { canUseWebGL } from './notebook/capabilities'
 
 const NotebookScene = dynamic(() => import('./notebook/NotebookScene'), { ssr: false })
 
-const MOVE_MS = 760
-const { widthRem: ICON_W, heightRem: ICON_H, insetRem: ICON_INSET } = ICON_LAYOUT
+const MOVE_MS = 820
+const { widthRem: ICON_W, heightRem: ICON_H, insetRem: ICON_INSET, closedScale } = ICON_LAYOUT
 
 const easeInOutCubic = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
@@ -73,6 +73,8 @@ export default function FloatingNotebookWidget() {
   if (!webgl) return null
 
   const p = progress
+  const scale = closedScale + p * (1 - closedScale)
+  const origin = `calc(100% - ${ICON_INSET}rem) calc(100% - ${ICON_INSET}rem)`
 
   return (
     <>
@@ -86,22 +88,39 @@ export default function FloatingNotebookWidget() {
         />
       )}
 
-      <div
-        className="fixed z-[50] overflow-visible"
-        style={{
-          bottom: `calc(${ICON_INSET}rem * ${1 - p})`,
-          right: `calc(${ICON_INSET}rem * ${1 - p})`,
-          width: `calc(${ICON_W}rem + ${p} * (100vw - ${ICON_W}rem))`,
-          height: `calc(${ICON_H}rem + ${p} * (100dvh - ${ICON_H}rem))`,
-        }}
-        aria-live="polite"
-      >
-        <NotebookScene
-          progress={progress}
-          opened={opened}
-          onCornerClick={beginOpen}
-          onClosePage={beginClose}
-        />
+      <div className="fixed inset-0 z-[50] pointer-events-none" aria-live="polite">
+        <div
+          className="h-full w-full"
+          style={{
+            transformOrigin: origin,
+            transform: `scale(${scale})`,
+            willChange: 'transform',
+            pointerEvents: active ? 'auto' : 'none',
+          }}
+        >
+          <NotebookScene
+            progress={progress}
+            opened={opened}
+            onCornerClick={beginOpen}
+            onClosePage={beginClose}
+          />
+        </div>
+
+        {!active && (
+          <button
+            type="button"
+            className="absolute cursor-pointer bg-transparent"
+            style={{
+              right: `${ICON_INSET}rem`,
+              bottom: `${ICON_INSET}rem`,
+              width: `${ICON_W}rem`,
+              height: `${ICON_H}rem`,
+              pointerEvents: 'auto',
+            }}
+            aria-label="Open resume notebook"
+            onClick={beginOpen}
+          />
+        )}
       </div>
     </>
   )

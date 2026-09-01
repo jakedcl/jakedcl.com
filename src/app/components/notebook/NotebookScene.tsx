@@ -38,7 +38,7 @@ function FloatingNotebook({
     <group ref={group}>
       <Notebook
         progress={progress}
-        pageInteractive={opened && progress > 0.72}
+        pageInteractive={opened && progress > 0.65}
         interactive={iconMode}
         onOpenPage={onCornerClick}
         onClosePage={onClosePage}

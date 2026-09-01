@@ -8,11 +8,11 @@ import { motionT } from './motion'
 const COVER_FOCUS = new THREE.Vector3(0.26, 0.07, 0)
 const PAGE_FOCUS = new THREE.Vector3(0.02, 0.02, 0.02)
 
-/** Pulled back so the corner icon reads small, tucked in the bottom-right. */
+/** Front-facing cover, framed for the corner icon at closed scale. */
 export const CORNER_VIEW = {
-  position: new THREE.Vector3(0.26, 2.55, 2.85),
+  position: new THREE.Vector3(0.26, 2.05, 2.15),
   target: COVER_FOCUS,
-  fov: 36,
+  fov: 32,
 }
 
 const PAGE_CAM = { y: 3.95, z: 0.82, fov: 32 } as const
