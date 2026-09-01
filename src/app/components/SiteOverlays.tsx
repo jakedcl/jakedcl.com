@@ -1,15 +1,21 @@
 'use client'
 
+import { createPortal } from 'react-dom'
+import { useEffect, useState } from 'react'
 import FloatingNotebookWidget from './FloatingNotebookWidget'
 
 /**
- * Fixed viewport layer for 3D / UI that sits outside the page scroll flow.
- * Keeps WebGL canvases out of <main> so layout and animation stay predictable.
+ * 3D overlays portaled to <body> so they are never clipped or repositioned
+ * by page layout (main grid, overflow-x-hidden, etc.).
  */
 export default function SiteOverlays() {
-  return (
-    <div id="site-overlays" className="pointer-events-none fixed inset-0 z-50 overflow-visible">
-      <FloatingNotebookWidget />
-    </div>
-  )
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
+
+  return createPortal(<FloatingNotebookWidget />, document.body)
 }

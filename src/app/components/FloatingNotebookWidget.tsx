@@ -3,12 +3,12 @@
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { canUseWebGL } from './notebook/capabilities'
-import { NOTEBOOK_STAGE, stageTransform } from './notebook/stage'
+import { NOTEBOOK_STAGE } from './notebook/stage'
 
 const NotebookScene = dynamic(() => import('./notebook/NotebookScene'), { ssr: false })
 
 const MOVE_MS = 860
-const { hitWidthRem: ICON_W, hitHeightRem: ICON_H, insetRem: ICON_INSET } = NOTEBOOK_STAGE
+const { canvasWidthRem, canvasHeightRem, insetRem } = NOTEBOOK_STAGE
 
 const easeInOutCubic = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
@@ -35,18 +35,10 @@ export default function FloatingNotebookWidget() {
   const [active, setActive] = useState(false)
   const [progress, setProgress] = useState(0)
   const [opened, setOpened] = useState(false)
-  const [viewport, setViewport] = useState({ width: 0, height: 0 })
   const busy = useRef(false)
 
   useEffect(() => {
     setWebgl(canUseWebGL())
-  }, [])
-
-  useEffect(() => {
-    const update = () => setViewport({ width: window.innerWidth, height: window.innerHeight })
-    update()
-    window.addEventListener('resize', update)
-    return () => window.removeEventListener('resize', update)
   }, [])
 
   const beginOpen = useCallback(() => {
@@ -81,8 +73,6 @@ export default function FloatingNotebookWidget() {
   if (!webgl) return null
 
   const p = progress
-  const transform =
-    viewport.width > 0 ? stageTransform(p, viewport) : 'scale(0.36)'
 
   return (
     <>
@@ -96,39 +86,23 @@ export default function FloatingNotebookWidget() {
         />
       )}
 
-      <div className="fixed inset-0 z-[50] pointer-events-none overflow-visible" aria-live="polite">
-        <div
-          className="h-full w-full"
-          style={{
-            transform,
-            transformOrigin: 'center center',
-            willChange: 'transform',
-            pointerEvents: active ? 'auto' : 'none',
-          }}
-        >
-          <NotebookScene
-            progress={progress}
-            opened={opened}
-            onOpen={beginOpen}
-            onClose={beginClose}
-          />
-        </div>
-
-        {!active && (
-          <button
-            type="button"
-            className="absolute cursor-pointer bg-transparent"
-            style={{
-              right: `${ICON_INSET}rem`,
-              bottom: `${ICON_INSET}rem`,
-              width: `${ICON_W}rem`,
-              height: `${ICON_H}rem`,
-              pointerEvents: 'auto',
-            }}
-            aria-label="Open resume notebook"
-            onClick={beginOpen}
-          />
-        )}
+      {/* One box: corner slot → fullscreen. Anchored bottom-right, no transform layer. */}
+      <div
+        className="fixed z-[50] overflow-visible"
+        style={{
+          bottom: `calc(${insetRem}rem * ${1 - p})`,
+          right: `calc(${insetRem}rem * ${1 - p})`,
+          width: `calc(${canvasWidthRem}rem + ${p} * (100vw - ${canvasWidthRem}rem))`,
+          height: `calc(${canvasHeightRem}rem + ${p} * (100dvh - ${canvasHeightRem}rem))`,
+        }}
+        aria-live="polite"
+      >
+        <NotebookScene
+          progress={progress}
+          opened={opened}
+          onOpen={beginOpen}
+          onClose={beginClose}
+        />
       </div>
     </>
   )
