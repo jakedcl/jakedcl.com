@@ -87,8 +87,13 @@ export default function FloatingNotebookWidget() {
       )}
 
       <div
-        className="fixed inset-0 z-[50]"
-        style={{ pointerEvents: active ? 'auto' : 'none' }}
+        className="fixed z-[50] overflow-visible"
+        style={{
+          bottom: `calc(${ICON_INSET}rem * ${1 - p})`,
+          right: `calc(${ICON_INSET}rem * ${1 - p})`,
+          width: `calc(${ICON_W}rem + ${p} * (100vw - ${ICON_W}rem))`,
+          height: `calc(${ICON_H}rem + ${p} * (100dvh - ${ICON_H}rem))`,
+        }}
         aria-live="polite"
       >
         <NotebookScene
@@ -97,21 +102,6 @@ export default function FloatingNotebookWidget() {
           onCornerClick={beginOpen}
           onClosePage={beginClose}
         />
-        {!active && (
-          <button
-            type="button"
-            className="absolute cursor-pointer bg-transparent"
-            style={{
-              right: `${ICON_INSET}rem`,
-              bottom: `${ICON_INSET}rem`,
-              width: `${ICON_W}rem`,
-              height: `${ICON_H}rem`,
-              pointerEvents: 'auto',
-            }}
-            aria-label="Open resume notebook"
-            onClick={beginOpen}
-          />
-        )}
       </div>
     </>
   )
