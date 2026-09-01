@@ -1,7 +1,7 @@
 import { client } from '@/sanity/lib/client';
 import { projectsQuery, settingsQuery } from '@/sanity/lib/queries';
 import { Project, Settings } from '@/types/sanity';
-import FloatingNotebookWidget from './components/FloatingNotebookWidget';
+import SiteOverlays from './components/SiteOverlays';
 import HomeIntro from './components/HomeIntro';
 import ProjectCard from './components/ProjectCard';
 import Filmstrip from './components/Filmstrip';
@@ -77,7 +77,7 @@ export default async function Home() {
         </div>
       </main>
 
-      <FloatingNotebookWidget />
+      <SiteOverlays />
     </div>
   );
 }

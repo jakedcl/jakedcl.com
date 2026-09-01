@@ -1,10 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useCursor, useTexture } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
+import { useEffect, useMemo } from 'react'
+import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
-import Hotspot from './Hotspot'
 import {
   COVER_CORNER_RADIUS,
   PAGE_CORNER_RADIUS,
@@ -25,8 +23,6 @@ export const NOTEBOOK = {
 const PAPER_CREAM = '#f4efe3'
 const PAGE_CLEARANCE = 0.002
 const PAGE_HEIGHT = NOTEBOOK.pages - PAGE_CLEARANCE
-// Cloth spine is 0.10 wide at x=0.05 (occupies 0–0.10). Barely clear the tape —
-// composition-book stack, flush with the marble cover, bound at the spine.
 const PAGE_SPINE_INSET = 0.101
 const PAGE_OUTER_INSET = 0.01
 const PAGE_EDGE_INSET = 0.01
@@ -35,25 +31,11 @@ export const PAGE_DEPTH = NOTEBOOK.depth - PAGE_EDGE_INSET * 2
 export const PAGE_CENTER_X = PAGE_SPINE_INSET + PAGE_WIDTH / 2
 const PAGE_TEX_WIDTH = 3072
 const PAGE_TEX_HEIGHT = Math.round(PAGE_TEX_WIDTH * (PAGE_DEPTH / PAGE_WIDTH))
-// Cover face maps X×Z; match aspect so CLASS PROGRAM isn’t stretched.
 const COVER_TEX_WIDTH = 2048
 const COVER_TEX_HEIGHT = Math.round(COVER_TEX_WIDTH * (NOTEBOOK.depth / NOTEBOOK.width))
 
-export default function Notebook({
-  progress,
-  pageInteractive,
-  interactive = true,
-  onOpenPage,
-  onClosePage,
-}: {
-  progress: number
-  pageInteractive: boolean
-  interactive?: boolean
-  onOpenPage: () => void
-  onClosePage: () => void
-}) {
-  const coverRef = useRef<THREE.Group>(null)
-  const [pageHover, setPageHover] = useState(false)
+/** Marble composition notebook — geometry + textures only. Animation hooks up later. */
+export default function Notebook({ openAmount = 0 }: { openAmount?: number }) {
   const [coverMap, paperMap] = useTexture([
     '/notebook/notebook-cover.jpg',
     '/notebook/paper-cream.jpg',
@@ -68,13 +50,11 @@ export default function Notebook({
     () => createCompositionPageResumeTexture(PAGE_TEX_WIDTH, PAGE_TEX_HEIGHT),
     [],
   )
-  // Blank CLASS PROGRAM decor on the inside cover (-Y). Geometry already flips U.
   const classProgramMap = useMemo(
     () => createInsideCoverTexture(COVER_TEX_WIDTH, COVER_TEX_HEIGHT),
     [],
   )
 
-  // Rounded outer corners; square at the cloth spine. Groups match BoxGeometry order.
   const coverGeom = useMemo(
     () =>
       createNotebookSlabGeometry(
@@ -92,7 +72,6 @@ export default function Notebook({
   )
 
   useEffect(() => {
-    // No mipmaps — canvas type stays crisp when the page shot is close.
     pageResumeMap.generateMipmaps = false
     pageResumeMap.minFilter = THREE.LinearFilter
     pageResumeMap.magFilter = THREE.LinearFilter
@@ -108,82 +87,55 @@ export default function Notebook({
     }
   }, [pageResumeMap, classProgramMap, coverGeom, pageGeom])
 
-  useCursor(pageHover && pageInteractive)
-
-  useFrame(() => {
-    if (coverRef.current) {
-      const t = THREE.MathUtils.clamp(progress, 0, 1)
-      coverRef.current.rotation.z = t * Math.PI * 0.93
-    }
-  })
-
+  const coverOpen = THREE.MathUtils.clamp(openAmount, 0, 1) * Math.PI * 0.93
   const pageY = NOTEBOOK.cover + PAGE_HEIGHT / 2
   const coverHingeY = NOTEBOOK.cover + NOTEBOOK.pages
 
   return (
-    <Hotspot disabled={!interactive || pageInteractive} label="Resume notebook" onSelect={onOpenPage}>
-      <group position={[-0.5, 0, 0]}>
+    <group position={[-0.5, 0, 0]}>
+      <mesh
+        position={[NOTEBOOK.width / 2, NOTEBOOK.cover / 2, 0]}
+        geometry={coverGeom}
+        castShadow
+        receiveShadow
+      >
+        <meshStandardMaterial map={paperMap} roughness={0.92} metalness={0} />
+      </mesh>
+
+      <mesh position={[PAGE_CENTER_X, pageY, 0]} geometry={pageGeom} castShadow receiveShadow>
+        <meshStandardMaterial attach="material-0" color={PAPER_CREAM} roughness={0.95} />
+        <meshStandardMaterial attach="material-1" color={PAPER_CREAM} roughness={0.95} />
+        <meshBasicMaterial attach="material-2" map={pageResumeMap} />
+        <meshStandardMaterial attach="material-3" map={paperMap} color={PAPER_CREAM} roughness={0.95} />
+        <meshStandardMaterial attach="material-4" color={PAPER_CREAM} roughness={0.95} />
+        <meshStandardMaterial attach="material-5" color={PAPER_CREAM} roughness={0.95} />
+      </mesh>
+
+      <group position={[0, coverHingeY, 0]} rotation={[0, 0, coverOpen]}>
         <mesh
           position={[NOTEBOOK.width / 2, NOTEBOOK.cover / 2, 0]}
           geometry={coverGeom}
           castShadow
           receiveShadow
         >
-          <meshStandardMaterial map={paperMap} roughness={0.92} metalness={0} />
-        </mesh>
-
-        {/* Slab groups: +X, -X, +Y ruled resume, -Y cream, +Z, -Z. */}
-        <mesh
-          position={[PAGE_CENTER_X, pageY, 0]}
-          geometry={pageGeom}
-          castShadow
-          receiveShadow
-          onClick={(event) => {
-            event.stopPropagation()
-            if (pageInteractive) onClosePage()
-          }}
-          onPointerOver={(event) => {
-            event.stopPropagation()
-            if (pageInteractive) setPageHover(true)
-          }}
-          onPointerOut={() => setPageHover(false)}
-        >
-          <meshStandardMaterial attach="material-0" color={PAPER_CREAM} roughness={0.95} />
-          <meshStandardMaterial attach="material-1" color={PAPER_CREAM} roughness={0.95} />
-          {/* Unlit +Y: lighting softens canvas ink; Basic keeps resume text crisp. */}
-          <meshBasicMaterial attach="material-2" map={pageResumeMap} />
-          <meshStandardMaterial attach="material-3" map={paperMap} color={PAPER_CREAM} roughness={0.95} />
-          <meshStandardMaterial attach="material-4" color={PAPER_CREAM} roughness={0.95} />
-          <meshStandardMaterial attach="material-5" color={PAPER_CREAM} roughness={0.95} />
-        </mesh>
-
-        <group ref={coverRef} position={[0, coverHingeY, 0]}>
-          {/* Slab groups: +X, -X, +Y marble, -Y CLASS PROGRAM, +Z, -Z. */}
-          <mesh
-            position={[NOTEBOOK.width / 2, NOTEBOOK.cover / 2, 0]}
-            geometry={coverGeom}
-            castShadow
-            receiveShadow
-          >
-            <meshStandardMaterial attach="material-0" color="#141414" roughness={0.6} />
-            <meshStandardMaterial attach="material-1" color="#141414" roughness={0.6} />
-            <meshStandardMaterial attach="material-2" map={coverMap} roughness={0.55} metalness={0.02} />
-            <meshStandardMaterial
-              attach="material-3"
-              map={classProgramMap}
-              roughness={0.92}
-              metalness={0}
-            />
-            <meshStandardMaterial attach="material-4" color="#141414" roughness={0.6} />
-            <meshStandardMaterial attach="material-5" color="#141414" roughness={0.6} />
-          </mesh>
-        </group>
-
-        <mesh position={[0.05, coverHingeY / 2, 0]} castShadow>
-          <boxGeometry args={[0.1, coverHingeY + 0.02, NOTEBOOK.depth + 0.01]} />
-          <meshStandardMaterial color="#111111" roughness={0.7} metalness={0.05} />
+          <meshStandardMaterial attach="material-0" color="#141414" roughness={0.6} />
+          <meshStandardMaterial attach="material-1" color="#141414" roughness={0.6} />
+          <meshStandardMaterial attach="material-2" map={coverMap} roughness={0.55} metalness={0.02} />
+          <meshStandardMaterial
+            attach="material-3"
+            map={classProgramMap}
+            roughness={0.92}
+            metalness={0}
+          />
+          <meshStandardMaterial attach="material-4" color="#141414" roughness={0.6} />
+          <meshStandardMaterial attach="material-5" color="#141414" roughness={0.6} />
         </mesh>
       </group>
-    </Hotspot>
+
+      <mesh position={[0.05, coverHingeY / 2, 0]} castShadow>
+        <boxGeometry args={[0.1, coverHingeY + 0.02, NOTEBOOK.depth + 0.01]} />
+        <meshStandardMaterial color="#111111" roughness={0.7} metalness={0.05} />
+      </mesh>
+    </group>
   )
 }

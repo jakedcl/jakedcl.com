@@ -26,7 +26,7 @@ export default function HomeIntro() {
       </p>
       <p className="text-base leading-relaxed text-neutral-800 md:text-lg">{resume.summary}</p>
       <p className="text-sm text-neutral-500">
-        Tap the floating notebook in the corner to open the full resume.
+        Full resume lives in the composition notebook — corner interaction coming soon.
       </p>
     </header>
   )

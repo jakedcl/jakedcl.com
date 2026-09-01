@@ -1,123 +1,40 @@
 'use client'
 
-import { Suspense, useRef } from 'react'
-import { ContactShadows } from '@react-three/drei'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Suspense } from 'react'
+import { Canvas } from '@react-three/fiber'
 import * as THREE from 'three'
 import Notebook from './Notebook'
-import NotebookCamera, { CORNER_VIEW } from './NotebookCamera'
 
-function FloatingNotebook({
-  progress,
-  opened,
-  onCornerClick,
-  onClosePage,
-}: {
-  progress: number
-  opened: boolean
-  onCornerClick: () => void
-  onClosePage: () => void
-}) {
-  const group = useRef<THREE.Group>(null)
-
-  useFrame((state) => {
-    if (!group.current) return
-    const t = THREE.MathUtils.clamp(progress, 0, 1)
-    const clock = state.clock.elapsedTime
-    const wobble = 1 - t
-
-    group.current.position.set(0, Math.sin(clock * 0.55) * 0.024 * wobble, 0)
-    group.current.rotation.x = Math.sin(clock * 0.4) * 0.015 * wobble
-    group.current.rotation.y = Math.sin(clock * 0.35) * 0.02 * wobble
-    group.current.rotation.z = Math.sin(clock * 0.45) * 0.015 * wobble
-  })
-
-  const iconMode = progress < 0.04 && !opened
-
-  return (
-    <group ref={group}>
-      <Notebook
-        progress={progress}
-        pageInteractive={opened && progress > 0.65}
-        interactive={iconMode}
-        onOpenPage={onCornerClick}
-        onClosePage={onClosePage}
-      />
-    </group>
-  )
+/** Static cover shot — animation/camera rig will plug in here later. */
+export const NOTEBOOK_CAMERA = {
+  position: new THREE.Vector3(0.26, 1.95, 1.38),
+  target: new THREE.Vector3(0.26, 0.07, 0),
+  fov: 28,
 }
 
-function SceneContents({
-  progress,
-  opened,
-  onCornerClick,
-  onClosePage,
-}: {
-  progress: number
-  opened: boolean
-  onCornerClick: () => void
-  onClosePage: () => void
-}) {
-  return (
-    <>
-      <ambientLight intensity={0.92} />
-      <directionalLight position={[2, 4, 5]} intensity={1.2} />
-      <directionalLight position={[-1.5, 2, 2]} intensity={0.35} />
-      <NotebookCamera progress={progress} />
-      <FloatingNotebook
-        progress={progress}
-        opened={opened}
-        onCornerClick={onCornerClick}
-        onClosePage={onClosePage}
-      />
-      {progress > 0.2 && (
-        <ContactShadows
-          position={[0, -0.22, 0]}
-          opacity={0.18 * progress}
-          scale={3.2}
-          blur={2.4}
-          far={1.1}
-          color="#171717"
-        />
-      )}
-    </>
-  )
-}
-
-export default function NotebookScene({
-  progress,
-  opened,
-  onCornerClick,
-  onClosePage,
-}: {
-  progress: number
-  opened: boolean
-  onCornerClick: () => void
-  onClosePage: () => void
-}) {
+export default function NotebookScene() {
   return (
     <Canvas
       dpr={[1, 1.5]}
       camera={{
-        position: CORNER_VIEW.position.toArray(),
-        fov: CORNER_VIEW.fov,
+        position: NOTEBOOK_CAMERA.position.toArray(),
+        fov: NOTEBOOK_CAMERA.fov,
         near: 0.1,
         far: 40,
       }}
       gl={{ antialias: true, alpha: true }}
-      onCreated={({ gl }) => {
+      onCreated={({ camera, gl }) => {
+        camera.lookAt(NOTEBOOK_CAMERA.target)
         gl.setClearColor(0x000000, 0)
         gl.toneMappingExposure = 1.15
       }}
       style={{ background: 'transparent', width: '100%', height: '100%', display: 'block' }}
     >
       <Suspense fallback={null}>
-        <SceneContents
-          progress={progress}
-          opened={opened}
-          onCornerClick={onCornerClick}
-          onClosePage={onClosePage}
-        />
+        <ambientLight intensity={0.92} />
+        <directionalLight position={[2, 4, 5]} intensity={1.2} />
+        <directionalLight position={[-1.5, 2, 2]} intensity={0.35} />
+        <Notebook />
       </Suspense>
     </Canvas>
   )
