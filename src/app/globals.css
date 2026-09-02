@@ -1,12 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  /* Near-white copy paper — not cream / kraft */
+  --background: #f7f7f5;
   --foreground: #171717;
   --accent-blue: #4285f4;
   --accent-red: #ea4335;
   --accent-yellow: #fbbc04;
   --accent-green: #34a853;
+  --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 @theme inline {
@@ -20,17 +22,28 @@
   --font-mono: "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Droid Sans Mono", "Source Code Pro", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Light portfolio only — keep paper consistent regardless of OS dark mode */
+html {
+  background-color: var(--background);
 }
 
 body {
-  background: var(--background);
+  background-color: transparent;
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+/* Subtle copy-paper grain; sits behind content (Studio layout covers this) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: var(--paper-noise);
+  background-repeat: repeat;
+  background-size: 180px 180px;
 }
 
 @media (prefers-reduced-motion: reduce) {
