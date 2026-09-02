@@ -346,7 +346,7 @@ export default function Filmstrip({ photos }: FilmstripProps) {
 
   return (
     <>
-      <section className="w-full overflow-hidden bg-white pt-2">
+      <section className="w-full overflow-hidden pt-2">
         <div className="relative h-48 md:h-64">
           <div 
             ref={containerRef}

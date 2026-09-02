@@ -4,7 +4,7 @@ import "./globals.css";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#ffffff",
+  themeColor: "#f7f7f5",
 };
 
 export const metadata: Metadata = {
@@ -62,7 +62,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased bg-white text-black">
+      <body className="font-sans antialiased text-black">
         {children}
       </body>
     </html>
