@@ -10,3 +10,7 @@ This repo is a single Next.js 15 (App Router) app named `jakedcl` — a personal
 - The home page (`src/app/page.tsx`) uses `export const revalidate = 0` and the Sanity client disables the CDN in development, so it always fetches fresh data on each request — expect a live network call to Sanity on every load.
 - `/studio` renders the Sanity Studio and shows a "Choose login provider" screen. Viewing/authoring content there requires a Sanity account with access to the project; the public portfolio does not require any login. Do not expect to author content without credentials.
 - The `dist/` directory is committed but stale/unused by the dev workflow; the live build output goes to `.next/` (gitignored). Ignore `dist/`.
+
+## Planned work
+
+- **90s camcorder theme redesign** — vision only for now; see `docs/CAMCORDER_THEME_BRIEF.md`. Do not implement until process gates in that brief are approved.
