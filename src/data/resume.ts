@@ -35,7 +35,7 @@ export const resume: Resume = {
     { label: '347-733-1501', href: 'tel:+13477331501' },
   ],
   summary:
-    'IT systems admin and web developer — MSP experience managing endpoints and cloud tenants, plus shipping production apps and sites for small-business clients.',
+    'IT systems admin and web developer — MSP experience managing endpoints and cloud tenants, plus shipping production apps and sites for business clients.',
   skills: [
     {
       label: 'Support & Admin',
@@ -88,7 +88,7 @@ export const resume: Resume = {
       organizationUrl: 'https://jakedcl.com',
       period: '2024–Present',
       bullets: [
-        'Build and maintain custom web apps for small-business clients',
+        'Build and maintain custom web apps for business clients',
         'Ongoing support for 6 recurring clients across hosting, DNS, CMS, and production',
       ],
     },
