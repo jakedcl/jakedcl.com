@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/skyline',
+        destination: 'https://skyinfoline.vercel.app',
+        permanent: true,
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {
