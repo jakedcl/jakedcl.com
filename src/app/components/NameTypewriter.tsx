@@ -14,17 +14,19 @@ function randBetween(min: number, max: number) {
 
 /** Human-ish keystroke delay — irregular, with longer beats on spaces / capitals. */
 function typeDelay(char: string): number {
-  let ms = randBetween(38, 95)
-  if (char === ' ' || char === '-') ms += randBetween(40, 120)
-  if (/[A-Z]/.test(char)) ms += randBetween(15, 55)
+  // Casual human pace (not stenographer-fast)
+  let ms = randBetween(70, 155)
+  if (char === ' ' || char === '-') ms += randBetween(60, 160)
+  if (/[A-Z]/.test(char)) ms += randBetween(25, 70)
   // Occasional hesitation mid-word
-  if (Math.random() < 0.08) ms += randBetween(120, 280)
+  if (Math.random() < 0.1) ms += randBetween(160, 360)
   return ms
 }
 
 function backspaceDelay(): number {
-  let ms = randBetween(28, 58)
-  if (Math.random() < 0.12) ms += randBetween(60, 140)
+  // Backspace runs a bit quicker than typing, still uneven
+  let ms = randBetween(45, 85)
+  if (Math.random() < 0.14) ms += randBetween(80, 180)
   return ms
 }
 
@@ -54,7 +56,7 @@ export default function NameTypewriter() {
 
     const run = async () => {
       // Brief beat before first keystroke
-      await wait(randBetween(280, 520))
+      await wait(randBetween(400, 700))
       if (cancelled) return
 
       // Type full legal name
@@ -66,7 +68,7 @@ export default function NameTypewriter() {
       }
 
       // Pause — "wait, that's not the brand"
-      await wait(randBetween(450, 850))
+      await wait(randBetween(650, 1100))
       if (cancelled) return
 
       // Backspace last name only
@@ -77,19 +79,20 @@ export default function NameTypewriter() {
       }
 
       // Short pause before the initials
-      await wait(randBetween(180, 380))
+      await wait(randBetween(280, 520))
       if (cancelled) return
 
       for (let i = 0; i < REPLACE_WITH.length; i++) {
         if (cancelled) return
         const char = REPLACE_WITH[i]
         setText(KEEP_PREFIX + REPLACE_WITH.slice(0, i + 1))
-        await wait(typeDelay(char) + randBetween(20, 60))
+        // Slightly more deliberate on the initials
+        await wait(typeDelay(char) + randBetween(40, 100))
       }
 
       if (cancelled) return
       // Soft-hide caret after a moment
-      await wait(randBetween(900, 1400))
+      await wait(randBetween(1000, 1500))
       if (!cancelled) setShowCaret(false)
     }
 
