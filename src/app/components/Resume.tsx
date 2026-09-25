@@ -1,6 +1,7 @@
 'use client'
 
 import { resume, type ResumeLink, type ResumeRole } from '@/data/resume'
+import NameTypewriter from './NameTypewriter'
 import { ScrollFocus } from './ScrollFocus'
 import TextMotion from './TextMotion'
 
@@ -110,9 +111,7 @@ export default function Resume() {
       <div className="w-full max-w-3xl space-y-6 text-black sm:space-y-8">
         <ScrollFocus intensity="normal">
           <div className="space-y-2.5 sm:space-y-3">
-            <p className="text-xl font-medium leading-tight text-neutral-900 sm:text-lg md:text-xl">
-              {resume.legalName}
-            </p>
+            <NameTypewriter />
             <ContactLine links={resume.contact} />
             <p className="text-sm leading-snug text-neutral-800 sm:leading-relaxed md:text-base">
               {resume.summary}
