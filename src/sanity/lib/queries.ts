@@ -6,13 +6,13 @@ export const projectsQuery = groq`
     _id,
     title,
     photos[] {
+      alt,
+      caption,
       asset-> {
         _id,
         url,
-        _ref
-      },
-      alt,
-      caption
+        metadata { dimensions }
+      }
     },
     link,
     displayOrder
