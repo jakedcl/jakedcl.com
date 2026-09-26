@@ -27,6 +27,7 @@
 /* Light portfolio only — keep paper consistent regardless of OS dark mode */
 html {
   background-color: var(--background);
+  scroll-behavior: smooth;
 }
 
 body {
@@ -49,6 +50,10 @@ body::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   .scroll-focus-item {
     transform: none !important;
     opacity: 1 !important;

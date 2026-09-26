@@ -15,19 +15,11 @@ async function getSettings(): Promise<Settings | null> {
   return await client.fetch(settingsQuery);
 }
 
-function ProjectsList({
-  projects,
-  compact = false,
-  className = '',
-}: {
-  projects: Project[];
-  compact?: boolean;
-  className?: string;
-}) {
+function ProjectsList({ projects }: { projects: Project[] }) {
   return (
-    <div className={className}>
+    <div>
       {projects.map((project) => (
-        <ProjectCard key={project._id} project={project} compact={compact} />
+        <ProjectCard key={project._id} project={project} />
       ))}
     </div>
   );
@@ -60,23 +52,40 @@ export default async function Home() {
           <Filmstrip photos={settings.galleryPhotos} />
         )}
 
-        <div className="px-6 pb-10 pt-10 md:px-10 lg:grid lg:grid-cols-[minmax(0,1fr)_min(19rem,26%)] lg:items-start lg:gap-x-12 xl:grid-cols-[minmax(0,1fr)_min(22rem,28%)] xl:gap-x-14">
-          <header className="min-w-0 pb-6 lg:pb-0">
+        <div className="mx-auto w-full max-w-6xl px-5 pb-16 pt-8 md:px-8 md:pt-10">
+          <header className="flex items-start justify-between gap-x-10 gap-y-4">
             <h1 className="sr-only">Jake DCL</h1>
-            <Resume />
+            <div className="min-w-0 flex-1">
+              <Resume part="intro" />
+            </div>
+            <a
+              href="#resume"
+              className="mt-3 inline-flex shrink-0 items-center gap-1.5 text-[0.7rem] font-medium uppercase tracking-[0.16em] text-neutral-500 transition-colors hover:text-black"
+            >
+              Resume
+              <svg
+                viewBox="0 0 12 12"
+                aria-hidden
+                className="h-3 w-3"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.4"
+              >
+                <path d="M6 1.5v8M3 7l3 3 3-3" />
+              </svg>
+            </a>
           </header>
 
-          {/* Desktop: sticky sidebar */}
-          <aside className="hidden min-w-0 lg:block lg:sticky lg:top-8 lg:self-start">
-            <h2 className="mb-5 text-lg font-bold text-black xl:text-xl">Recent Projects</h2>
-            <ProjectsList projects={projects} compact className="space-y-6" />
-          </aside>
-
-          {/* Mobile: full-width stack below resume */}
-          <section className="min-w-0 lg:hidden">
-            <h2 className="mb-6 text-2xl font-bold text-black">Recent Projects</h2>
-            <ProjectsList projects={projects} className="space-y-10" />
+          <section className="mt-12 md:mt-16">
+            <h2 className="mb-5 border-b border-neutral-300 pb-2 text-[0.7rem] font-medium uppercase tracking-[0.16em] text-neutral-500">
+              Work
+            </h2>
+            <ProjectsList projects={projects} />
           </section>
+
+          <div id="resume" className="mt-16 max-w-3xl scroll-mt-8 md:mt-20">
+            <Resume part="body" />
+          </div>
         </div>
       </main>
     </div>

@@ -1,156 +1,55 @@
-'use client'
+import { Project } from '@/types/sanity'
+import { PortableText } from 'next-sanity'
+import Image from 'next/image'
 
-import { Project } from '@/types/sanity';
-import { PortableText } from 'next-sanity';
-import Image from 'next/image';
-import { useEffect, useState } from 'react';
-import { urlFor } from '@/sanity/lib/image';
+export default function ProjectCard({ project }: { project: Project }) {
+  const photo = (project.photos ?? []).find((item) => item?.asset?.url)
+  const width = photo?.asset.metadata?.dimensions?.width ?? 1024
+  const height = photo?.asset.metadata?.dimensions?.height ?? 768
 
-export default function ProjectCard({ project, compact = false }: { project: Project; compact?: boolean }) {
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-  const [needsScroll, setNeedsScroll] = useState(false);
-  const [fitsInView, setFitsInView] = useState(false);
-
-  useEffect(() => {
-    const carousel = document.getElementById(`carousel-${project._id}`);
-    if (!carousel) return;
-
-    const checkScroll = () => {
-      const { scrollLeft, scrollWidth, clientWidth } = carousel;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
-      setNeedsScroll(scrollWidth > clientWidth);
-      setFitsInView(scrollWidth <= clientWidth);
-    };
-
-    checkScroll();
-    carousel.addEventListener('scroll', checkScroll);
-    window.addEventListener('resize', checkScroll);
-
-    return () => {
-      carousel.removeEventListener('scroll', checkScroll);
-      window.removeEventListener('resize', checkScroll);
-    };
-  }, [project._id]);
-
-  const handleScrollLeft = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const carousel = document.getElementById(`carousel-${project._id}`);
-    if (carousel) {
-      const scrollAmount = 2 * (window.innerWidth < 768 ? 160 : 220);
-      carousel.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-    }
-  };
-
-  const handleScrollRight = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const carousel = document.getElementById(`carousel-${project._id}`);
-    if (carousel) {
-      const scrollAmount = 2 * (window.innerWidth < 768 ? 160 : 220);
-      carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  };
-
-  const cardContent = (
-    <>
-      {/* Project Title */}
-      <div className="text-left mb-4">
-        <PortableText 
-          value={project.title} 
+  const body = (
+    <div className="grid items-start gap-4 md:grid-cols-12 md:gap-x-10">
+      <div className="order-2 md:order-1 md:col-span-4">
+        <PortableText
+          value={project.title}
           components={{
             block: {
-              normal: ({children}) => (
-                <p className={`text-black ${compact ? 'text-sm lg:text-base' : 'text-lg md:text-xl'}`}>{children}</p>
+              normal: ({ children }) => (
+                <p className="mt-2 text-sm leading-snug text-neutral-800">{children}</p>
               ),
-              h1: ({children}) => (
-                <h3 className={`font-bold text-black ${compact ? 'text-base lg:text-lg' : 'text-xl md:text-2xl'}`}>{children}</h3>
+              h1: ({ children }) => (
+                <h3 className="text-lg font-medium tracking-tight text-black group-hover:underline">
+                  {children}
+                </h3>
               ),
-              h2: ({children}) => (
-                <h3 className={`font-bold text-black ${compact ? 'text-base lg:text-lg' : 'text-lg md:text-xl'}`}>{children}</h3>
+              h2: ({ children }) => (
+                <h3 className="text-lg font-medium tracking-tight text-black group-hover:underline">
+                  {children}
+                </h3>
               ),
-              h3: ({children}) => (
-                <h4 className={`font-semibold text-black ${compact ? 'text-sm lg:text-base' : 'text-lg md:text-xl'}`}>{children}</h4>
+              h3: ({ children }) => (
+                <h3 className="text-lg font-medium tracking-tight text-black group-hover:underline">
+                  {children}
+                </h3>
               ),
             },
-            marks: {
-              strong: ({children}) => <strong className="font-bold">{children}</strong>,
-              em: ({children}) => <em className="italic">{children}</em>,
-              code: ({children}) => <code className="font-mono text-sm bg-gray-100 px-1 rounded">{children}</code>,
-            }
           }}
         />
       </div>
+      {photo?.asset.url && (
+        <Image
+          src={photo.asset.url}
+          alt={photo.alt || ''}
+          width={width}
+          height={height}
+          sizes="(min-width: 768px) 62vw, 100vw"
+          className="order-1 h-auto w-full border border-black/10 shadow-[0_12px_32px_-24px_rgba(0,0,0,0.45)] transition-[border-color,box-shadow] duration-300 group-hover:border-black/25 group-hover:shadow-[0_18px_36px_-22px_rgba(0,0,0,0.5)] md:order-2 md:col-span-8"
+        />
+      )}
+    </div>
+  )
 
-      {/* Project Photos Carousel */}
-      <div className={`${fitsInView ? 'w-fit max-w-full' : 'w-full'} ${compact ? 'h-32' : 'h-40 md:h-48'} rounded-lg overflow-hidden relative border border-gray-200`}>
-        {project.photos && project.photos.length > 0 ? (
-          <>
-            <div 
-              className="flex overflow-x-auto gap-3 h-full scrollbar-hide p-2" 
-              id={`carousel-${project._id}`}
-            >
-              {project.photos
-                .filter((photo) => photo?.asset)
-                .map((photo, index) => (
-                  <div key={index} className="flex-shrink-0 h-full aspect-[4/3]">
-                    <Image
-                      src={urlFor(photo).width(280).height(210).fit('max').url()}
-                      alt={photo.alt || `Project image ${index + 1}`}
-                      width={280}
-                      height={210}
-                      className="w-full h-full object-cover rounded-md"
-                    />
-                  </div>
-                ))}
-            </div>
-            
-            {/* Left scroll button */}
-            {needsScroll && canScrollLeft && (
-              <button
-                type="button"
-                onClick={handleScrollLeft}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm"
-                aria-label="Scroll project images left"
-              >
-                <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            )}
-            
-            {/* Right scroll button */}
-            {needsScroll && canScrollRight && (
-              <button
-                type="button"
-                onClick={handleScrollRight}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm"
-                aria-label="Scroll project images right"
-              >
-                <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            )}
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-50">
-            No images
-          </div>
-        )}
-      </div>
-    </>
-  );
-
-  const cardClass = compact
-    ? 'block bg-white rounded-xl p-3 lg:p-4 border border-gray-300 shadow-sm hover:border-gray-400 hover:shadow-lg transition-all duration-200 overflow-hidden'
-    : 'block bg-white rounded-xl p-4 md:p-5 border border-gray-300 shadow-sm hover:border-gray-400 hover:shadow-lg transition-all duration-200 overflow-hidden'
-
-  const cardShellClass = compact
-    ? 'bg-white rounded-xl p-3 lg:p-4 border border-gray-300 shadow-sm overflow-hidden'
-    : 'bg-white rounded-xl p-4 md:p-5 border border-gray-300 shadow-sm overflow-hidden'
+  const className = 'block border-t border-neutral-300 py-8 first:border-t-0 first:pt-2'
 
   if (project.link) {
     return (
@@ -158,16 +57,12 @@ export default function ProjectCard({ project, compact = false }: { project: Pro
         href={project.link}
         target="_blank"
         rel="noopener noreferrer"
-        className={cardClass}
+        className={`${className} group`}
       >
-        {cardContent}
+        {body}
       </a>
-    );
+    )
   }
 
-  return (
-    <div className={cardShellClass}>
-      {cardContent}
-    </div>
-  );
+  return <article className={className}>{body}</article>
 }
