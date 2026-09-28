@@ -45,7 +45,7 @@ function ContactLine({ links }: { links: ResumeLink[] }) {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-3 border-b border-neutral-300 pb-2 text-[0.7rem] font-medium uppercase tracking-[0.16em] text-neutral-500">
+    <h2 className="mb-3 border-b border-neutral-300 pb-2 text-sm font-medium text-black">
       {children}
     </h2>
   )

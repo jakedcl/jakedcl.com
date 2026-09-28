@@ -60,7 +60,7 @@ export default async function Home() {
             </div>
             <a
               href="#resume"
-              className="mt-3 inline-flex shrink-0 items-center gap-1.5 text-[0.7rem] font-medium uppercase tracking-[0.16em] text-neutral-500 transition-colors hover:text-black"
+              className="mt-3 inline-flex shrink-0 items-center gap-1 text-sm text-neutral-800 hover:underline"
             >
               Resume
               <svg
@@ -77,7 +77,7 @@ export default async function Home() {
           </header>
 
           <section className="mt-12 md:mt-16">
-            <h2 className="mb-5 border-b border-neutral-300 pb-2 text-[0.7rem] font-medium uppercase tracking-[0.16em] text-neutral-500">
+            <h2 className="mb-5 border-b border-neutral-300 pb-2 text-sm font-medium text-black">
               Work
             </h2>
             <ProjectsList projects={projects} />
