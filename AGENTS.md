@@ -15,7 +15,7 @@ This repo is a single Next.js 15 (App Router) app named `jakedcl` — a personal
 
 Labels and links use Helvetica Neue / Helvetica at a normal size, normal letter-spacing, and the same case as the rest of the page.
 
-The wide-tracked micro label is banned. That is the small gray all-caps word with the letters pulled apart: `uppercase` plus loose tracking (the Resume jump link and the Work / resume section headings use `text-[0.7rem] font-medium uppercase tracking-[0.16em] text-neutral-500`). Do not add it, and do not copy it onto buttons, links, eyebrows, or section titles. Those three existing spots stay until a restyle is explicitly requested.
+The wide-tracked micro label is banned. That is the small gray all-caps word with the letters pulled apart: `uppercase` plus loose tracking such as `text-[0.7rem] font-medium uppercase tracking-[0.16em] text-neutral-500`. Do not add it, and do not copy it onto buttons, links, eyebrows, or section titles. Section titles are `text-sm font-medium text-black` with a hairline rule. The resume jump link matches the contact links: `text-sm text-neutral-800` and an underline on hover.
 
 ## Planned work
 
