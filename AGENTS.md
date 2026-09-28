@@ -11,6 +11,12 @@ This repo is a single Next.js 15 (App Router) app named `jakedcl` — a personal
 - `/studio` renders the Sanity Studio and shows a "Choose login provider" screen. Viewing/authoring content there requires a Sanity account with access to the project; the public portfolio does not require any login. Do not expect to author content without credentials.
 - The `dist/` directory is committed but stale/unused by the dev workflow; the live build output goes to `.next/` (gitignored). Ignore `dist/`.
 
+## Type
+
+Labels and links use Helvetica Neue / Helvetica at a normal size, normal letter-spacing, and the same case as the rest of the page.
+
+The wide-tracked micro label is banned. That is the small gray all-caps word with the letters pulled apart: `uppercase` plus loose tracking (the Resume jump link and the Work / resume section headings use `text-[0.7rem] font-medium uppercase tracking-[0.16em] text-neutral-500`). Do not add it, and do not copy it onto buttons, links, eyebrows, or section titles. Those three existing spots stay until a restyle is explicitly requested.
+
 ## Planned work
 
 - **90s camcorder theme redesign** — vision only for now; see `docs/CAMCORDER_THEME_BRIEF.md`. Do not implement until process gates in that brief are approved.
