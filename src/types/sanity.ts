@@ -24,11 +24,9 @@ export interface Project {
   title: PortableTextBlock[]
   photos?: SanityImage[]
   link?: string
-  displayOrder?: number
 }
 
 export interface Settings {
-  bioText?: PortableTextBlock[]
   galleryPhotos?: SanityImage[]
 }
 
