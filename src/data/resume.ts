@@ -36,7 +36,7 @@ export const resume: Resume = {
     { label: '347-733-1501', href: 'tel:+13477331501' },
   ],
   summary:
-    'Computer science graduate and technical professional — full-stack web apps, MSP client environments, and hands-on cloud, identity, networking, and security. Builds production software and keeps business systems running.',
+    'Computer science graduate and technical professional — full-stack web apps, MSP client environments, and hands-on cloud, identity, networking, and security.',
   skills: [
     {
       label: 'Languages & Data',
