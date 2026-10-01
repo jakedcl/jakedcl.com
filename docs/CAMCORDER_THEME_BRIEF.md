@@ -1,7 +1,7 @@
 # Design Brief: 90s Camcorder Theme — jakedcl.com
 
-**Status:** Planned / not started  
-**Scope:** Documentation only — **do not implement** until process gates are approved  
+**Status:** Deferred — Signal Max is the active live direction  
+**Scope:** Documentation only — **do not implement** unless explicitly revived  
 **Repo:** `jakedcl.com` (Next.js + Sanity portfolio)
 
 ---

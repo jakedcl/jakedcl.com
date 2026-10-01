@@ -2,29 +2,25 @@
 
 import { useEffect, useState } from 'react'
 
+const SHORT_NAME = 'Jake DCL'
 const FULL_NAME = 'Jake DeCore-Lurker'
-const FINAL_NAME = 'Jake DCL'
 const KEEP_PREFIX = 'Jake '
-const DELETE_TARGET = 'DeCore-Lurker'
-const REPLACE_WITH = 'DCL'
+const DELETE_TARGET = 'DCL'
+const REPLACE_WITH = 'DeCore-Lurker'
 
 function randBetween(min: number, max: number) {
   return min + Math.random() * (max - min)
 }
 
-/** Human-ish keystroke delay — irregular, with longer beats on spaces / capitals. */
 function typeDelay(char: string): number {
-  // Casual human pace (not stenographer-fast)
   let ms = randBetween(70, 155)
   if (char === ' ' || char === '-') ms += randBetween(60, 160)
   if (/[A-Z]/.test(char)) ms += randBetween(25, 70)
-  // Occasional hesitation mid-word
   if (Math.random() < 0.1) ms += randBetween(160, 360)
   return ms
 }
 
 function backspaceDelay(): number {
-  // Backspace runs a bit quicker than typing, still uneven
   let ms = randBetween(45, 85)
   if (Math.random() < 0.14) ms += randBetween(80, 180)
   return ms
@@ -35,13 +31,19 @@ function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-export default function NameTypewriter() {
+export default function NameTypewriter({ active = true }: { active?: boolean }) {
   const [text, setText] = useState('')
   const [showCaret, setShowCaret] = useState(true)
 
   useEffect(() => {
+    if (!active) {
+      setText('')
+      setShowCaret(true)
+      return
+    }
+
     if (prefersReducedMotion()) {
-      setText(FINAL_NAME)
+      setText(FULL_NAME)
       setShowCaret(false)
       return
     }
@@ -55,30 +57,25 @@ export default function NameTypewriter() {
       })
 
     const run = async () => {
-      // Brief beat before first keystroke
       await wait(randBetween(400, 700))
       if (cancelled) return
 
-      // Type full legal name
-      for (let i = 0; i < FULL_NAME.length; i++) {
+      for (let i = 0; i < SHORT_NAME.length; i++) {
         if (cancelled) return
-        const char = FULL_NAME[i]
-        setText(FULL_NAME.slice(0, i + 1))
+        const char = SHORT_NAME[i]
+        setText(SHORT_NAME.slice(0, i + 1))
         await wait(typeDelay(char))
       }
 
-      // Pause — "wait, that's not the brand"
       await wait(randBetween(650, 1100))
       if (cancelled) return
 
-      // Backspace last name only
       for (let i = DELETE_TARGET.length; i > 0; i--) {
         if (cancelled) return
         setText(KEEP_PREFIX + DELETE_TARGET.slice(0, i - 1))
         await wait(backspaceDelay())
       }
 
-      // Short pause before the initials
       await wait(randBetween(280, 520))
       if (cancelled) return
 
@@ -86,12 +83,10 @@ export default function NameTypewriter() {
         if (cancelled) return
         const char = REPLACE_WITH[i]
         setText(KEEP_PREFIX + REPLACE_WITH.slice(0, i + 1))
-        // Slightly more deliberate on the initials
-        await wait(typeDelay(char) + randBetween(40, 100))
+        await wait(typeDelay(char) + randBetween(20, 70))
       }
 
       if (cancelled) return
-      // Soft-hide caret after a moment
       await wait(randBetween(1000, 1500))
       if (!cancelled) setShowCaret(false)
     }
@@ -102,17 +97,17 @@ export default function NameTypewriter() {
       cancelled = true
       window.clearTimeout(timeoutId)
     }
-  }, [])
+  }, [active])
 
   return (
     <p
-      className="min-h-[1.25em] text-2xl font-medium leading-tight text-neutral-900 sm:text-3xl md:text-4xl"
-      aria-label={FINAL_NAME}
+      className="font-display min-h-[1.15em] text-2xl font-extrabold leading-none tracking-tight text-ink sm:text-3xl"
+      aria-label={FULL_NAME}
     >
       <span aria-hidden>
         {text}
-        {showCaret && (
-          <span className="ml-0.5 inline-block h-[0.85em] w-[2px] translate-y-[0.1em] bg-neutral-900 align-baseline animate-pulse" />
+        {showCaret && active && (
+          <span className="ml-0.5 inline-block h-[0.85em] w-[3px] translate-y-[0.08em] bg-signal-red align-baseline animate-pulse" />
         )}
       </span>
     </p>

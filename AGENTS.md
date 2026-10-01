@@ -9,14 +9,12 @@ This repo is a single Next.js 15 (App Router) app named `jakedcl` — a personal
 - No secrets or `.env` files are required to render the public site. Sanity `projectId` (`we7xgg1a`), `dataset` (`production`), and `apiVersion` have hardcoded fallbacks in `src/sanity/env.ts`, so the site fetches live content from the public `production` dataset out of the box. Outbound network access to `*.sanity.io` / `cdn.sanity.io` is needed for content and images to load.
 - The home page (`src/app/page.tsx`) uses `export const revalidate = 0` and the Sanity client disables the CDN in development, so it always fetches fresh data on each request — expect a live network call to Sanity on every load.
 - `/studio` renders the Sanity Studio and shows a "Choose login provider" screen. Viewing/authoring content there requires a Sanity account with access to the project; the public portfolio does not require any login. Do not expect to author content without credentials.
-- The `dist/` directory is committed but stale/unused by the dev workflow; the live build output goes to `.next/` (gitignored). Ignore `dist/`.
+- Live build output goes to `.next/` (gitignored). `dist/` is also gitignored and unused by the dev workflow.
 
-## Type
+## Active design direction
 
-Labels and links use Helvetica Neue / Helvetica at a normal size, normal letter-spacing, and the same case as the rest of the page.
+- **Signal Max** — maximalist NYC “signal” portfolio (dark stage, Syne + IBM Plex Mono + Helvetica, utility color, cut shapes, scroll motion). Live on the public site.
 
-The wide-tracked micro label is banned. That is the small gray all-caps word with the letters pulled apart: `uppercase` plus loose tracking such as `text-[0.7rem] font-medium uppercase tracking-[0.16em] text-neutral-500`. Do not add it, and do not copy it onto buttons, links, eyebrows, or section titles. Section titles are `text-sm font-medium text-black` with a hairline rule. The resume jump link matches the contact links: `text-sm text-neutral-800` and an underline on hover.
+## Deferred
 
-## Planned work
-
-- **90s camcorder theme redesign** — vision only for now; see `docs/CAMCORDER_THEME_BRIEF.md`. Do not implement until process gates in that brief are approved.
+- **90s camcorder theme** — parked; see `docs/CAMCORDER_THEME_BRIEF.md`. Do not implement unless explicitly revived.

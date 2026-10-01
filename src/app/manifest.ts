@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Web developer portfolio of Jacob Decore Lurker.",
     start_url: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#ffffff",
+    background_color: "#f6f3ec",
+    theme_color: "#f6f3ec",
     icons: [
       {
         src: "/favicon.png",
