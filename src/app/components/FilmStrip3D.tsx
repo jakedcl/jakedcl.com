@@ -303,8 +303,10 @@ function loopSegs(c: LoopCfg) {
   const thEnd = 0;
   // Straight continuation past the fitted ribbon. The right leg is longer because it sits farther from the
   // camera, so the same screen bleed needs more arc length. Phones trim it, but still clear a 390px screen.
-  const bleedL = 700 - 140 * k;
-  const bleedR = 1550 - 280 * k;
+  // Longer than the old bleed: the fitted loop is scaled down ~18%, so the
+  // straight ends need more arc length to still leave the viewport.
+  const bleedL = 1100 - 220 * k;
+  const bleedR = 2400 - 440 * k;
   const segs: LoopSeg[] = [
     { len: 80 - 40 * k + bleedL, d: 0, kind: 'bump' }, // run-in, continues off the left edge
     { len: 720 - 500 * k, d: thA - th0, kind: 'bump' }, // arch towards the hairpin
@@ -1150,11 +1152,12 @@ export default function FilmStrip3D({
         const ps = sliceStartAt(lay, jmin + i) + off; // joint position along the path, 0..Lp
         const fade = smooth(Math.min(ps, Lp - ps) / END_FADE);
         jFade[i] = fade;
-        // Keep depth cue subtle — heavy fog was muddying photos on cream
-        // loop: stronger depth fog and a dim back side; its ends fade fully to black (they sit off-screen / in the distance)
+        // Keep depth cue subtle — heavy fog was muddying photos on cream.
+        // The back is only slightly dimmer than the front so those photos stay clear.
+        // Ends still fade fully to black (they sit off-screen / in the distance).
         const back = loop ? ((sa < 0 ? 1 : 0) + (sb < 0 ? 1 : 0)) * 0.5 : 0;
         const bright = loop
-          ? (0.92 + 0.08 * lam) * (1 - 0.42 * depth) * (1 - 0.45 * back) * fade
+          ? (0.92 + 0.08 * lam) * (1 - 0.2 * depth) * (1 - 0.12 * back) * fade
           : (0.9 + 0.1 * lam) * (1 - 0.22 * depth) * Math.max(fade, 0.35);
         jShade[i] = Math.round((1 - bright) * 100) / 100;
         const sp = hx * n0 + hy * n1 + hz * n2;
@@ -1383,8 +1386,9 @@ export default function FilmStrip3D({
         if (Math.abs(midX) < 0.5 && Math.abs(midY) < 0.5) break;
       }
       const fitted = bounds();
-      // inset so the near fade-in, which perspective enlarges, stays off both page edges
-      sc = Math.min((w * 0.86) / (fitted.x1 - fitted.x0), (h * 0.88) / (fitted.y1 - fitted.y0));
+      // ~18% under the old 0.86 / 0.88 fill so frames and the loop read smaller.
+      // The straight bleed outside this core still runs off both page edges.
+      sc = Math.min((w * 0.70) / (fitted.x1 - fitted.x0), (h * 0.72) / (fitted.y1 - fitted.y0));
       S = clamp(sc, 0.2, 2.2);
       shX = px;
       shY = py;

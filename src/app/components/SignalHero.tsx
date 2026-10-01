@@ -19,7 +19,7 @@ export default function SignalHero({
         </p>
       </div>
 
-      <div className="relative px-4 pb-24 pt-6 md:px-6 md:pb-28 md:pt-10">
+      <div className="relative px-4 pb-32 pt-6 md:px-6 md:pb-40 md:pt-10">
         {/* Title stays in flow. The strip is pulled out of flow and slid up
             behind it, so the rising back-leg fills the empty right side and
             the page no longer reserves a full strip row. */}
@@ -34,7 +34,7 @@ export default function SignalHero({
           </h1>
 
           <div
-            className="pointer-events-none absolute right-0 top-[12%] z-10 h-16 w-[42%] bg-signal-red sm:top-[18%] sm:h-24 sm:w-[38%]"
+            className="pointer-events-none absolute right-0 top-[12%] z-0 h-16 w-[42%] bg-signal-red sm:top-[18%] sm:h-24 sm:w-[38%]"
             style={{
               clipPath: 'polygon(12% 0, 100% 0, 88% 100%, 0 100%)',
               opacity: 0.9,
@@ -42,12 +42,11 @@ export default function SignalHero({
             aria-hidden
           />
 
-          {/* z-0, under the type. Negative left/right cancel the page
-              padding so the loop stays edge-to-edge; the header clips x.
-              Desktop top aligns the rising back-leg with the open right
-              of the title. Mobile is pulled up into that gap too, but
-              less, so the full-width name stays on the cream. */}
-          <div className="pointer-events-none absolute -left-4 -right-4 z-0 -top-28 md:-left-6 md:-right-6 md:top-0">
+          {/* Under the type, above the red bar so the bar does not tint the
+              photos. Negative left/right cancel the page padding so the loop
+              stays edge-to-edge; the header clips x. The strip starts below
+              the name so the letters stay on the cream. */}
+          <div className="pointer-events-none absolute -left-4 -right-4 z-[1] -top-24 md:-left-6 md:-right-6 md:top-24">
             <div className="pointer-events-auto">
               {photos && photos.length > 0 ? (
                 <Filmstrip photos={photos} />
@@ -72,7 +71,7 @@ export default function SignalHero({
           />
         </div>
 
-        <div className="pointer-events-none relative z-30 -mt-6 flex flex-col gap-6 md:-mt-12 md:flex-row md:items-end md:justify-between">
+        <div className="pointer-events-none relative z-30 -mt-6 flex flex-col gap-6 md:-mt-2 md:flex-row md:items-end md:justify-between">
           <p className="pointer-events-auto max-w-xl select-text text-sm leading-relaxed text-ink/80 md:text-base">
             {resume.summary}
           </p>
