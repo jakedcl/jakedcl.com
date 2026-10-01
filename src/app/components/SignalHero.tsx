@@ -46,7 +46,7 @@ export default function SignalHero({
           ) : (
             <div
               className="flex items-center justify-center bg-ink/[0.04]"
-              style={{ height: 'clamp(340px, 56svh, 520px)' }}
+              style={{ height: 'clamp(400px, 66svh, 640px)' }}
             >
               <p className="font-utility text-xs uppercase tracking-[0.18em] text-ink/35">
                 No photos yet

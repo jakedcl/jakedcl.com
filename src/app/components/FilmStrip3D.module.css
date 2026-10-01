@@ -43,6 +43,11 @@
   cursor: grabbing;
 }
 
+/* loop variant: the strip swings far past the box (foreground frames are big), so nothing may clip it */
+.loop {
+  overflow: visible;
+}
+
 /* pre-baked soft contact shadow under the strip (one element, no blur filter) */
 .floor {
   position: absolute;
@@ -154,6 +159,12 @@
   opacity: var(--sh, 0);
 }
 
+/* loop variant: back-facing film is a plain dim base: no photo, no gloss, no print */
+.slice[data-back] .ph,
+.slice[data-back]::before {
+  display: none;
+}
+
 /* keyboard focus ring, drawn on the bent photo itself */
 .slice[data-focus] .ph {
   box-shadow:
@@ -184,6 +195,8 @@
   appearance: none;
   visibility: hidden;
 }
+
+/* the loop's frames that face away from the viewer (or sit far behind) never take the pointer; set from JS */
 
 @media (prefers-reduced-motion: reduce) {
   .root {
