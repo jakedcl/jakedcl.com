@@ -282,9 +282,10 @@ type LoopSeg = { len: number; d: number; kind: 'bump' | 'turn' };
 
 /**
  * The centreline is defined by its HEADING (top-down angle, 0 = +x, positive = towards the camera) along arc length:
- * arch towards the viewer -> hairpin #1 (≈ 170°) -> back leg that recedes -> hairpin #2 -> exit leg.
- * Curvature is a smooth function of arc length, so there are no kinks; the hairpin radius is floored so that no
- * slice ever turns by more than MAX_SLICE_BEND.
+ * arch towards the viewer -> hairpin #1 -> back leg -> hairpin #2 -> exit leg that recedes to the right.
+ * The approach stays near +x so the hairpin and the receding leg land on the right of the hero instead of
+ * stalling mid-page; phones (compact = 1) shorten the straight legs. Curvature is a smooth function of arc
+ * length, so there are no kinks; the hairpin radius is floored so that no slice turns by more than MAX_SLICE_BEND.
  */
 function loopSegs(c: LoopCfg) {
   const sharp = clamp(c.sharp, 0.5, 1.8);
@@ -292,20 +293,20 @@ function loopSegs(c: LoopCfg) {
   const k = clamp(c.compact, 0, 1);
   const R1 = Math.max(c.minR, (150 * (1 - 0.15 * k)) / sharp);
   const R2 = Math.max(c.minR, (135 * (1 - 0.15 * k)) / sharp);
-  const th0 = 0.05;
-  const thA = clamp(0.5 * dk, 0.25, 0.85); // heading at the end of the approach arch (towards the camera)
-  const thB = -Math.PI + 0.3 * dk; // after hairpin 1: back to the left and away
-  const thB2 = thB + 0.1;
-  const thC = -0.28 * dk; // after hairpin 2: to the right, receding
-  const thEnd = 0.02;
+  const th0 = 0.04;
+  const thA = clamp(0.18 * dk, 0.1, 0.55); // end of the approach: still mostly +x, opened toward the camera by depth
+  const thB = -Math.PI + 0.12 * dk; // after hairpin 1: back along -x, only slightly away
+  const thB2 = thB + 0.05;
+  const thC = -0.1 * dk; // after hairpin 2: to the right, gently receding
+  const thEnd = 0;
   const segs: LoopSeg[] = [
-    { len: 300 - 60 * k, d: 0, kind: 'bump' }, // run-in: starts off-screen left
-    { len: 760 - 200 * k, d: thA - th0, kind: 'bump' }, // arch towards the camera
+    { len: 80 - 40 * k, d: 0, kind: 'bump' }, // short run-in (fades in)
+    { len: 720 - 500 * k, d: thA - th0, kind: 'bump' }, // arch: long on desktop so the hairpin reaches the right
     { len: (Math.abs(thB - thA) * R1) / (1 - RAMP), d: thB - thA, kind: 'turn' },
-    { len: 520 - 240 * k, d: thB2 - thB, kind: 'bump' },
+    { len: 260 - 160 * k, d: thB2 - thB, kind: 'bump' },
     { len: (Math.abs(thC - thB2) * R2) / (1 - RAMP), d: thC - thB2, kind: 'turn' },
-    { len: 640 - 200 * k, d: thEnd - thC, kind: 'bump' }, // exit leg: recedes into the fog
-    { len: 360 - 100 * k, d: 0, kind: 'bump' },
+    { len: 820 - 600 * k, d: thEnd - thC, kind: 'bump' }, // receding leg, extended so it reaches the right edge
+    { len: 160 - 100 * k, d: 0, kind: 'bump' },
   ];
   return { segs, th0, dk, Lp: segs.reduce((a, s) => a + s.len, 0) };
 }
@@ -364,7 +365,8 @@ function generateLoop(c: LoopCfg, pad: number, bank = 0.05): PathTable {
       a += 0.5 * (k0 + k1) * sub;
     }
   }
-  // centre the shape (x: the part between the hairpins, y / z: the whole visible path)
+  // centre the shape (x: the well-visible ribbon, y / z: the whole path).
+  // Fitting only the hairpin core left the approach hanging off the left and the receding leg short of the right.
   const i0 = Math.round(pad / ds);
   const i1 = Math.round((pad + Lp) / ds);
   let mny = 1e9,
@@ -377,11 +379,11 @@ function generateLoop(c: LoopCfg, pad: number, bank = 0.05): PathTable {
     mnz = Math.min(mnz, pos[i * 3 + 2]);
     mxz = Math.max(mxz, pos[i * 3 + 2]);
   }
-  const cs0 = segStart[2] - 100;
-  const cs1 = segStart[4] + segs[4].len + 100;
+  const vis0 = pad + END_FADE * 0.5;
+  const vis1 = pad + Lp - END_FADE * 0.5;
   let cmx = 1e9,
     cMx = -1e9;
-  for (let i = Math.round(cs0 / ds); i <= Math.round(cs1 / ds); i++) {
+  for (let i = clamp(Math.round(vis0 / ds), 0, TABLE); i <= clamp(Math.round(vis1 / ds), 0, TABLE); i++) {
     cmx = Math.min(cmx, pos[i * 3]);
     cMx = Math.max(cMx, pos[i * 3]);
   }
@@ -433,7 +435,9 @@ function generateLoop(c: LoopCfg, pad: number, bank = 0.05): PathTable {
     fitH: 0,
     Lp,
     heroS: segs[0].len + segs[1].len * 0.78,
-    core: [cs0 - pad, cs1 - pad],
+    // path range the camera fits. Start early: the approach is close to the camera, so the
+    // fade-in occupies a lot of screen and must be inside the box or it clips the left edge.
+    core: [END_FADE * 0.16, Lp - END_FADE * 0.35],
   };
 }
 
@@ -821,7 +825,6 @@ export default function FilmStrip3D({
     pointerDown: (e: PointerEvent<HTMLDivElement>) => void;
     pointerMove: (e: PointerEvent<HTMLDivElement>) => void;
     pointerUp: (e: PointerEvent<HTMLDivElement>) => void;
-    hover: (v: boolean) => void;
     focusSlot: (slot: number, fromKeyboard: boolean) => void;
     blurAll: () => void;
     nudge: (frames: number) => void;
@@ -916,12 +919,10 @@ export default function FilmStrip3D({
     let jmin = 0; // first virtual slice that overlaps the path
     let focusK = NaN; // virtual frame that shows the keyboard focus ring
     let inertia = 0; // px/s
-    let playF = 1; // 0..1 autoplay factor
+    let playF = 1; // 0..1 autoplay factor. Hover and keyboard focus do not change this.
     let clock = 0;
     let snapTo: number | null = null;
-    let hovering = false;
     let pressed = false;
-    let focusWithin = false;
     let visible = true;
     let docVisible = !document.hidden;
     let raf = 0;
@@ -1305,7 +1306,7 @@ export default function FilmStrip3D({
       }
     };
 
-    /** loop: fit the whole switchback (between the hairpins, edges of the film included) into the box under perspective */
+    /** loop: fit the visible ribbon (approach, both hairpins, receding leg; film edges included) and centre it */
     const measureLoop = () => {
       const h = rootH;
       const w = rootW;
@@ -1314,7 +1315,10 @@ export default function FilmStrip3D({
         st = Math.sin(t0);
       const [c0, c1] = table.core ?? [0, Lp];
       const pts: number[][] = [];
-      for (let s = c0; s <= c1; s += 14) {
+      // one slice past each end: a slice's screen box reaches past the centreline sample
+      const s0 = Math.max(0, c0 - 36);
+      const s1 = Math.min(Lp, c1 + 28);
+      for (let s = s0; s <= s1; s += 14) {
         sample(s + pad, pA, dA);
         for (const e of [-HALF_H, HALF_H]) {
           const x = pA[0] + dA[0] * e,
@@ -1327,24 +1331,52 @@ export default function FilmStrip3D({
       let px = 0,
         py = 0,
         sc = 1;
-      for (let it = 0; it < 8; it++) {
+      // shX is added in camera space, then multiplied by each point's own perspective factor.
+      // Correct the shift by that factor so the projected box actually lands on the container centre
+      // (subtracting raw projected pixels walks the near foreground off the left).
+      const bounds = () => {
         let x0 = 1e9,
           x1 = -1e9,
           y0 = 1e9,
-          y1 = -1e9;
+          y1 = -1e9,
+          kL = 1,
+          kR = 1,
+          kT = 1,
+          kB = 1;
         for (const p of pts) {
           const k = D / Math.max(40, D - p[2]);
           const X = (p[0] + px) * k,
             Y = (p[1] + py) * k;
-          if (X < x0) x0 = X;
-          if (X > x1) x1 = X;
-          if (Y < y0) y0 = Y;
-          if (Y > y1) y1 = Y;
+          if (X < x0) {
+            x0 = X;
+            kL = k;
+          }
+          if (X > x1) {
+            x1 = X;
+            kR = k;
+          }
+          if (Y < y0) {
+            y0 = Y;
+            kT = k;
+          }
+          if (Y > y1) {
+            y1 = Y;
+            kB = k;
+          }
         }
-        sc = Math.min((w * 0.96) / (x1 - x0), (h * 0.94) / (y1 - y0));
-        px -= (x0 + x1) / 2;
-        py -= (y0 + y1) / 2 - (0.5 - vpY) * (h / sc);
+        return { x0, x1, y0, y1, kL, kR, kT, kB };
+      };
+      for (let it = 0; it < 12; it++) {
+        const b = bounds();
+        const midX = (b.x0 + b.x1) / 2;
+        const midY = (b.y0 + b.y1) / 2;
+        px -= midX / ((b.kL + b.kR) / 2 || 1);
+        py -= midY / ((b.kT + b.kB) / 2 || 1);
+        if (Math.abs(midX) < 0.5 && Math.abs(midY) < 0.5) break;
       }
+      const fitted = bounds();
+      // inset so the near fade-in, which perspective enlarges, stays off both page edges
+      sc = Math.min((w * 0.86) / (fitted.x1 - fitted.x0), (h * 0.88) / (fitted.y1 - fitted.y0));
       S = clamp(sc, 0.2, 2.2);
       shX = px;
       shY = py;
@@ -1388,8 +1420,9 @@ export default function FilmStrip3D({
       if (lastT === 0) dt = 0.016;
       lastT = now;
 
-      // autoplay factor
-      const target = reduced ? 0 : pressed || focusWithin ? 0 : hovering ? 0.12 : 1;
+      // autoplay keeps full speed while hovering or while a frame merely has focus.
+      // It pauses only while the strip is pressed (drag) or when the user prefers reduced motion.
+      const target = reduced || pressed ? 0 : 1;
       playF += (target - playF) * (1 - Math.exp(-dt * 5));
       if (Math.abs(target - playF) < 0.002) playF = target;
 
@@ -1530,12 +1563,7 @@ export default function FilmStrip3D({
         pressed = false;
         kick();
       },
-      hover(v: boolean) {
-        hovering = v;
-        kick();
-      },
       focusSlot(slot: number, fromKeyboard: boolean) {
-        focusWithin = true;
         if (fromKeyboard) {
           const k = slotK[slot];
           focusK = k;
@@ -1544,7 +1572,6 @@ export default function FilmStrip3D({
         }
       },
       blurAll() {
-        focusWithin = false;
         focusK = NaN;
         kick();
       },
@@ -1687,8 +1714,6 @@ export default function FilmStrip3D({
       onPointerMove={(e) => api.current?.pointerMove(e)}
       onPointerUp={(e) => api.current?.pointerUp(e)}
       onPointerCancel={(e) => api.current?.pointerUp(e)}
-      onPointerEnter={(e) => e.pointerType === 'mouse' && api.current?.hover(true)}
-      onPointerLeave={(e) => e.pointerType === 'mouse' && api.current?.hover(false)}
       onClickCapture={onClickCapture}
       onClick={onClick}
       onFocus={onFocus}
