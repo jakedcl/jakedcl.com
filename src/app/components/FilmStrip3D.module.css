@@ -161,8 +161,10 @@
   opacity: var(--sh, 0);
 }
 
-/* loop variant: back-facing film is a plain dim base: no photo, no gloss, no print */
-.slice[data-back] .ph,
+/* loop: the back shows the same photo. The slice is already turned 180° and
+   samples the frame from the other end, so the picture is not mirrored.
+   Gloss stays off so the far side stays flatter; the fog overlay (--sh) is
+   stronger there. Sprockets and edge print stay on the film base. */
 .slice[data-back]::before {
   display: none;
 }

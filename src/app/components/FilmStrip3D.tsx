@@ -1014,7 +1014,8 @@ export default function FilmStrip3D({
       const el = slices[slot];
       el.style.setProperty('--u0', u0.toFixed(2));
       el.style.setProperty('--ph', ph.toFixed(2));
-      // loop: the back of the film is plain dim base (no photo, no gloss) rather than a second copy of the picture
+      // loop: data-back keeps the gloss off. The photo stays — u0 above already
+      // samples the other end of the frame so it reads un-mirrored from behind.
       if (loop) {
         if (flip) el.setAttribute('data-back', '');
         else el.removeAttribute('data-back');
@@ -1284,8 +1285,8 @@ export default function FilmStrip3D({
         const T2 = R[6] * c0 + R[7] * c1 + R[8] * c2;
         const fx = (S * chord) / fw;
         if (loop) {
-          // only frames that face the viewer are clickable (the back of the film has no photo); the rest stay
-          // focusable for the keyboard (focus brings them round to the hero spot) but ignore the pointer
+          // only frames that face the viewer take clicks; the back stays focusable
+          // for the keyboard (focus brings it round to the hero spot) but ignores the pointer
           const on = Z2 > 0.2 ? 1 : 0;
           if (on !== hitOn[i]) {
             hitOn[i] = on;
