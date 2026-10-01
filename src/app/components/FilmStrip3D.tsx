@@ -665,9 +665,12 @@ async function ensurePrintFont() {
 }
 
 /**
- * Yellow edge print baked once per (frame number, pitch, stock?) into a full-strip-height bitmap:
- * stock label in the TOP band (above the photo), frame number in the BOTTOM band.
+ * Yellow edge print baked once per (frame number, pitch, stock?) into a full-strip-height bitmap.
+ * Like 35mm stock: perforations sit against the photo, and the type sits outside them —
+ * stock label in the outer TOP band, frame number in the outer BOTTOM band.
  * Used as a slice background so the type bends with the film (no extra DOM).
+ * Hole tiles are 18px (see CSS); they occupy PHOTO_TOP-18..PHOTO_TOP and
+ * PHOTO_TOP+PHOTO_H..PHOTO_TOP+PHOTO_H+18.
  */
 function printUrl(num: string, pitch: number, gap: number, ink: string, stock: string): string {
   const cv = document.createElement('canvas');
@@ -681,27 +684,31 @@ function printUrl(num: string, pitch: number, gap: number, ink: string, stock: s
   g.font = printFontCss();
   const x0 = gap / 2 + 1;
   const mid = pitch / 2; // centre of the photo window
+  const HOLE_TILE = 18;
 
-  // Top band (between upper sprockets and photo): stock label, sparse
+  // Outer top band, above the upper perforations: stock label, sparse
   if (stock && pitch - gap >= NARROW_PHOTO) {
     g.textAlign = 'left';
-    g.fillText(stock, x0, PHOTO_TOP - 6);
+    g.fillText(stock, x0, 13);
   }
 
-  // Bottom band: frame marker + number, centred under the photo
+  // Outer bottom band, below the lower perforations: frame marker + number
   g.textAlign = 'left';
   const triW = 9;
   const triPad = 6;
   const numW = g.measureText(num).width;
   const groupW = triW + triPad + numW;
   const left = mid - groupW / 2;
+  const bandTop = PHOTO_TOP + PHOTO_H + HOLE_TILE;
+  const triH = 10;
+  const triMid = bandTop + (STRIP_H - bandTop) / 2;
   g.beginPath();
-  g.moveTo(left, 153.5);
-  g.lineTo(left + triW, 158.5);
-  g.lineTo(left, 163.5);
+  g.moveTo(left, triMid - triH / 2);
+  g.lineTo(left + triW, triMid);
+  g.lineTo(left, triMid + triH / 2);
   g.closePath();
   g.fill();
-  g.fillText(num, left + triW + triPad, 164);
+  g.fillText(num, left + triW + triPad, triMid + triH / 2 + 0.5);
 
   const bin = atob(cv.toDataURL('image/png').split(',')[1]);
   const bytes = new Uint8Array(bin.length);

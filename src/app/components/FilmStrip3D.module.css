@@ -96,12 +96,14 @@
   /* background-image (print + sprockets + base) is set inline by the script: a `var()` inside background-image
      makes Chrome re-rasterise every transformed slice on every frame. */
   background-repeat: no-repeat, repeat-x, repeat-x, no-repeat;
-  /* print bitmap is full strip height: stock on top band, frame # on bottom band */
+  /* print bitmap is full strip height: stock on the outer top band, frame # on the
+     outer bottom band. Hole tiles (18px) sit against the photo (top 36px, height 112px),
+     so the type is outside the perforations. */
   background-size: calc(var(--pw, 200) * 1px) 184px, 25px 18px, 25px 18px, 100% 100%;
   background-position:
     calc((2 - var(--u0, 0)) * 1px) 0,
-    calc(var(--ph, 0) * 1px) 0,
-    calc(var(--ph, 0) * 1px) 100%,
+    calc(var(--ph, 0) * 1px) 18px,
+    calc(var(--ph, 0) * 1px) 148px,
     0 0;
 }
 
