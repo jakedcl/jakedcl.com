@@ -284,8 +284,10 @@ type LoopSeg = { len: number; d: number; kind: 'bump' | 'turn' };
  * The centreline is defined by its HEADING (top-down angle, 0 = +x, positive = towards the camera) along arc length:
  * arch towards the viewer -> hairpin #1 -> back leg -> hairpin #2 -> exit leg that recedes to the right.
  * The approach stays near +x so the hairpin and the receding leg land on the right of the hero instead of
- * stalling mid-page; phones (compact = 1) shorten the straight legs. Curvature is a smooth function of arc
- * length, so there are no kinks; the hairpin radius is floored so that no slice turns by more than MAX_SLICE_BEND.
+ * stalling mid-page; phones (compact = 1) shorten the straight legs. Straight bleed past both ends is NOT
+ * part of the fitted core: the hairpin stays the same size, and the extra approach / exit run off the viewport.
+ * Curvature is a smooth function of arc length, so there are no kinks; the hairpin radius is floored so that
+ * no slice turns by more than MAX_SLICE_BEND.
  */
 function loopSegs(c: LoopCfg) {
   const sharp = clamp(c.sharp, 0.5, 1.8);
@@ -299,20 +301,24 @@ function loopSegs(c: LoopCfg) {
   const thB2 = thB + 0.05;
   const thC = -0.1 * dk; // after hairpin 2: to the right, gently receding
   const thEnd = 0;
+  // Straight continuation past the fitted ribbon. The right leg is longer because it sits farther from the
+  // camera, so the same screen bleed needs more arc length. Phones trim it, but still clear a 390px screen.
+  const bleedL = 700 - 140 * k;
+  const bleedR = 1550 - 280 * k;
   const segs: LoopSeg[] = [
-    { len: 80 - 40 * k, d: 0, kind: 'bump' }, // short run-in (fades in)
-    { len: 720 - 500 * k, d: thA - th0, kind: 'bump' }, // arch: long on desktop so the hairpin reaches the right
+    { len: 80 - 40 * k + bleedL, d: 0, kind: 'bump' }, // run-in, continues off the left edge
+    { len: 720 - 500 * k, d: thA - th0, kind: 'bump' }, // arch towards the hairpin
     { len: (Math.abs(thB - thA) * R1) / (1 - RAMP), d: thB - thA, kind: 'turn' },
     { len: 260 - 160 * k, d: thB2 - thB, kind: 'bump' },
     { len: (Math.abs(thC - thB2) * R2) / (1 - RAMP), d: thC - thB2, kind: 'turn' },
-    { len: 820 - 600 * k, d: thEnd - thC, kind: 'bump' }, // receding leg, extended so it reaches the right edge
-    { len: 160 - 100 * k, d: 0, kind: 'bump' },
+    { len: 820 - 600 * k, d: thEnd - thC, kind: 'bump' }, // receding leg
+    { len: 160 - 100 * k + bleedR, d: 0, kind: 'bump' }, // tail, continues off the right edge
   ];
-  return { segs, th0, dk, Lp: segs.reduce((a, s) => a + s.len, 0) };
+  return { segs, th0, dk, Lp: segs.reduce((a, s) => a + s.len, 0), bleedL, bleedR };
 }
 
 function generateLoop(c: LoopCfg, pad: number, bank = 0.05): PathTable {
-  const { segs, th0, dk, Lp } = loopSegs(c);
+  const { segs, th0, dk, Lp, bleedL, bleedR } = loopSegs(c);
   const length = Lp + 2 * pad;
   const TABLE = Math.max(64, Math.ceil(length / TABLE_STEP));
   const ds = length / TABLE;
@@ -365,25 +371,20 @@ function generateLoop(c: LoopCfg, pad: number, bank = 0.05): PathTable {
       a += 0.5 * (k0 + k1) * sub;
     }
   }
-  // centre the shape (x: the well-visible ribbon, y / z: the whole path).
-  // Fitting only the hairpin core left the approach hanging off the left and the receding leg short of the right.
-  const i0 = Math.round(pad / ds);
-  const i1 = Math.round((pad + Lp) / ds);
+  // Centre on the fitted body only. The straight bleed past either end must not shift the hairpin.
+  const body0 = pad + bleedL;
+  const body1 = pad + Lp - bleedR;
   let mny = 1e9,
     mxy = -1e9,
     mnz = 1e9,
-    mxz = -1e9;
-  for (let i = i0; i <= i1; i++) {
+    mxz = -1e9,
+    cmx = 1e9,
+    cMx = -1e9;
+  for (let i = clamp(Math.round(body0 / ds), 0, TABLE); i <= clamp(Math.round(body1 / ds), 0, TABLE); i++) {
     mny = Math.min(mny, pos[i * 3 + 1]);
     mxy = Math.max(mxy, pos[i * 3 + 1]);
     mnz = Math.min(mnz, pos[i * 3 + 2]);
     mxz = Math.max(mxz, pos[i * 3 + 2]);
-  }
-  const vis0 = pad + END_FADE * 0.5;
-  const vis1 = pad + Lp - END_FADE * 0.5;
-  let cmx = 1e9,
-    cMx = -1e9;
-  for (let i = clamp(Math.round(vis0 / ds), 0, TABLE); i <= clamp(Math.round(vis1 / ds), 0, TABLE); i++) {
     cmx = Math.min(cmx, pos[i * 3]);
     cMx = Math.max(cMx, pos[i * 3]);
   }
@@ -435,9 +436,8 @@ function generateLoop(c: LoopCfg, pad: number, bank = 0.05): PathTable {
     fitH: 0,
     Lp,
     heroS: segs[0].len + segs[1].len * 0.78,
-    // path range the camera fits. Start early: the approach is close to the camera, so the
-    // fade-in occupies a lot of screen and must be inside the box or it clips the left edge.
-    core: [END_FADE * 0.16, Lp - END_FADE * 0.35],
+    // Fitted span is the hairpin body. bleedL / bleedR run outside it and off the viewport.
+    core: [bleedL + END_FADE * 0.16, Lp - bleedR - END_FADE * 0.35],
   };
 }
 
