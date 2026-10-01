@@ -1,0 +1,192 @@
+/*
+ * FilmStrip3D v3 — styles.
+ * Everything that moves is driven from JS via `transform` / `opacity` only.
+ * Tweak via CSS custom properties on the element that receives `className`:
+ *   --fs3d-height   container height (default: clamp(320px, 52vw, 580px))
+ *   --fs3d-ink      yellow edge-print colour (default #f6c915)
+ *   --fs3d-hole     sprocket hole colour (default #f3f0e6)
+ *
+ * The film is a stack of thin SLICES (.slice) laid along the 3D path. Each slice is a piece of
+ * solid black film base that overlaps its neighbours by 2px each side, so no background can show
+ * through at any bend angle. Everything that must look continuous across slices is drawn in
+ * STRIP coordinates, not slice coordinates:
+ *   - sprocket holes: background tile shifted by --ph (per-slice phase)
+ *   - edge print:     one frame-wide SVG, shifted by --u0 (slice offset inside its frame)
+ *   - photo (.ph):    a full photo-sized box shifted by -u0 and clipped by the slice
+ *   - gloss:          a photo-sized gradient (also clipped by the slice)
+ * Per-slice custom properties written from JS:
+ *   --w slice width   --pw frame pitch   --u0 offset inside the frame   --ph sprocket phase
+ *   --pr edge-print image   --sh fog opacity   --gl gloss opacity
+ * Root: --gap (black margin between two photos, px).
+ */
+
+.root {
+  position: relative;
+  width: 100%;
+  height: var(--fs3d-height, clamp(340px, 56svh, 520px));
+  /* perspective distance is set from JS (scales with the strip) */
+  perspective: 1100px;
+  perspective-origin: 50% 48%;
+  /* don't use contain:paint — it clips the 3D swing on short mobile boxes */
+  contain: layout;
+  touch-action: pan-y; /* horizontal = scrub, vertical = page scroll */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: grab;
+  outline: none;
+  --ink: var(--fs3d-ink, #f6c915);
+  --hole: var(--fs3d-hole, #f3f0e6);
+}
+
+.root[data-dragging='true'] {
+  cursor: grabbing;
+}
+
+/* pre-baked soft contact shadow under the strip (one element, no blur filter) */
+.floor {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 2%;
+  height: 16%;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(0, 0, 0, 0.22) 0%,
+    rgba(0, 0, 0, 0.08) 45%,
+    rgba(0, 0, 0, 0) 72%
+  );
+  pointer-events: none;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+/* ---- one slice of film ---------------------------------------------------- */
+
+.slice {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* --w = slice width (px). The box reaches 2px past EACH joint (4px total overlap, symmetric so that
+     front- and back-facing neighbours both overlap) => the film is gap-free at any bend angle */
+  width: calc(var(--w, 26) * 1px + 4px);
+  height: 184px;
+  margin: -92px 0 0 -2px;
+  /* local origin = the left joint (2px in), vertical centre: JS puts this point on the path */
+  transform-origin: 2px 92px;
+  overflow: hidden;
+  will-change: transform;
+  pointer-events: none; /* clicks go to the .hit buttons */
+  backface-visibility: visible;
+  visibility: hidden; /* JS reveals slices once they have a pose */
+  /* layers, top to bottom: edge print, sprocket row (top), sprocket row (bottom), film base.
+     Everything here depends only on strip coordinates or on y, so it is identical in every slice.
+     Layer order is fixed by the script: [print, sprocket, sprocket, base shading] (all images, no CSS gradients:
+     mixing gradients with images on transformed slices also forced a re-raster per frame). */
+  background-color: #08080a;
+  /* background-image (print + sprockets + base) is set inline by the script: a `var()` inside background-image
+     makes Chrome re-rasterise every transformed slice on every frame. */
+  background-repeat: no-repeat, repeat-x, repeat-x, no-repeat;
+  /* print bitmap is full strip height: stock on top band, frame # on bottom band */
+  background-size: calc(var(--pw, 200) * 1px) 184px, 25px 18px, 25px 18px, 100% 100%;
+  background-position:
+    calc((2 - var(--u0, 0)) * 1px) 0,
+    calc(var(--ph, 0) * 1px) 0,
+    calc(var(--ph, 0) * 1px) 100%,
+    0 0;
+}
+
+/* the photo: a photo-sized box (so rounded corners / border / cover-crop are those of the whole
+   picture) shifted left by this slice's offset; the slice's overflow clips it to the slice */
+.ph {
+  position: absolute;
+  z-index: 1;
+  left: calc((var(--gap, 30) * 0.5 - var(--u0, 0) + 2) * 1px);
+  top: 36px;
+  width: calc((var(--pw, 200) - var(--gap, 30)) * 1px);
+  height: 112px;
+  border-radius: 0;
+  background-color: #23252a;
+  background-size: cover;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  /* hairline dark ring + subtle inner highlight */
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* gloss: one photo-sized gradient (same in every slice => no seams); only its opacity changes */
+.slice::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  left: calc((var(--gap, 30) * 0.5 - var(--u0, 0) + 2) * 1px);
+  top: 36px;
+  width: calc((var(--pw, 200) - var(--gap, 30)) * 1px);
+  height: 112px;
+  border-radius: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      112deg,
+      rgba(255, 255, 255, 0) 18%,
+      rgba(255, 255, 255, 0.3) 40%,
+      rgba(255, 255, 255, 0.07) 52%,
+      rgba(255, 255, 255, 0) 66%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 30%);
+  opacity: var(--gl, 0.2);
+}
+
+/* depth fog + light: one solid black layer over the whole slice (nearly free to composite) */
+.slice::after {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+  opacity: var(--sh, 0);
+}
+
+/* keyboard focus ring, drawn on the bent photo itself */
+.slice[data-focus] .ph {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 0 0 3px var(--ink),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* ---- accessible, clickable frame (invisible button / link over the photo) -- */
+
+.hit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc((var(--pw, 200) - var(--gap, 30)) * 1px);
+  height: 112px;
+  margin: -56px 0 0 calc((var(--pw, 200) - var(--gap, 30)) * -0.5px);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  display: block;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  text-decoration: none;
+  outline: none; /* the focus ring is drawn on the bent photo (.slice[data-focus] .ph) */
+  -webkit-appearance: none;
+  appearance: none;
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    cursor: default;
+  }
+}

@@ -1,0 +1,1417 @@
+'use client';
+
+/**
+ * FilmStrip3D v3 — a cinematic 35mm film strip that bends / twists / spirals through
+ * space using nothing but CSS 3D transforms and ONE requestAnimationFrame loop.
+ *
+ *  - No WebGL, no three.js, no dependencies.
+ *  - The strip is ONE continuous ribbon: the black film BASE is built from many thin SLICES
+ *    (~26 world px wide, ~110 of them) laid along the 3D path. Each slice is posed from the chord
+ *    between two points of the path (its left/right edges ARE path samples, so neighbours share
+ *    their edge to <1px) and overlaps its right neighbour by a couple of px on a solid black
+ *    background, so no page background can show through at any bend angle.
+ *  - The photos are NOT separate flat cards: every slice carries a clipped window onto "its"
+ *    photo (a child element `.ph` of full photo size, clipped by the slice). The photo therefore
+ *    bends with the film, has real black margins (`gap`) either side, small rounded corners and a
+ *    subtle inner border. Sprocket holes are background tiles keyed to the strip coordinate, so
+ *    they stay continuous across slices and frames.
+ *  - Depth fog / light are one black overlay + one sheen per slice (opacity only, from smooth
+ *    functions of depth, so neighbouring slices never show a seam). No filters.
+ *  - The loop only writes `transform` (matrix3d) and a few opacity-driving custom properties
+ *    through refs. React never re-renders per frame.
+ *  - The path is pre-sampled once into an arc-length table. The bend per slice is limited
+ *    (the wave is flattened / stretched until no slice turns more than ~5deg), so turns read as
+ *    fluid curves instead of folds.
+ *  - Variable aspect ratios: every item may carry `width`/`height` (or `aspect`). Frame pitch =
+ *    photo width (at the fixed film height) + `gap`; slices are aligned to frame boundaries.
+ */
+
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+  type CSSProperties,
+  type FocusEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
+} from 'react';
+import styles from './FilmStrip3D.module.css';
+
+export type FilmStripItem = {
+  src: string;
+  alt: string;
+  label?: string;
+  href?: string;
+  /** Natural pixel size of the photo. Together they define its aspect ratio. */
+  width?: number;
+  height?: number;
+  /** width / height. Alternative to width + height (e.g. Sanity `metadata.dimensions.aspectRatio`). */
+  aspect?: number;
+};
+
+export type FilmStrip3DProps = {
+  items: FilmStripItem[];
+  /** Called when a frame is activated (click / tap / Enter / Space). */
+  onSelect?: (item: FilmStripItem, index: number) => void;
+  /** Autoplay speed multiplier. 1 = ~0.4 frames/s. Negative reverses. 0 = no autoplay. */
+  speed?: number;
+  /** 'ribbon' = S-curve wave with twist, 'helix' = spiral staircase. */
+  variant?: 'ribbon' | 'helix';
+  /** Curve amplitude multiplier (0.4 – 1.6 sensible). Default 1. */
+  amplitude?: number;
+  /**
+   * Black film margin between two photos, in strip px (the strip is ~184px tall). Default 32.
+   * Clamped to 14 – 90. Larger = more black film between the pictures.
+   */
+  gap?: number;
+  /** Yellow edge-print text on every frame. */
+  stockLabel?: string;
+  /** Accessible name of the whole strip. */
+  ariaLabel?: string;
+  /** Force low-power mode (30fps, wider slices => fewer DOM nodes). Default: auto-detect. */
+  lowPower?: boolean;
+  className?: string;
+};
+
+/* ------------------------------------------------------------------ */
+/* constants                                                           */
+/* ------------------------------------------------------------------ */
+
+const W = 200; // strip pitch (world px) of a frame without a known ratio
+const STRIP_H = 184; // film height (world px); keep in sync with the CSS `.slice { height }`
+const HALF_H = STRIP_H / 2;
+const PHOTO_H = 112; // photo window height; keep in sync with the CSS `.ph { height }`
+const PHOTO_TOP = 36; // keep in sync with CSS `.ph { top }` — leaves a top edge-print band
+const DEFAULT_GAP = 18;
+const STOCK_EVERY = 4; // show stock label on every Nth frame only
+const MIN_GAP = 10;
+const MAX_GAP = 90;
+const MIN_ASPECT = 0.55; // wider/narrower photos are cropped (cover) beyond these
+const MAX_ASPECT = 2.3;
+const SPROCKET = 25; // perforation pitch (px) = background tile width in the CSS
+const SLICE_HI = 26; // nominal slice width (world px)
+const SLICE_LOW = 40; // low-power: wider slices -> ~35% fewer nodes
+const MAX_EDGE = 0.6; // world px: max misalignment of the outer corners of two neighbouring slices
+const MIN_BEND_R = 200; // tightest allowed bend radius (world px) — lower = sharper S folds
+const END_FADE = 320; // the path ends fade to black film (not alpha: overlapping slices would double-blend) over this length
+const BASE_FPS = 0.4; // average frames per second at speed = 1
+const TABLE_STEP = 5.8; // arc-length table spacing (world px)
+const DRAG_THRESHOLD = 6; // px before a press becomes a drag (so taps still click)
+const MAX_FLICK = 4; // frames/s cap for inertia
+
+const TAU = Math.PI * 2;
+const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
+const mod = (n: number, m: number) => ((n % m) + m) % m;
+const smooth = (t: number) => {
+  t = clamp(t, 0, 1);
+  return t * t * (3 - 2 * t);
+};
+
+/* ------------------------------------------------------------------ */
+/* path (arc-length table of positions + "down" reference vectors)     */
+/* ------------------------------------------------------------------ */
+
+type PathTable = {
+  pos: Float64Array; // (T+1) * 3
+  dn: Float64Array; // (T+1) * 3  unit vector along the strip's height ("down" edge)
+  length: number;
+  /** number of table intervals */
+  T: number;
+  /** rough half-extent of the shape in depth, used for fog */
+  zScale: number;
+  /** vertical scale reference for fitting the shape into the container height */
+  fitH: number;
+};
+
+type PathParams = { Az: number; Ay: number; lambda: number; R: number; roll: number };
+
+function generatePath(variant: 'ribbon' | 'helix', pr: PathParams, length: number): PathTable {
+  const TABLE = Math.max(64, Math.ceil(length / TABLE_STEP));
+  const pos = new Float64Array((TABLE + 1) * 3);
+  const dn = new Float64Array((TABLE + 1) * 3);
+  const ds = length / TABLE;
+
+  if (variant === 'helix') {
+    // Helix around a vertical axis; the strip's face looks outward (carousel / spiral staircase).
+    const R = pr.R;
+    const rise = -236; // vertical travel per turn (negative = ascends to the right)
+    const b = rise / TAU;
+    const arcPerRad = Math.hypot(R, b);
+    for (let i = 0; i <= TABLE; i++) {
+      const t = (i * ds - length / 2) / arcPerRad;
+      const sx = Math.sin(t);
+      const cz = Math.cos(t);
+      pos[i * 3] = R * sx;
+      pos[i * 3 + 1] = b * t;
+      pos[i * 3 + 2] = R * cz;
+      // T = (R cos t, b, -R sin t); r = (sin t, 0, cos t); down = r x T
+      const Tx = R * cz,
+        Ty = b,
+        Tz = -R * sx;
+      const rx = sx,
+        rz = cz;
+      const dx = 0 * Tz - rz * Ty; // r x T
+      const dy = rz * Tx - rx * Tz;
+      const dz = rx * Ty - 0 * Tx;
+      const l = Math.hypot(dx, dy, dz);
+      dn[i * 3] = dx / l;
+      dn[i * 3 + 1] = dy / l;
+      dn[i * 3 + 2] = dz / l;
+    }
+    return { pos, dn, length, T: TABLE, zScale: R, fitH: 620 };
+  }
+
+  // ribbon: x = u, z = Az sin, y = Ay sin (phase-shifted), plus a gentle roll twist.
+  const { Az, Ay, lambda } = pr;
+  const curve = (u: number, out: number[]) => {
+    const p = (TAU * u) / lambda;
+    out[0] = u;
+    out[1] = Ay * Math.sin(p + 1.4);
+    out[2] = Az * Math.sin(p);
+  };
+  const roll = (u: number) => pr.roll * Math.sin((TAU * u) / (lambda * 1.7) + 0.6);
+
+  // dense sampling over [-length, length]
+  const STEP = 5;
+  const count = Math.ceil((2 * length) / STEP) + 1;
+  const U = new Float64Array(count);
+  const A = new Float64Array(count); // cumulative arc length
+  const tmp = [0, 0, 0];
+  let px = 0,
+    py = 0,
+    pz = 0;
+  for (let j = 0; j < count; j++) {
+    const u = -length + j * STEP;
+    curve(u, tmp);
+    U[j] = u;
+    A[j] = j === 0 ? 0 : A[j - 1] + Math.hypot(tmp[0] - px, tmp[1] - py, tmp[2] - pz);
+    px = tmp[0];
+    py = tmp[1];
+    pz = tmp[2];
+  }
+  const a0 = A[Math.round(length / STEP)]; // arc at u = 0
+  const us = new Float64Array(TABLE + 1);
+  let j = 0;
+  for (let i = 0; i <= TABLE; i++) {
+    const a = a0 + (i * ds - length / 2);
+    while (j < count - 2 && A[j + 1] < a) j++;
+    const f = clamp((a - A[j]) / Math.max(1e-6, A[j + 1] - A[j]), 0, 1);
+    const u = U[j] + (U[j + 1] - U[j]) * f;
+    us[i] = u;
+    curve(u, tmp);
+    pos[i * 3] = tmp[0];
+    pos[i * 3 + 1] = tmp[1];
+    pos[i * 3 + 2] = tmp[2];
+  }
+  for (let i = 0; i <= TABLE; i++) {
+    // smooth tangent: finite difference over +-2 neighbouring samples
+    const i0 = Math.max(0, i - 2),
+      i1 = Math.min(TABLE, i + 2);
+    let Tx = pos[i1 * 3] - pos[i0 * 3];
+    let Ty = pos[i1 * 3 + 1] - pos[i0 * 3 + 1];
+    let Tz = pos[i1 * 3 + 2] - pos[i0 * 3 + 2];
+    const tl = Math.hypot(Tx, Ty, Tz);
+    Tx /= tl;
+    Ty /= tl;
+    Tz /= tl;
+    // D0 = world-down projected perpendicular to T
+    let dx = -Ty * Tx;
+    let dy = 1 - Ty * Ty;
+    let dz = -Ty * Tz;
+    const dl = Math.hypot(dx, dy, dz);
+    dx /= dl;
+    dy /= dl;
+    dz /= dl;
+    // rotate D0 about T by roll (Rodrigues; D0 ⟂ T)
+    const r = roll(us[i]);
+    const c = Math.cos(r),
+      s = Math.sin(r);
+    const cx = Ty * dz - Tz * dy; // T x D0
+    const cy = Tz * dx - Tx * dz;
+    const cz = Tx * dy - Ty * dx;
+    dn[i * 3] = dx * c + cx * s;
+    dn[i * 3 + 1] = dy * c + cy * s;
+    dn[i * 3 + 2] = dz * c + cz * s;
+  }
+  // Fit box must cover vertical bob + foreshortened depth swing + strip height,
+  // or mobile containers clip most of the wave (old hardcoded 410 was too tight).
+  const fitH = Math.max(480, Ay * 2.2 + Az * 0.55 + STRIP_H + 100);
+  return { pos, dn, length, T: TABLE, zScale: Az + 110, fitH };
+}
+
+/** Largest turn (radians) between two consecutive chords of length `w` along the table. */
+function maxBend(t: PathTable, w: number): number {
+  const step = Math.max(1, Math.round(w / (t.length / t.T)));
+  const p = t.pos;
+  let m = 0;
+  for (let i = step; i + step <= t.T; i++) {
+    const a0 = (i - step) * 3,
+      b0 = i * 3,
+      c0 = (i + step) * 3;
+    const ux = p[b0] - p[a0],
+      uy = p[b0 + 1] - p[a0 + 1],
+      uz = p[b0 + 2] - p[a0 + 2];
+    const vx = p[c0] - p[b0],
+      vy = p[c0 + 1] - p[b0 + 1],
+      vz = p[c0 + 2] - p[b0 + 2];
+    const d = (ux * vx + uy * vy + uz * vz) / (Math.hypot(ux, uy, uz) * Math.hypot(vx, vy, vz));
+    const a = Math.acos(clamp(d, -1, 1));
+    if (a > m) m = a;
+  }
+  return m;
+}
+
+/**
+ * Largest mismatch (world px) between the outer corners of two neighbouring slices (width `w`).
+ * Slices are rigid, so any rotation of the strip that is NOT a hinge about its own height axis
+ * (in-plane bend from the vertical bob, twist from the roll) leaves the two edges of a joint
+ * misaligned by half-height x angle. Hinge bends (the depth wave) do not contribute.
+ */
+function maxEdgeMismatch(t: PathTable, w: number): number {
+  const step = Math.max(1, Math.round(w / (t.length / t.T)));
+  const d = t.dn;
+  let m = 0;
+  for (let i = 4; i + step < t.T - 4; i++) {
+    const a = i * 3,
+      b = (i + step) * 3;
+    const v = Math.hypot(d[a] - d[b], d[a + 1] - d[b + 1], d[a + 2] - d[b + 2]);
+    if (v > m) m = v;
+  }
+  return m * HALF_H;
+}
+
+/**
+ * Builds the path and softens it until (a) no slice turns by more than w / MIN_BEND_R and
+ * (b) neighbouring slices' outer corners stay within MAX_EDGE world px of each other.
+ * Ribbon: depth swing is reduced and the wavelength stretched (curvature ~ Az / lambda^2); vertical
+ * bob and roll are scaled down for (b). Helix: the radius grows. `bend` (radians) and `edge`
+ * (world px) report what was achieved.
+ */
+function buildPath(
+  variant: 'ribbon' | 'helix',
+  amp: number,
+  length: number,
+  w: number,
+): PathTable & { bend: number; edge: number } {
+  const limit = w / MIN_BEND_R;
+  const pr: PathParams = {
+    // Deeper Z swing + shorter wavelength = sharper S / near double-back
+    Az: 340 * amp,
+    Ay: 70 * amp,
+    lambda: 1050,
+    R: 360 * amp,
+    roll: 0.28 * Math.min(amp, 1.4),
+  };
+  let t = generatePath(variant, pr, length);
+  let bend = maxBend(t, w);
+  let edge = maxEdgeMismatch(t, w);
+  for (let n = 0; n < 10 && (bend > limit * 1.01 || edge > MAX_EDGE * 1.01); n++) {
+    if (bend > limit * 1.01) {
+      const f = limit / bend; // < 1
+      if (variant === 'helix') {
+        pr.R /= f ** 0.9;
+      } else {
+        const fa = f ** (1 / 3);
+        pr.Az *= fa;
+        pr.Ay *= fa;
+        pr.lambda /= fa; // curvature ~ Az / lambda^2  =>  f^(1/3) * f^(2/3) = f
+      }
+    }
+    if (edge > MAX_EDGE * 1.01 && variant === 'ribbon') {
+      const f = MAX_EDGE / edge;
+      pr.Ay *= f;
+      pr.roll *= f;
+    }
+    t = generatePath(variant, pr, length);
+    bend = maxBend(t, w);
+    edge = maxEdgeMismatch(t, w);
+  }
+  return Object.assign(t, { bend, edge });
+}
+
+/* ------------------------------------------------------------------ */
+/* layout: variable frame widths -> frame + slice tables                */
+/* ------------------------------------------------------------------ */
+
+/** width / height of an item if it declares one (aspect, or width + height). */
+export function aspectOf(it: Pick<FilmStripItem, 'width' | 'height' | 'aspect'>): number | undefined {
+  const a = it.aspect ?? (it.width && it.height ? it.width / it.height : undefined);
+  return a && isFinite(a) && a > 0 ? a : undefined;
+}
+
+/** Strip pitch (photo + black margin) in world px for an aspect ratio (undefined = classic 200). */
+const pitchFor = (aspect: number | undefined, gap: number) =>
+  aspect === undefined ? Math.round(PHOTO_H * 1.5) + gap : Math.round(PHOTO_H * clamp(aspect, MIN_ASPECT, MAX_ASPECT)) + gap;
+
+type Layout = {
+  L: number; // number of items
+  gap: number;
+  pitch: Float64Array; // per item
+  cum: Float64Array; // L + 1 prefix sums
+  total: number;
+  mean: number;
+  min: number;
+  max: number;
+  /** slice table for ONE period (all L frames): slices never straddle two frames */
+  J: number;
+  sStart: Float64Array; // J, strip coordinate of the slice's left edge
+  sW: Float64Array; // J, slice width
+  sFrame: Int32Array; // J, frame (item) index
+};
+
+function buildLayout(pitches: ArrayLike<number>, gap: number, target: number): Layout {
+  const L = Math.max(1, pitches.length);
+  const pitch = new Float64Array(L);
+  const cum = new Float64Array(L + 1);
+  let min = Infinity;
+  let max = 0;
+  let J = 0;
+  const counts = new Int32Array(L);
+  for (let i = 0; i < L; i++) {
+    const p = i < pitches.length ? pitches[i] : W;
+    pitch[i] = p;
+    cum[i + 1] = cum[i] + p;
+    if (p < min) min = p;
+    if (p > max) max = p;
+    counts[i] = Math.max(1, Math.round(p / target));
+    J += counts[i];
+  }
+  const sStart = new Float64Array(J);
+  const sW = new Float64Array(J);
+  const sFrame = new Int32Array(J);
+  let j = 0;
+  for (let i = 0; i < L; i++) {
+    // integer widths (the pitch is an integer): every slice edge then lands on a whole pixel inside
+    // its own layer, so the photo / print / sprocket sampling is identical on both sides of a joint
+    const base = Math.floor(pitch[i] / counts[i]);
+    const extra = pitch[i] - base * counts[i]; // the first `extra` slices are 1px wider
+    let acc = 0;
+    for (let s = 0; s < counts[i]; s++, j++) {
+      const w = base + (s < extra ? 1 : 0);
+      sStart[j] = cum[i] + acc;
+      sW[j] = w;
+      sFrame[j] = i;
+      acc += w;
+    }
+  }
+  return { L, gap, pitch, cum, total: cum[L], mean: cum[L] / L, min, max, J, sStart, sW, sFrame };
+}
+
+/** Start of virtual (infinitely repeated) frame k along the strip. */
+function cumAt(lay: Layout, k: number): number {
+  const q = Math.floor(k / lay.L);
+  return q * lay.total + lay.cum[k - q * lay.L];
+}
+function pitchAt(lay: Layout, k: number): number {
+  return lay.pitch[mod(k, lay.L)];
+}
+/** Start of virtual slice j. */
+function sliceStartAt(lay: Layout, j: number): number {
+  const q = Math.floor(j / lay.J);
+  return q * lay.total + lay.sStart[j - q * lay.J];
+}
+
+type Plan = { N: number; NS: number; Lp: number; pad: number };
+
+/**
+ * How many DOM hit-frames (N) and base slices (NS) are needed to cover a visible path of length Lp
+ * at ANY scroll offset, and how long that path is. Elements are recycled from the left end to the
+ * right end while hidden beyond the path ends (which are faded to black).
+ */
+function planLayout(lay: Layout, base: number, target: number): Plan {
+  const Lp = base * W;
+  let N = 0;
+  for (let r = 0; r < lay.L; r++) {
+    let c = 0;
+    while (cumAt(lay, r + c) - lay.cum[r] < Lp) c++;
+    if (c > N) N = c;
+  }
+  let NS = 0;
+  for (let r = 0; r < lay.J; r++) {
+    let c = 0;
+    while (sliceStartAt(lay, r + c) - lay.sStart[r] < Lp) c++;
+    if (c > NS) NS = c;
+  }
+  N += 2;
+  NS += 3;
+  void target;
+  return { N, NS, Lp, pad: Math.max(420, lay.max + 40) };
+}
+
+/* ------------------------------------------------------------------ */
+/* edge print (frame number + stock label) as a tiny SVG background     */
+/* ------------------------------------------------------------------ */
+
+const NARROW_PHOTO = 120; // skip stock on very narrow frames (4:3 @ PHOTO_H is ~149)
+const PRINT_SCALE = 3; // bitmap resolution multiplier (the strip is drawn up to ~2.2x, plus perspective)
+/** Must match next/font IBM_Plex_Mono in layout.tsx — canvas can't use CSS vars. */
+const PRINT_FONT = '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+const PRINT_WEIGHT = 700;
+const PRINT_SIZE = 13; // stock + frame numbers share this
+
+function printFontCss(size = PRINT_SIZE) {
+  return `${PRINT_WEIGHT} ${size}px ${PRINT_FONT}`;
+}
+
+async function ensurePrintFont() {
+  if (typeof document === 'undefined' || !document.fonts?.load) return;
+  try {
+    await document.fonts.load(printFontCss());
+    await document.fonts.ready;
+  } catch {
+    /* fall through — canvas will use the stack fallback */
+  }
+}
+
+/**
+ * Yellow edge print baked once per (frame number, pitch, stock?) into a full-strip-height bitmap:
+ * stock label in the TOP band (above the photo), frame number in the BOTTOM band.
+ * Used as a slice background so the type bends with the film (no extra DOM).
+ */
+function printUrl(num: string, pitch: number, gap: number, ink: string, stock: string): string {
+  const cv = document.createElement('canvas');
+  cv.width = Math.ceil(pitch * PRINT_SCALE);
+  cv.height = STRIP_H * PRINT_SCALE;
+  const g = cv.getContext('2d');
+  if (!g) return 'none';
+  g.scale(PRINT_SCALE, PRINT_SCALE);
+  g.fillStyle = ink;
+  g.textBaseline = 'alphabetic';
+  g.font = printFontCss();
+  const x0 = gap / 2 + 1;
+  const mid = pitch / 2; // centre of the photo window
+
+  // Top band (between upper sprockets and photo): stock label, sparse
+  if (stock && pitch - gap >= NARROW_PHOTO) {
+    g.textAlign = 'left';
+    g.fillText(stock, x0, PHOTO_TOP - 6);
+  }
+
+  // Bottom band: frame marker + number, centred under the photo
+  g.textAlign = 'left';
+  const triW = 9;
+  const triPad = 6;
+  const numW = g.measureText(num).width;
+  const groupW = triW + triPad + numW;
+  const left = mid - groupW / 2;
+  g.beginPath();
+  g.moveTo(left, 153.5);
+  g.lineTo(left + triW, 158.5);
+  g.lineTo(left, 163.5);
+  g.closePath();
+  g.fill();
+  g.fillText(num, left + triW + triPad, 164);
+
+  const bin = atob(cv.toDataURL('image/png').split(',')[1]);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return `url("${URL.createObjectURL(new Blob([bytes], { type: 'image/png' }))}")`;
+}
+
+// Sprocket hole tile (25 x 18, drawn at the top and bottom edge) and the base's vertical shading (stretched to the
+// film height). Plain images on purpose, see the note in the CSS.
+const HOLE_SVG =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='25' height='18'%3E%3Crect x='5.5' y='4' width='14' height='10' rx='2.6' fill='%23f3f0e6' stroke='%23b4afa2' stroke-width='.6'/%3E%3C/svg%3E";
+const BASE_SVG =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='184' viewBox='0 0 4 184' preserveAspectRatio='none'%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23232327'/%3E%3Cstop offset='.14' stop-color='%231b1b1e'/%3E%3Cstop offset='.45' stop-color='%230d0d0f'/%3E%3Cstop offset='1' stop-color='%23070708'/%3E%3C/linearGradient%3E%3Crect width='4' height='184' fill='url(%23g)'/%3E%3C/svg%3E";
+const HOLE = `url("${HOLE_SVG}")`;
+const BASE_SHADE = `url("${BASE_SVG}")`;
+const cssUrl = (src: string) => `url("${src.replace(/["\\\n\r]/g, (c) => encodeURIComponent(c))}")`;
+
+/* ------------------------------------------------------------------ */
+/* component                                                           */
+/* ------------------------------------------------------------------ */
+
+const subscribeNever = () => () => {};
+const serverFalse = () => false;
+function detectWeakDevice(): boolean {
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  return (
+    (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency <= 4) ||
+    (typeof nav.deviceMemory === 'number' && nav.deviceMemory <= 4)
+  );
+}
+
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
+function pad2(n: number) {
+  return n < 10 ? '0' + n : String(n);
+}
+
+export default function FilmStrip3D({
+  items,
+  onSelect,
+  speed = 1,
+  variant = 'ribbon',
+  amplitude = 1,
+  gap = DEFAULT_GAP,
+  stockLabel = 'KODAK EPP 5005',
+  ariaLabel = 'Photo film strip',
+  lowPower,
+  className,
+}: FilmStrip3DProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const detectedLow = useSyncExternalStore(subscribeNever, detectWeakDevice, serverFalse);
+  const low = lowPower ?? detectedLow;
+  const baseCount = low ? 12 : 14;
+  const gapC = 2 * Math.round(clamp(Number.isFinite(gap) ? gap : DEFAULT_GAP, MIN_GAP, MAX_GAP) / 2); // even => whole-pixel margins
+  const target = low ? SLICE_LOW : SLICE_HI;
+
+  // Layout from the declared ratios: computed once per items change (no DOM reads).
+  const layoutKey = useMemo(
+    () => items.map((it) => pitchFor(aspectOf(it), gapC).toFixed(2)).join(','),
+    [items, gapC],
+  );
+  const hasUnknown = useMemo(() => items.some((it) => aspectOf(it) === undefined), [items]);
+  const plan = useMemo(() => {
+    const lay = buildLayout(layoutKey ? layoutKey.split(',').map(Number) : [], gapC, target);
+    const p = planLayout(lay, baseCount, target);
+    if (hasUnknown) {
+      // some pitches may still change once the photo is measured: size the rings for the narrowest case
+      const worst = planLayout(
+        buildLayout(new Array(lay.L).fill(PHOTO_H * MIN_ASPECT + gapC), gapC, target),
+        baseCount,
+        target,
+      );
+      p.N = Math.max(p.N, worst.N);
+      p.NS = Math.max(p.NS, worst.NS);
+    }
+    return { lay, ...p, target };
+  }, [layoutKey, hasUnknown, baseCount, gapC, target]);
+  const sliceCount = plan.NS;
+  const frameCount = plan.N;
+
+  // latest props, readable from the rAF loop / handlers without re-subscribing
+  const itemsRef = useRef(items);
+  const onSelectRef = useRef(onSelect);
+  const speedRef = useRef(speed);
+  const stockRef = useRef(stockLabel);
+  useIsoLayoutEffect(() => {
+    itemsRef.current = items;
+    onSelectRef.current = onSelect;
+    speedRef.current = speed;
+    stockRef.current = stockLabel;
+  });
+
+  // engine <-> handler bridge (all mutable, no re-render)
+  const api = useRef<{
+    kick: () => void;
+    pointerDown: (e: PointerEvent<HTMLDivElement>) => void;
+    pointerMove: (e: PointerEvent<HTMLDivElement>) => void;
+    pointerUp: (e: PointerEvent<HTMLDivElement>) => void;
+    hover: (v: boolean) => void;
+    focusSlot: (slot: number, fromKeyboard: boolean) => void;
+    blurAll: () => void;
+    nudge: (frames: number) => void;
+    slotIndex: (slot: number) => number;
+    neighbor: (slot: number, dir: number) => number;
+    wasDrag: () => boolean;
+    refresh: () => void;
+  } | null>(null);
+
+  const asLinks = useMemo(() => items.length > 0 && items.every((i) => !!i.href), [items]);
+
+  /* ---------------- engine ---------------- */
+  useIsoLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const N = frameCount; // frame (button) ring
+    const NS = sliceCount; // slice ring
+    const Lp = plan.Lp;
+    const pad = plan.pad;
+    const gp = gapC;
+    let lay = plan.lay; // may be refined in place by the measured ratio of photos without a declared one
+    const meanPitch = () => lay.mean;
+    const table = buildPath(variant, clamp(amplitude, 0.3, 2), Lp + 2 * pad, plan.target * 1.15);
+    const slices = Array.from(root.querySelectorAll<HTMLElement>('[data-fs3d-slice]'));
+    const hits = Array.from(root.querySelectorAll<HTMLElement>('[data-fs3d-hit]'));
+    if (slices.length !== NS || hits.length !== N) return;
+    root.setAttribute('data-bend', ((table.bend * 180) / Math.PI).toFixed(2)); // max degrees between neighbouring slices
+    root.setAttribute('data-edge', table.edge.toFixed(2)); // max corner misalignment of neighbouring slices (world px)
+    const ink = getComputedStyle(root).getPropertyValue('--ink').trim() || '#f6c915';
+
+    // per-slice caches (everything written to the DOM is compared against these first)
+    const slotJ = new Array<number>(NS).fill(NaN); // virtual slice index in each slot
+    const sliceK = new Array<number>(NS).fill(NaN); // virtual frame of each slice
+    const sliceW = new Float64Array(NS);
+    const sliceA = new Float64Array(NS); // slice start inside its frame
+    const sliceP = new Float64Array(NS); // pitch of its frame
+    const sliceS0 = new Float64Array(NS); // strip coordinate of its left edge
+    const lastFlip = new Int8Array(NS).fill(-1);
+    const lastVis = new Int8Array(NS).fill(-1);
+    const lastSh = new Float64Array(NS).fill(-1);
+    const lastGl = new Float64Array(NS).fill(-1);
+    const lastFocus = new Int8Array(NS).fill(0);
+    // per-frame (hit button) caches
+    const lastK = new Array<number>(N).fill(NaN);
+    const lastFOp = new Array<boolean | null>(N).fill(null);
+    const slotK = new Array<number>(N).fill(0);
+    const printCache = new Map<string, string>();
+    const sliceIdx = new Int32Array(NS);
+    const printFor = (slot: number) => {
+      const idx = sliceIdx[slot];
+      // Every Nth tile along the strip (not unique photo index — short galleries
+      // would otherwise only print stock once per loop).
+      const showStock = mod(sliceK[slot], STOCK_EVERY) === 0;
+      const stock = showStock ? stockRef.current : '';
+      const pk = idx + '|' + sliceP[slot] + '|' + stock;
+      let pu = printCache.get(pk);
+      if (pu === undefined) {
+        pu = printUrl(pad2(idx + 1), sliceP[slot], gp, ink, stock);
+        printCache.set(pk, pu);
+      }
+      return pu;
+    };
+    const revokePrints = () => printCache.forEach((u) => URL.revokeObjectURL(u.slice(5, -2)));
+    const learned = new Map<number, number>(); // item index -> measured aspect (fallback)
+    const probing = new Set<number>();
+
+    const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let reduced = reduceMQ.matches;
+    const isLow = lowPower ?? detectWeakDevice();
+    const minDelta = isLow ? 1000 / 30 - 2 : 1000 / 60 - 3; // throttle: 30fps low-end, cap 60 otherwise
+
+    // state
+    // `off` = strip scroll offset in world px (frame k starts at cumAt(k) + off along the path)
+    let off = Lp / 2 - pitchAt(lay, 0) / 2; // start with frame 0 at centre
+    let kmin = 0; // first virtual frame that overlaps the path
+    let jmin = 0; // first virtual slice that overlaps the path
+    let focusK = NaN; // virtual frame that shows the keyboard focus ring
+    let inertia = 0; // px/s
+    let playF = 1; // 0..1 autoplay factor
+    let clock = 0;
+    let snapTo: number | null = null;
+    let hovering = false;
+    let pressed = false;
+    let focusWithin = false;
+    let visible = true;
+    let docVisible = !document.hidden;
+    let raf = 0;
+    let lastT = 0;
+    let rafRunning = false;
+    let frontSlot = 0;
+
+    // geometry (updated on resize only)
+    let S = 1;
+
+    // drag
+    let drag: { id: number; x0: number; lastX: number; lastT: number; moved: boolean; vel: number } | null = null;
+    let dragEndedAt = -1e9;
+    let dragWasMove = false;
+
+    const camR = new Float64Array(9);
+    const pA = new Float64Array(3),
+      pB = new Float64Array(3),
+      dA = new Float64Array(3),
+      dB = new Float64Array(3);
+    // joints of the current slice window, in camera space
+    const jp = new Float64Array((NS + 1) * 3);
+    const jd = new Float64Array((NS + 1) * 3);
+    const bX = new Float64Array(NS * 3);
+    const bY = new Float64Array(NS * 3);
+    const bZ = new Float64Array(NS * 3);
+    const bC = new Float64Array(NS); // chord length
+    const jShade = new Float64Array(NS + 1);
+    const jFade = new Float64Array(NS + 1);
+    const jGloss = new Float64Array(NS + 1);
+
+    const sample = (s: number, p: Float64Array, d: Float64Array) => {
+      const f = clamp((s / table.length) * table.T, 0, table.T - 1e-6);
+      const i = Math.floor(f);
+      const t = f - i;
+      const a = i * 3,
+        b = a + 3;
+      for (let c = 0; c < 3; c++) {
+        p[c] = table.pos[a + c] + (table.pos[b + c] - table.pos[a + c]) * t;
+        d[c] = table.dn[a + c] + (table.dn[b + c] - table.dn[a + c]) * t;
+      }
+    };
+
+    /** Photo without a declared ratio: measure it once (off-DOM) and re-flow in place. */
+    const learn = (idx: number, src: string) => {
+      if (learned.has(idx) || probing.has(idx)) return;
+      probing.add(idx);
+      const im = new Image();
+      im.onload = () => {
+        probing.delete(idx);
+        if (!im.naturalWidth || !im.naturalHeight) return;
+        onRatio(idx, im.naturalWidth / im.naturalHeight);
+      };
+      im.onerror = () => probing.delete(idx);
+      im.src = src;
+    };
+
+    const setFrame = (slot: number, k: number) => {
+      const list = itemsRef.current;
+      if (!list.length) return;
+      const idx = mod(k, list.length);
+      const it = list[idx];
+      const hit = hits[slot];
+      hit.style.setProperty('--pw', pitchAt(lay, k).toFixed(2));
+      hit.setAttribute('aria-label', it.label ?? it.alt);
+      if (hit.tagName === 'A' && it.href) hit.setAttribute('href', it.href);
+      if (aspectOf(it) === undefined) learn(idx, it.src);
+    };
+
+    const orient = (slot: number, flip: number) => {
+      lastFlip[slot] = flip;
+      const w = sliceW[slot];
+      // A back-facing slice is turned 180deg about its height axis so the picture reads un-mirrored from
+      // behind (as in v2): its local x runs against the strip, so it samples the frame from the other end.
+      const u0 = flip ? sliceP[slot] - sliceA[slot] - w : sliceA[slot];
+      // (+2: the slice box reaches OVERLAP/2 = 2px past each joint, so box x = 2 sits on the joint)
+      const ph = flip ? mod(sliceS0[slot] + w + 2, SPROCKET) : mod(2 - sliceS0[slot], SPROCKET);
+      const el = slices[slot];
+      el.style.setProperty('--u0', u0.toFixed(2));
+      el.style.setProperty('--ph', ph.toFixed(2));
+
+    };
+
+    /** Bind a recycled slice slot to virtual slice j (photo, edge print, geometry vars). */
+    const setSlice = (slot: number, j: number) => {
+      const list = itemsRef.current;
+      if (!list.length) return;
+      const q = Math.floor(j / lay.J);
+      const jj = j - q * lay.J;
+      const fi = lay.sFrame[jj];
+      const k = q * lay.L + fi;
+      const idx = mod(k, list.length);
+      const it = list[idx];
+      const pitch = lay.pitch[fi];
+      sliceK[slot] = k;
+      sliceW[slot] = lay.sW[jj];
+      sliceA[slot] = lay.sStart[jj] - lay.cum[fi];
+      sliceP[slot] = pitch;
+      sliceS0[slot] = q * lay.total + lay.sStart[jj];
+      const st = slices[slot].style;
+      st.setProperty('--w', sliceW[slot].toFixed(3));
+      st.setProperty('--pw', pitch.toFixed(2));
+      (slices[slot].firstElementChild as HTMLElement).style.backgroundImage = cssUrl(it.src);
+      sliceIdx[slot] = idx;
+      st.backgroundImage = `${printFor(slot)}, ${HOLE}, ${HOLE}, ${BASE_SHADE}`;
+      lastFlip[slot] = -1;
+    };
+
+    // light (camera space, y down): upper-left-front
+    const Lx = -0.4,
+      Ly = -0.5,
+      Lz = 0.78;
+    const Ll = Math.hypot(Lx, Ly, Lz);
+    const lx = Lx / Ll,
+      ly = Ly / Ll,
+      lz = Lz / Ll;
+    // half vector with viewer (0,0,1)
+    const hl = Math.hypot(lx, ly, lz + 1);
+    const hx = lx / hl,
+      hy = ly / hl,
+      hz = (lz + 1) / hl;
+
+    const render = () => {
+      // camera rotation: tilt (look from above) then yaw sway
+      const tilt = ((variant === 'helix' ? 13 : 11) + 2.2 * Math.sin(clock * 0.42)) * (Math.PI / 180);
+      const yaw = (variant === 'helix' ? 0 : 6.5 * Math.sin(clock * 0.27)) * (Math.PI / 180);
+      const ct = Math.cos(tilt),
+        st = Math.sin(tilt),
+        cy = Math.cos(yaw),
+        sy = Math.sin(yaw);
+      // R = Rx(tilt) * Ry(yaw)   (CSS-style axes), row-major 3x3: v' = R v
+      const R = camR;
+      R[0] = cy;
+      R[1] = 0;
+      R[2] = -sy;
+      R[3] = st * sy;
+      R[4] = ct;
+      R[5] = st * cy;
+      R[6] = ct * sy;
+      R[7] = -st;
+      R[8] = ct * cy;
+
+      const zRef = table.zScale * 1.02;
+      const zRange = table.zScale * 2.0;
+
+      /* ---------- 1. joints: the path sampled at every slice boundary, in camera space ---------- */
+      while (sliceStartAt(lay, jmin) + lay.sW[mod(jmin, lay.J)] + off <= 0) jmin++;
+      while (sliceStartAt(lay, jmin) + off > 0) jmin--;
+      for (let i = 0; i <= NS; i++) {
+        sample(sliceStartAt(lay, jmin + i) + off + pad, pA, dA);
+        const o = i * 3;
+        jp[o] = R[0] * pA[0] + R[1] * pA[1] + R[2] * pA[2];
+        jp[o + 1] = R[3] * pA[0] + R[4] * pA[1] + R[5] * pA[2];
+        jp[o + 2] = R[6] * pA[0] + R[7] * pA[1] + R[8] * pA[2];
+        jd[o] = R[0] * dA[0] + R[1] * dA[1] + R[2] * dA[2];
+        jd[o + 1] = R[3] * dA[0] + R[4] * dA[1] + R[5] * dA[2];
+        jd[o + 2] = R[6] * dA[0] + R[7] * dA[1] + R[8] * dA[2];
+      }
+
+      /* ---------- 2. one orthonormal basis per slice from its two joints ---------- */
+      for (let i = 0; i < NS; i++) {
+        const o = i * 3,
+          o1 = o + 3;
+        let ex0 = jp[o1] - jp[o],
+          ex1 = jp[o1 + 1] - jp[o + 1],
+          ex2 = jp[o1 + 2] - jp[o + 2];
+        const chord = Math.hypot(ex0, ex1, ex2) || 1e-9;
+        ex0 /= chord;
+        ex1 /= chord;
+        ex2 /= chord;
+        let ey0 = jd[o] + jd[o1],
+          ey1 = jd[o + 1] + jd[o1 + 1],
+          ey2 = jd[o + 2] + jd[o1 + 2];
+        const dot = ey0 * ex0 + ey1 * ex1 + ey2 * ex2;
+        ey0 -= dot * ex0;
+        ey1 -= dot * ex1;
+        ey2 -= dot * ex2;
+        const el = Math.hypot(ey0, ey1, ey2) || 1e-9;
+        ey0 /= el;
+        ey1 /= el;
+        ey2 /= el;
+        bX[o] = ex0;
+        bX[o + 1] = ex1;
+        bX[o + 2] = ex2;
+        bY[o] = ey0;
+        bY[o + 1] = ey1;
+        bY[o + 2] = ey2;
+        bZ[o] = ex1 * ey2 - ex2 * ey1;
+        bZ[o + 1] = ex2 * ey0 - ex0 * ey2;
+        bZ[o + 2] = ex0 * ey1 - ex1 * ey0;
+        bC[i] = chord;
+      }
+
+      /* ---------- 3. light + fog at the JOINTS (shared by both neighbours => no shading seams) ---------- */
+      for (let i = 0; i <= NS; i++) {
+        const a = Math.max(0, i - 1) * 3,
+          b = Math.min(NS - 1, i) * 3;
+        const sa = bZ[a + 2] < 0 ? -1 : 1,
+          sb = bZ[b + 2] < 0 ? -1 : 1;
+        let n0 = sa * bZ[a] + sb * bZ[b],
+          n1 = sa * bZ[a + 1] + sb * bZ[b + 1],
+          n2 = sa * bZ[a + 2] + sb * bZ[b + 2];
+        const nl = Math.hypot(n0, n1, n2) || 1;
+        n0 /= nl;
+        n1 /= nl;
+        n2 /= nl;
+        const depth = clamp((zRef - jp[i * 3 + 2]) / zRange, 0, 1);
+        const lam = Math.max(0, n0 * lx + n1 * ly + n2 * lz);
+        const ps = sliceStartAt(lay, jmin + i) + off; // joint position along the path, 0..Lp
+        const fade = smooth(Math.min(ps, Lp - ps) / END_FADE);
+        jFade[i] = fade;
+        // Keep depth cue subtle — heavy fog was muddying photos on cream
+        const bright = (0.9 + 0.1 * lam) * (1 - 0.22 * depth) * Math.max(fade, 0.35);
+        jShade[i] = Math.round((1 - bright) * 100) / 100;
+        const sp = hx * n0 + hy * n1 + hz * n2;
+        const spec = sp > 0 ? Math.pow(sp, 14) : 0;
+        jGloss[i] = Math.round((0.16 + 0.84 * spec) * (1 - depth * 0.45) * 50) / 50;
+      }
+
+      /* ---------- 4. pose every slice ---------- */
+      for (let i = 0; i < NS; i++) {
+        const j = jmin + i;
+        const slot = mod(j, NS);
+        const el = slices[slot];
+        if (slotJ[slot] !== j) {
+          slotJ[slot] = j;
+          setSlice(slot, j);
+        }
+        const w = lay.sW[mod(j, lay.J)];
+        if (jFade[i] <= 0.01 && jFade[i + 1] <= 0.01) {
+          if (lastVis[slot] !== 0) {
+            lastVis[slot] = 0;
+            el.style.visibility = 'hidden';
+          }
+          continue;
+        }
+
+        const o = i * 3;
+        const flip = bZ[o + 2] < 0 ? 1 : 0;
+        if (flip !== lastFlip[slot]) orient(slot, flip);
+
+        // basis -> matrix3d. A back-facing slice is turned 180deg about its height axis (un-mirrored
+        // from behind) and anchored at its right joint instead, because the box grows from its left edge.
+        const sgn = flip ? -1 : 1;
+        const sx = (S * bC[i] * sgn) / w;
+        const sz = S * sgn;
+        const q = flip ? o + 3 : o;
+        el.style.transform =
+          'matrix3d(' +
+          (bX[o] * sx).toFixed(4) + ',' + (bX[o + 1] * sx).toFixed(4) + ',' + (bX[o + 2] * sx).toFixed(4) + ',0,' +
+          (bY[o] * S).toFixed(4) + ',' + (bY[o + 1] * S).toFixed(4) + ',' + (bY[o + 2] * S).toFixed(4) + ',0,' +
+          (bZ[o] * sz).toFixed(4) + ',' + (bZ[o + 1] * sz).toFixed(4) + ',' + (bZ[o + 2] * sz).toFixed(4) + ',0,' +
+          (jp[q] * S).toFixed(2) + ',' + (jp[q + 1] * S).toFixed(2) + ',' + (jp[q + 2] * S).toFixed(2) + ',1)';
+
+        if (lastVis[slot] !== 1) {
+          lastVis[slot] = 1;
+          el.style.visibility = 'visible';
+        }
+        // fog / gloss: mean of the two joints (each joint is shared with the neighbour, and both are smooth
+        // functions of the path, so adjacent slices differ by < 1/100 => no visible seam)
+        const sh = Math.round((jShade[i] + jShade[i + 1]) * 50) / 100;
+        if (sh !== lastSh[slot]) {
+          lastSh[slot] = sh;
+          el.style.setProperty('--sh', String(sh));
+        }
+        const gl = Math.round((jGloss[i] + jGloss[i + 1]) * 25) / 50;
+        if (gl !== lastGl[slot]) {
+          lastGl[slot] = gl;
+          el.style.setProperty('--gl', String(gl));
+        }
+        const foc = sliceK[slot] === focusK ? 1 : 0;
+        if (foc !== lastFocus[slot]) {
+          lastFocus[slot] = foc;
+          if (foc) el.setAttribute('data-focus', '');
+          else el.removeAttribute('data-focus');
+        }
+      }
+
+      /* ---------- 5. frames: invisible, accessible buttons posed over each photo ---------- */
+      while (cumAt(lay, kmin + 1) + off <= 0) kmin++;
+      while (cumAt(lay, kmin) + off > 0) kmin--;
+      let bestFront = 1e9;
+      for (let i = 0; i < N; i++) {
+        const k = kmin + mod(i - kmin, N);
+        slotK[i] = k;
+        const el = hits[i];
+        if (k !== lastK[i]) {
+          lastK[i] = k;
+          setFrame(i, k);
+        }
+        const fw = pitchAt(lay, k);
+        const x0 = cumAt(lay, k) + off;
+        const cs = x0 + fw * 0.5;
+        const vis = Math.min(cs, Lp - cs) / END_FADE > 0.06;
+        if (vis !== lastFOp[i]) {
+          lastFOp[i] = vis;
+          el.style.visibility = vis ? 'visible' : 'hidden';
+        }
+        if (!vis) continue;
+        sample(x0 + pad, pA, dA);
+        sample(x0 + fw + pad, pB, dB);
+        let ex0 = pB[0] - pA[0],
+          ex1 = pB[1] - pA[1],
+          ex2 = pB[2] - pA[2];
+        const chord = Math.hypot(ex0, ex1, ex2) || 1e-9;
+        ex0 /= chord;
+        ex1 /= chord;
+        ex2 /= chord;
+        let ey0 = dA[0] + dB[0],
+          ey1 = dA[1] + dB[1],
+          ey2 = dA[2] + dB[2];
+        const dot = ey0 * ex0 + ey1 * ex1 + ey2 * ex2;
+        ey0 -= dot * ex0;
+        ey1 -= dot * ex1;
+        ey2 -= dot * ex2;
+        const el_ = Math.hypot(ey0, ey1, ey2) || 1e-9;
+        ey0 /= el_;
+        ey1 /= el_;
+        ey2 /= el_;
+        const ez0 = ex1 * ey2 - ex2 * ey1;
+        const ez1 = ex2 * ey0 - ex0 * ey2;
+        const ez2 = ex0 * ey1 - ex1 * ey0;
+        const c0 = (pA[0] + pB[0]) * 0.5,
+          c1 = (pA[1] + pB[1]) * 0.5,
+          c2 = (pA[2] + pB[2]) * 0.5;
+        const X0 = R[0] * ex0 + R[1] * ex1 + R[2] * ex2;
+        const X1 = R[3] * ex0 + R[4] * ex1 + R[5] * ex2;
+        const X2 = R[6] * ex0 + R[7] * ex1 + R[8] * ex2;
+        const Y0 = R[0] * ey0 + R[1] * ey1 + R[2] * ey2;
+        const Y1 = R[3] * ey0 + R[4] * ey1 + R[5] * ey2;
+        const Y2 = R[6] * ey0 + R[7] * ey1 + R[8] * ey2;
+        const Z0 = R[0] * ez0 + R[1] * ez1 + R[2] * ez2;
+        const Z1 = R[3] * ez0 + R[4] * ez1 + R[5] * ez2;
+        const Z2 = R[6] * ez0 + R[7] * ez1 + R[8] * ez2;
+        const T0 = R[0] * c0 + R[1] * c1 + R[2] * c2;
+        const T1 = R[3] * c0 + R[4] * c1 + R[5] * c2;
+        const T2 = R[6] * c0 + R[7] * c1 + R[8] * c2;
+        const fx = (S * chord) / fw;
+        el.style.transform =
+          'matrix3d(' +
+          (X0 * fx).toFixed(4) + ',' + (X1 * fx).toFixed(4) + ',' + (X2 * fx).toFixed(4) + ',0,' +
+          (Y0 * S).toFixed(4) + ',' + (Y1 * S).toFixed(4) + ',' + (Y2 * S).toFixed(4) + ',0,' +
+          (Z0 * S).toFixed(4) + ',' + (Z1 * S).toFixed(4) + ',' + (Z2 * S).toFixed(4) + ',0,' +
+          // Photo centre sits on the strip midline (PHOTO_TOP + PHOTO_H/2 === HALF_H)
+          (T0 * S).toFixed(2) + ',' + (T1 * S).toFixed(2) + ',' + (T2 * S).toFixed(2) + ',1)';
+        const dc = Math.abs(cs - Lp / 2);
+        if (dc < bestFront) {
+          bestFront = dc;
+          frontSlot = i;
+        }
+      }
+
+      // roving tabindex: the front-most frame is the Tab stop
+      for (let i = 0; i < N; i++) {
+        const want = i === frontSlot ? '0' : '-1';
+        if (hits[i].getAttribute('tabindex') !== want) hits[i].setAttribute('tabindex', want);
+      }
+    };
+
+    const measure = () => {
+      const h = root.clientHeight || 400;
+      const w = root.clientWidth || 640;
+      // Fit height AND width so narrow phones don't crop the Z-swing / S fold
+      const pad = 0.9;
+      const sH = (h * pad) / table.fitH;
+      const sW = (w * pad) / Math.max(380, table.zScale * 1.05);
+      S = clamp(Math.min(sH, sW), 0.2, 2.2);
+      root.style.perspective = Math.round(1100 * S + w * 0.4) + 'px';
+    };
+
+    const animating = () =>
+      pressed || (drag?.moved ?? false) || Math.abs(inertia) > 2 || snapTo !== null;
+
+    const shouldRun = () =>
+      visible && docVisible && (!reduced || animating());
+
+    const stop = () => {
+      if (rafRunning) cancelAnimationFrame(raf);
+      rafRunning = false;
+    };
+
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      const el = now - lastT;
+      if (el < minDelta) return;
+      let dt = Math.min(el / 1000, 0.1);
+      if (lastT === 0) dt = 0.016;
+      lastT = now;
+
+      // autoplay factor
+      const target = reduced ? 0 : pressed || focusWithin ? 0 : hovering ? 0.12 : 1;
+      playF += (target - playF) * (1 - Math.exp(-dt * 5));
+      if (Math.abs(target - playF) < 0.002) playF = target;
+
+      if (snapTo !== null) {
+        const d = snapTo - off;
+        if (reduced || Math.abs(d) < 0.4) {
+          off = snapTo;
+          snapTo = null;
+        } else {
+          off += d * (1 - Math.exp(-dt * 7));
+        }
+        inertia = 0;
+      } else if (!(drag && drag.moved)) {
+        off += (-BASE_FPS * meanPitch() * speedRef.current * playF + inertia) * dt;
+        inertia *= Math.exp(-dt * 2.4);
+        if (Math.abs(inertia) < 2) inertia = 0;
+      }
+      clock += dt * (reduced ? 0 : 0.3 + 0.7 * playF);
+      render();
+
+      if (!shouldRun()) stop();
+    };
+
+    const start = () => {
+      if (rafRunning || !shouldRun()) return;
+      rafRunning = true;
+      lastT = 0;
+      raf = requestAnimationFrame(tick);
+    };
+
+    const kick = () => {
+      if (!rafRunning) {
+        if (shouldRun()) start();
+        else render();
+      }
+    };
+
+    /* ---- visibility / reduced motion ---- */
+    const io = new IntersectionObserver(
+      (entries) => {
+        visible = entries[entries.length - 1].isIntersecting;
+        if (visible) start();
+        else stop();
+      },
+      { rootMargin: '80px' },
+    );
+    io.observe(root);
+    const onVis = () => {
+      docVisible = !document.hidden;
+      if (docVisible) start();
+      else stop();
+    };
+    document.addEventListener('visibilitychange', onVis);
+    const onMQ = () => {
+      reduced = reduceMQ.matches;
+      if (reduced) {
+        inertia = 0;
+        snapTo = null;
+      }
+      start();
+      render();
+    };
+    reduceMQ.addEventListener?.('change', onMQ);
+
+    const ro = new ResizeObserver(() => {
+      measure();
+      render();
+    });
+    ro.observe(root);
+
+    measure();
+    render();
+    start();
+
+    /* ---- handlers exposed to React ---- */
+    const worldPerPx = () => 1 / (S * 1.12);
+
+    const refresh = () => {
+      slotJ.fill(NaN);
+      lastK.fill(NaN);
+      render();
+    };
+
+    const bridge = {
+      kick,
+      pointerDown(e: PointerEvent<HTMLDivElement>) {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        drag = { id: e.pointerId, x0: e.clientX, lastX: e.clientX, lastT: performance.now(), moved: false, vel: 0 };
+        pressed = true;
+        dragWasMove = false;
+        snapTo = null;
+        // freeze instantly: the frame under the finger must not slide away before the click fires
+        playF = 0;
+        inertia = 0;
+        kick();
+      },
+      pointerMove(e: PointerEvent<HTMLDivElement>) {
+        const d = drag;
+        if (!d || e.pointerId !== d.id) return;
+        if (!d.moved) {
+          if (Math.abs(e.clientX - d.x0) < DRAG_THRESHOLD) return;
+          d.moved = true;
+          dragWasMove = true;
+          try {
+            root.setPointerCapture(e.pointerId);
+          } catch {
+            /* ignore */
+          }
+          root.setAttribute('data-dragging', 'true');
+          d.lastX = e.clientX;
+          d.lastT = performance.now();
+          return;
+        }
+        const t = performance.now();
+        const dx = e.clientX - d.lastX;
+        const dtm = Math.max(1, t - d.lastT);
+        off += dx * worldPerPx();
+        d.vel = d.vel * 0.6 + ((dx * worldPerPx()) / (dtm / 1000)) * 0.4;
+        d.lastX = e.clientX;
+        d.lastT = t;
+        kick();
+      },
+      pointerUp(e: PointerEvent<HTMLDivElement>) {
+        const d = drag;
+        if (!d || e.pointerId !== d.id) return;
+        if (d.moved) {
+          const stale = performance.now() - d.lastT > 90;
+          inertia = reduced || stale ? 0 : clamp(d.vel, -MAX_FLICK * meanPitch(), MAX_FLICK * meanPitch());
+          dragEndedAt = performance.now();
+          try {
+            root.releasePointerCapture(e.pointerId);
+          } catch {
+            /* ignore */
+          }
+        }
+        root.removeAttribute('data-dragging');
+        drag = null;
+        pressed = false;
+        kick();
+      },
+      hover(v: boolean) {
+        hovering = v;
+        kick();
+      },
+      focusSlot(slot: number, fromKeyboard: boolean) {
+        focusWithin = true;
+        if (fromKeyboard) {
+          const k = slotK[slot];
+          focusK = k;
+          snapTo = Lp / 2 - pitchAt(lay, k) / 2 - cumAt(lay, k); // centre this frame
+          kick();
+        }
+      },
+      blurAll() {
+        focusWithin = false;
+        focusK = NaN;
+        kick();
+      },
+      nudge(frames: number) {
+        snapTo = (snapTo ?? off) + frames * meanPitch();
+        kick();
+      },
+      neighbor(slot: number, dir: number) {
+        const want = slotK[slot] + dir;
+        return slotK.indexOf(want);
+      },
+      slotIndex(slot: number) {
+        const len = itemsRef.current.length;
+        return len ? mod(slotK[slot], len) : 0;
+      },
+      wasDrag() {
+        return dragWasMove && performance.now() - dragEndedAt < 120;
+      },
+      refresh,
+    };
+    api.current = bridge;
+
+    // Re-bake edge prints once IBM Plex Mono is actually available (canvas
+    // otherwise silently falls back to a different mono and caches it forever).
+    let fontAlive = true;
+    void ensurePrintFont().then(() => {
+      if (!fontAlive) return;
+      revokePrints();
+      printCache.clear();
+      bridge.refresh();
+    });
+
+    // Fallback for items that declare no ratio: re-flow once the decoded size is known.
+    function onRatio(idx: number, a: number) {
+      const prev = learned.get(idx);
+      if (prev !== undefined && Math.abs(prev - a) < 0.005) return;
+      learned.set(idx, a);
+      // keep the frame at the centre where it is: remember it as (index, fraction), re-solve after re-flow
+      const mid = Lp / 2;
+      let kc = kmin;
+      while (cumAt(lay, kc + 1) + off <= mid) kc++;
+      const frac = (mid - cumAt(lay, kc) - off) / pitchAt(lay, kc);
+      const pitches = Array.from(lay.pitch);
+      learned.forEach((asp, i) => {
+        if (aspectOf(itemsRef.current[i] ?? {}) === undefined) pitches[i] = pitchFor(asp, gp);
+      });
+      lay = buildLayout(pitches, gp, plan.target);
+      off = mid - cumAt(lay, kc) - frac * pitchAt(lay, kc);
+      if (snapTo !== null) snapTo = null;
+      bridge.refresh();
+    }
+
+    return () => {
+      fontAlive = false;
+      stop();
+      revokePrints();
+      io.disconnect();
+      ro.disconnect();
+      document.removeEventListener('visibilitychange', onVis);
+      reduceMQ.removeEventListener?.('change', onMQ);
+      api.current = null;
+    };
+  }, [variant, amplitude, plan, lowPower, frameCount, sliceCount, gapC, stockLabel]);
+
+  // items changed → re-sync labels / srcs
+  useIsoLayoutEffect(() => {
+    api.current?.refresh();
+  }, [items]);
+
+  /* ---------------- React event glue (delegated, no per-frame work) ---------------- */
+  const slotOf = (t: EventTarget | null): number => {
+    const el = (t as HTMLElement | null)?.closest?.('[data-fs3d-hit]') as HTMLElement | null;
+    return el ? Number(el.dataset.fs3dSlot) : -1;
+  };
+
+  const onClickCapture = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    if (api.current?.wasDrag()) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, []);
+
+  const onClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    if (!api.current) return;
+    const slot = slotOf(e.target);
+    if (slot < 0) return;
+    const idx = api.current.slotIndex(slot);
+    const item = itemsRef.current[idx];
+    if (!item) return;
+    const cb = onSelectRef.current;
+    if (cb) {
+      const modified = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0;
+      if (!modified) e.preventDefault(); // let the parent decide (lightbox etc.) instead of navigating
+      cb(item, idx);
+    }
+  }, []);
+
+  const onFocus = useCallback((e: FocusEvent<HTMLDivElement>) => {
+    const slot = slotOf(e.target);
+    if (slot < 0) return;
+    let kb = false;
+    try {
+      kb = (e.target as HTMLElement).matches(':focus-visible');
+    } catch {
+      kb = true;
+    }
+    api.current?.focusSlot(slot, kb);
+  }, []);
+
+  const onBlur = useCallback((e: FocusEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) api.current?.blurAll();
+  }, []);
+
+  const onKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const slot = slotOf(e.target);
+    if (slot < 0) return;
+    e.preventDefault();
+    const next = api.current?.neighbor(slot, e.key === 'ArrowRight' ? 1 : -1) ?? -1;
+    if (next < 0) return;
+    (rootRef.current?.querySelector(`[data-fs3d-slot="${next}"]`) as HTMLElement | null)?.focus();
+  }, []);
+
+  /* ---------------- markup ---------------- */
+  const list = items.length ? items : [];
+  const rootClass = className ? `${styles.root} ${className}` : styles.root;
+
+  return (
+    <div
+      ref={rootRef}
+      className={rootClass}
+      style={{ '--gap': gapC } as CSSProperties}
+      role="group"
+      aria-roledescription="film strip"
+      aria-label={ariaLabel}
+      data-variant={variant}
+      data-fs3d-root=""
+      onPointerDown={(e) => api.current?.pointerDown(e)}
+      onPointerMove={(e) => api.current?.pointerMove(e)}
+      onPointerUp={(e) => api.current?.pointerUp(e)}
+      onPointerCancel={(e) => api.current?.pointerUp(e)}
+      onPointerEnter={(e) => e.pointerType === 'mouse' && api.current?.hover(true)}
+      onPointerLeave={(e) => e.pointerType === 'mouse' && api.current?.hover(false)}
+      onClickCapture={onClickCapture}
+      onClick={onClick}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      onKeyDown={onKeyDown}
+    >
+      <div className={styles.floor} aria-hidden="true" />
+      {/* the film itself: base + photos, sliced along the path (decorative; the buttons below carry the semantics) */}
+      <div className={styles.stage}>
+        {list.length > 0 &&
+          Array.from({ length: sliceCount }, (_, i) => (
+            <div key={i} className={styles.slice} data-fs3d-slice={i} style={SLICE_INIT} aria-hidden="true">
+              <i className={styles.ph} />
+            </div>
+          ))}
+        {list.length > 0 &&
+          Array.from({ length: frameCount }, (_, i) => {
+          const it = list[i % list.length];
+          const common = {
+            className: styles.hit,
+            'data-fs3d-hit': '',
+            'data-fs3d-slot': i,
+            'aria-label': it.label ?? it.alt,
+            tabIndex: i === 0 ? 0 : -1,
+            style: SLICE_INIT,
+          } as const;
+          return asLinks ? (
+            <a key={i} {...common} href={it.href} />
+          ) : (
+            <button key={i} type="button" {...common} />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const SLICE_INIT: CSSProperties = { visibility: 'hidden' };

@@ -11,7 +11,7 @@ export default function SignalHero({
   const linkedin = resume.contact.find((c) => c.href.includes('linkedin'))
 
   return (
-    <header className="relative overflow-hidden border-b border-ink/10">
+    <header className="relative overflow-x-clip border-b border-ink/10">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-ink/10 px-4 py-2.5 md:px-6">
         <p className="font-utility text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink/55 md:text-xs">
           NYC · WEB · SYSTEMS ·{' '}
@@ -44,8 +44,11 @@ export default function SignalHero({
           {photos && photos.length > 0 ? (
             <Filmstrip photos={photos} />
           ) : (
-            <div className="flex h-[118px] items-center justify-center bg-black md:h-[152px]">
-              <p className="font-utility text-xs uppercase tracking-[0.18em] text-signal-yellow/50">
+            <div
+              className="flex items-center justify-center bg-ink/[0.04]"
+              style={{ height: 'clamp(340px, 56svh, 520px)' }}
+            >
+              <p className="font-utility text-xs uppercase tracking-[0.18em] text-ink/35">
                 No photos yet
               </p>
             </div>
