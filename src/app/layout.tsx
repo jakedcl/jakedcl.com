@@ -14,7 +14,8 @@ const syne = Syne({
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-bricolage",
-  weight: ["600", "700", "800"],
+  // Variable font — discrete weight arrays break next/font's Google CSS parse on Vercel
+  weight: "variable",
   display: "swap",
 });
 
