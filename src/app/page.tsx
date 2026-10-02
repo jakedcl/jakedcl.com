@@ -64,18 +64,18 @@ export default async function Home() {
         <SignalHero photos={settings?.galleryPhotos} />
 
         <section id="work" className="scroll-mt-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 px-4 py-4 md:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink px-4 py-5 md:px-6">
             <div className="flex items-center gap-3">
               <span className="signal-badge bg-signal-yellow text-ink">W</span>
-              <h2 className="font-display text-2xl font-extrabold tracking-tight text-ink md:text-3xl">
+              <h2 className="font-display text-3xl font-extrabold tracking-tight text-ink md:text-4xl">
                 WORK
               </h2>
             </div>
-            <p className="font-utility text-[0.65rem] uppercase tracking-[0.18em] text-ink/40">
+            <span className="stamp-chip">
               {projects.length > 0
                 ? `${String(projects.length).padStart(2, '0')} projects`
                 : 'coming soon'}
-            </p>
+            </span>
           </div>
           <ProjectsList projects={projects} />
         </section>
@@ -84,23 +84,29 @@ export default async function Home() {
           id="resume"
           className="scroll-mt-4 px-4 py-12 md:px-6 md:py-16"
         >
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 md:mb-8">
+            <div className="flex items-center gap-3">
+              <span className="signal-badge bg-signal-blue text-cream">R</span>
+              <h2 className="font-display text-3xl font-extrabold tracking-tight text-ink md:text-4xl">
+                RESUME
+              </h2>
+            </div>
+            <span className="stamp-chip">on file</span>
+          </div>
           <div className="mx-auto max-w-3xl">
-            <div className="clip-ticket-alt border border-ink/10 bg-cream px-5 py-8 text-ink shadow-[8px_12px_0_0_rgba(10,10,10,0.08)] md:px-10 md:py-12">
+            <div className="clip-ticket-alt border-2 border-ink bg-cream px-5 py-8 text-ink shadow-[8px_12px_0_0_rgba(10,10,10,0.08)] md:px-10 md:py-12">
               <Resume part="body" />
             </div>
           </div>
         </section>
 
-        <footer className="border-t border-ink/10 px-4 py-3 md:px-6">
+        <footer className="border-t-2 border-ink px-4 py-3 md:px-6">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <p className="font-utility text-[0.65rem] uppercase tracking-[0.16em] text-ink/40">
               JAKEDCL.COM · NYC
             </p>
             {email && (
-              <a
-                href={email.href}
-                className="font-utility text-[0.65rem] uppercase tracking-[0.16em] text-signal-blue transition-colors hover:text-signal-red"
-              >
+              <a href={email.href} className="stamp-btn text-[0.7rem]">
                 {email.label}
               </a>
             )}

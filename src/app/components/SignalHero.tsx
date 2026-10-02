@@ -14,8 +14,7 @@ export default function SignalHero({
     <header className="relative overflow-x-clip border-b border-ink/10">
       <div className="relative z-40 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-ink/10 px-4 py-2.5 md:px-6">
         <p className="font-utility text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink/55 md:text-xs">
-          NYC · WEB · SYSTEMS ·{' '}
-          <span className="text-signal-green">AVAILABLE</span>
+          NYC · WEB · SYSTEMS
         </p>
       </div>
 
@@ -45,8 +44,9 @@ export default function SignalHero({
           {/* Under the type, above the red bar so the bar does not tint the
               photos. Negative left/right cancel the page padding so the loop
               stays edge-to-edge; the header clips x. The strip starts below
-              the name so the letters stay on the cream. */}
-          <div className="pointer-events-none absolute -left-4 -right-4 z-[1] -top-24 md:-left-6 md:-right-6 md:top-24">
+              the name so the letters stay on the cream.
+              Keep z below the bio row so hanging frames never cover the card. */}
+          <div className="pointer-events-none absolute -left-4 -right-4 z-0 -top-24 md:-left-6 md:-right-6 md:top-24">
             <div className="pointer-events-auto">
               {photos && photos.length > 0 ? (
                 <Filmstrip photos={photos} />
@@ -63,19 +63,26 @@ export default function SignalHero({
             </div>
           </div>
 
-          {/* Shorter than the strip canvas. The canvas hangs up into the
-              title and down toward the bio; this is only the gap between them. */}
+          {/* Spacer for the loop — bio sits closer, but paints above any hang. */}
           <div
             aria-hidden
-            className="h-[clamp(150px,20svh,210px)] md:h-[clamp(210px,26svh,300px)]"
+            className="h-[clamp(175px,24svh,230px)] md:h-[clamp(210px,28svh,290px)]"
           />
         </div>
 
-        <div className="pointer-events-none relative z-30 -mt-6 flex flex-col gap-6 md:-mt-2 md:flex-row md:items-end md:justify-between">
-          <p className="pointer-events-auto max-w-xl select-text text-sm leading-relaxed text-ink/80 md:text-base">
-            {resume.summary}
-          </p>
-          <nav className="pointer-events-auto font-utility relative z-30 flex flex-wrap gap-x-4 gap-y-2 text-xs uppercase tracking-[0.14em]">
+        <div className="pointer-events-none relative z-40 mt-0 flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8">
+          <div className="pointer-events-auto relative z-40 isolate clip-ticket-alt max-w-xl border-2 border-ink bg-cream px-5 py-4 shadow-[6px_8px_0_0_rgba(10,10,10,0.12)] md:px-6 md:py-5">
+            <div className="mb-3 flex items-center gap-2.5">
+              <span className="signal-badge bg-signal-yellow text-ink">B</span>
+              <p className="font-display text-lg font-extrabold tracking-tight text-ink md:text-xl">
+                BIO
+              </p>
+            </div>
+            <p className="select-text text-sm leading-relaxed text-ink/85 md:text-base">
+              {resume.summary}
+            </p>
+          </div>
+          <nav className="pointer-events-auto font-utility relative z-40 flex flex-wrap gap-x-4 gap-y-2 text-xs uppercase tracking-[0.14em]">
             {email && (
               <a
                 href={email.href}

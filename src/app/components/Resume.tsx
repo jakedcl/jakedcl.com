@@ -252,7 +252,7 @@ export default function Resume({ part = 'all' }: { part?: 'all' | 'intro' | 'bod
               <a
                 href="/resume.pdf"
                 download="Jake_DeCore_Lurker_Resume.pdf"
-                className="font-shape inline-block bg-signal-yellow px-5 py-3 text-sm font-extrabold uppercase tracking-[0.06em] text-ink transition-colors hover:bg-signal-blue hover:text-cream"
+                className="stamp-btn stamp-btn-ink text-sm"
               >
                 Download Resume PDF
               </a>

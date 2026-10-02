@@ -48,22 +48,6 @@
   overflow: visible;
 }
 
-/* pre-baked soft contact shadow under the strip (one element, no blur filter) */
-.floor {
-  position: absolute;
-  left: 8%;
-  right: 8%;
-  bottom: 2%;
-  height: 16%;
-  background: radial-gradient(
-    ellipse at 50% 50%,
-    rgba(0, 0, 0, 0.22) 0%,
-    rgba(0, 0, 0, 0.08) 45%,
-    rgba(0, 0, 0, 0) 72%
-  );
-  pointer-events: none;
-}
-
 .stage {
   position: absolute;
   inset: 0;

@@ -1732,7 +1732,6 @@ export default function FilmStrip3D({
       onBlur={onBlur}
       onKeyDown={onKeyDown}
     >
-      <div className={styles.floor} aria-hidden="true" />
       {/* the film itself: base + photos, sliced along the path (decorative; the buttons below carry the semantics) */}
       <div className={styles.stage}>
         {list.length > 0 &&
