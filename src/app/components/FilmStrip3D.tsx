@@ -59,10 +59,21 @@ export type FilmStrip3DProps = {
   onSelect?: (item: FilmStripItem, index: number) => void;
   /** Autoplay speed multiplier. 1 = ~0.4 frames/s. Negative reverses. 0 = no autoplay. */
   speed?: number;
-  /** 'ribbon' = S-curve wave with twist, 'helix' = spiral staircase. */
-  variant?: 'ribbon' | 'helix';
-  /** Curve amplitude multiplier (0.4 – 1.6 sensible). Default 1. */
+  /**
+   * 'loop' (default) = dramatic switchback: the strip arches towards the viewer, makes a hairpin U-turn, recedes,
+   * and turns again. 'ribbon' = gentle S-curve wave with twist, 'helix' = spiral staircase.
+   */
+  variant?: 'loop' | 'ribbon' | 'helix';
+  /** ribbon / helix only: curve amplitude multiplier (0.4 – 1.6 sensible). Default 1. */
   amplitude?: number;
+  /** loop only: hairpin tightness (0.5 wide – 1.8 tight; the radius is floored so no slice bends > ~9°). Default 1. */
+  turnSharpness?: number;
+  /** loop only: depth of the arch / how far the legs climb (0.5 – 1.6). Default 1. */
+  depth?: number;
+  /** loop only: camera distance in world px (smaller = stronger perspective, bigger foreground frames). Default 750. */
+  perspective?: number;
+  /** Container height (number = px, or any CSS length). Default: the `--fs3d-height` CSS variable. */
+  height?: number | string;
   /**
    * Black film margin between two photos, in strip px (the strip is ~184px tall). Default 32.
    * Clamped to 14 – 90. Larger = more black film between the pictures.
@@ -96,6 +107,10 @@ const SPROCKET = 25; // perforation pitch (px) = background tile width in the CS
 const SLICE_HI = 26; // nominal slice width (world px)
 const SLICE_LOW = 40; // low-power: wider slices -> ~35% fewer nodes
 const MAX_EDGE = 0.6; // world px: max misalignment of the outer corners of two neighbouring slices
+const SLICE_LOOP = 20; // loop variant: narrower slices so the hairpins stay smooth (≤ ~8° per slice)
+const SLICE_LOOP_LOW = 28;
+const LOOP_TILT = 15; // camera pitch (deg) of the loop variant
+const MAX_SLICE_BEND = 0.15; // rad (≈ 8.6°): floor of the loop's hairpin radius = slice width / this
 const MIN_BEND_R = 200; // tightest allowed bend radius (world px) — lower = sharper S folds
 const END_FADE = 320; // the path ends fade to black film (not alpha: overlapping slices would double-blend) over this length
 const BASE_FPS = 0.4; // average frames per second at speed = 1
@@ -125,6 +140,12 @@ type PathTable = {
   zScale: number;
   /** vertical scale reference for fitting the shape into the container height */
   fitH: number;
+  /** loop only: length of the visible path (the table is longer by the padding on both ends) */
+  Lp?: number;
+  /** loop only: path coordinate where a keyboard-focused frame is brought to (big, in front) */
+  heroS?: number;
+  /** loop only: visible-path range between the two hairpins (used to fit the camera) */
+  core?: [number, number];
 };
 
 type PathParams = { Az: number; Ay: number; lambda: number; R: number; roll: number };
@@ -241,6 +262,185 @@ function generatePath(variant: 'ribbon' | 'helix', pr: PathParams, length: numbe
   // or mobile containers clip most of the wave (old hardcoded 410 was too tight).
   const fitH = Math.max(480, Ay * 2.2 + Az * 0.55 + STRIP_H + 100);
   return { pos, dn, length, T: TABLE, zScale: Az + 110, fitH };
+}
+
+/* ------------------------------------------------------------------ */
+/* loop path: a switchback ribbon with two hairpin U-turns             */
+/* ------------------------------------------------------------------ */
+
+type LoopCfg = { sharp: number; depth: number; compact: number; minR: number };
+
+const RAMP = 0.3; // curvature ramps in/out over this fraction of a hairpin (no kinks)
+const bumpW = (u: number) => 1 - Math.cos(TAU * clamp(u, 0, 1)); // ∫ over [0,1] = 1
+const platW = (u: number, r: number) => {
+  u = clamp(u, 0, 1);
+  const e = Math.min(u, 1 - u) / r;
+  return (e >= 1 ? 1 : 0.5 - 0.5 * Math.cos(Math.PI * clamp(e, 0, 1))) / (1 - r);
+}; // ∫ over [0,1] = 1
+
+type LoopSeg = { len: number; d: number; kind: 'bump' | 'turn' };
+
+/**
+ * The centreline is defined by its HEADING (top-down angle, 0 = +x, positive = towards the camera) along arc length:
+ * arch towards the viewer -> hairpin #1 -> back leg -> hairpin #2 -> exit leg that recedes to the right.
+ * The approach stays near +x so the hairpin and the receding leg land on the right of the hero instead of
+ * stalling mid-page; phones (compact = 1) shorten the straight legs. Straight bleed past both ends is NOT
+ * part of the fitted core: the hairpin stays the same size, and the extra approach / exit run off the viewport.
+ * Curvature is a smooth function of arc length, so there are no kinks; the hairpin radius is floored so that
+ * no slice turns by more than MAX_SLICE_BEND.
+ */
+function loopSegs(c: LoopCfg) {
+  const sharp = clamp(c.sharp, 0.5, 1.8);
+  const dk = clamp(c.depth, 0.5, 1.6);
+  const k = clamp(c.compact, 0, 1);
+  const R1 = Math.max(c.minR, (150 * (1 - 0.15 * k)) / sharp);
+  const R2 = Math.max(c.minR, (135 * (1 - 0.15 * k)) / sharp);
+  const th0 = 0.04;
+  const thA = clamp(0.18 * dk, 0.1, 0.55); // end of the approach: still mostly +x, opened toward the camera by depth
+  const thB = -Math.PI + 0.12 * dk; // after hairpin 1: back along -x, only slightly away
+  const thB2 = thB + 0.05;
+  const thC = -0.1 * dk; // after hairpin 2: to the right, gently receding
+  const thEnd = 0;
+  // Straight continuation past the fitted ribbon. The right leg is longer because it sits farther from the
+  // camera, so the same screen bleed needs more arc length. Phones trim it, but still clear a 390px screen.
+  // Longer than the old bleed: the fitted loop is scaled down ~18%, so the
+  // straight ends need more arc length to still leave the viewport.
+  const bleedL = 1100 - 220 * k;
+  const bleedR = 2400 - 440 * k;
+  const segs: LoopSeg[] = [
+    { len: 80 - 40 * k + bleedL, d: 0, kind: 'bump' }, // run-in, continues off the left edge
+    { len: 720 - 500 * k, d: thA - th0, kind: 'bump' }, // arch towards the hairpin
+    { len: (Math.abs(thB - thA) * R1) / (1 - RAMP), d: thB - thA, kind: 'turn' },
+    { len: 260 - 160 * k, d: thB2 - thB, kind: 'bump' },
+    { len: (Math.abs(thC - thB2) * R2) / (1 - RAMP), d: thC - thB2, kind: 'turn' },
+    { len: 820 - 600 * k, d: thEnd - thC, kind: 'bump' }, // receding leg
+    { len: 160 - 100 * k + bleedR, d: 0, kind: 'bump' }, // tail, continues off the right edge
+  ];
+  return { segs, th0, dk, Lp: segs.reduce((a, s) => a + s.len, 0), bleedL, bleedR };
+}
+
+function generateLoop(c: LoopCfg, pad: number, bank = 0.05): PathTable {
+  const { segs, th0, dk, Lp, bleedL, bleedR } = loopSegs(c);
+  const length = Lp + 2 * pad;
+  const TABLE = Math.max(64, Math.ceil(length / TABLE_STEP));
+  const ds = length / TABLE;
+  const SUB = 4;
+  const sub = ds / SUB;
+  const segStart: number[] = [];
+  {
+    let a = pad;
+    for (const s of segs) {
+      segStart.push(a);
+      a += s.len;
+    }
+  }
+  const kappaAt = (s: number) => {
+    for (let i = 0; i < segs.length; i++) {
+      const a = segStart[i];
+      if (s >= a && s < a + segs[i].len) {
+        const u = (s - a) / segs[i].len;
+        return (segs[i].d / segs[i].len) * (segs[i].kind === 'turn' ? platW(u, RAMP) : bumpW(u));
+      }
+    }
+    return 0; // straight before / after the visible path
+  };
+  // the legs climb through the hairpins, so the zig-zag stacks into tiers on screen
+  const LIFT = 70 * dk;
+  const t1a = segStart[2] - 120;
+  const t1b = segStart[2] + segs[2].len + 420;
+  const t2a = segStart[4] - 120;
+  const t2b = segStart[4] + segs[4].len + 420;
+  const yAt = (s: number) => -LIFT * smooth((s - t1a) / (t1b - t1a)) - LIFT * smooth((s - t2a) / (t2b - t2a));
+
+  const pos = new Float64Array((TABLE + 1) * 3);
+  const dn = new Float64Array((TABLE + 1) * 3);
+  const th = new Float64Array(TABLE + 1);
+  let x = 0,
+    z = 0,
+    a = th0;
+  for (let i = 0; i <= TABLE; i++) {
+    pos[i * 3] = x;
+    pos[i * 3 + 1] = yAt(i * ds);
+    pos[i * 3 + 2] = z;
+    th[i] = a;
+    for (let k = 0; k < SUB; k++) {
+      const s0 = i * ds + k * sub;
+      const k0 = kappaAt(s0);
+      const k1 = kappaAt(s0 + sub);
+      const am = a + 0.25 * sub * (k0 + k1);
+      x += Math.cos(am) * sub;
+      z += Math.sin(am) * sub;
+      a += 0.5 * (k0 + k1) * sub;
+    }
+  }
+  // Centre on the fitted body only. The straight bleed past either end must not shift the hairpin.
+  const body0 = pad + bleedL;
+  const body1 = pad + Lp - bleedR;
+  let mny = 1e9,
+    mxy = -1e9,
+    mnz = 1e9,
+    mxz = -1e9,
+    cmx = 1e9,
+    cMx = -1e9;
+  for (let i = clamp(Math.round(body0 / ds), 0, TABLE); i <= clamp(Math.round(body1 / ds), 0, TABLE); i++) {
+    mny = Math.min(mny, pos[i * 3 + 1]);
+    mxy = Math.max(mxy, pos[i * 3 + 1]);
+    mnz = Math.min(mnz, pos[i * 3 + 2]);
+    mxz = Math.max(mxz, pos[i * 3 + 2]);
+    cmx = Math.min(cmx, pos[i * 3]);
+    cMx = Math.max(cMx, pos[i * 3]);
+  }
+  const ox = (cmx + cMx) / 2,
+    oy = (mny + mxy) / 2,
+    oz = (mnz + mxz) / 2;
+  for (let i = 0; i <= TABLE; i++) {
+    pos[i * 3] -= ox;
+    pos[i * 3 + 1] -= oy;
+    pos[i * 3 + 2] -= oz;
+  }
+  // "down" vectors: world-down made perpendicular to the tangent, banked a little into the turns
+  const BANK = bank;
+  const KREF = 1 / 110;
+  for (let i = 0; i <= TABLE; i++) {
+    const iA = Math.max(0, i - 2),
+      iB = Math.min(TABLE, i + 2);
+    let Tx = pos[iB * 3] - pos[iA * 3],
+      Ty = pos[iB * 3 + 1] - pos[iA * 3 + 1],
+      Tz = pos[iB * 3 + 2] - pos[iA * 3 + 2];
+    const tl = Math.hypot(Tx, Ty, Tz);
+    Tx /= tl;
+    Ty /= tl;
+    Tz /= tl;
+    let dx = -Ty * Tx,
+      dy = 1 - Ty * Ty,
+      dz = -Ty * Tz;
+    const dl = Math.hypot(dx, dy, dz);
+    dx /= dl;
+    dy /= dl;
+    dz /= dl;
+    const kk = (th[iB] - th[iA]) / ((iB - iA) * ds);
+    const r = -clamp(BANK * (kk / KREF), -0.16, 0.16);
+    const cr = Math.cos(r),
+      sr = Math.sin(r);
+    const cx = Ty * dz - Tz * dy,
+      cy = Tz * dx - Tx * dz,
+      cz = Tx * dy - Ty * dx;
+    dn[i * 3] = dx * cr + cx * sr;
+    dn[i * 3 + 1] = dy * cr + cy * sr;
+    dn[i * 3 + 2] = dz * cr + cz * sr;
+  }
+  return {
+    pos,
+    dn,
+    length,
+    T: TABLE,
+    zScale: Math.max(200, (mxz - mnz) / 2),
+    fitH: 0,
+    Lp,
+    heroS: segs[0].len + segs[1].len * 0.78,
+    // Fitted span is the hairpin body. bleedL / bleedR run outside it and off the viewport.
+    core: [bleedL + END_FADE * 0.16, Lp - bleedR - END_FADE * 0.35],
+  };
 }
 
 /** Largest turn (radians) between two consecutive chords of length `w` along the table. */
@@ -422,8 +622,7 @@ type Plan = { N: number; NS: number; Lp: number; pad: number };
  * at ANY scroll offset, and how long that path is. Elements are recycled from the left end to the
  * right end while hidden beyond the path ends (which are faded to black).
  */
-function planLayout(lay: Layout, base: number, target: number): Plan {
-  const Lp = base * W;
+function planLayout(lay: Layout, Lp: number, target: number): Plan {
   let N = 0;
   for (let r = 0; r < lay.L; r++) {
     let c = 0;
@@ -468,9 +667,12 @@ async function ensurePrintFont() {
 }
 
 /**
- * Yellow edge print baked once per (frame number, pitch, stock?) into a full-strip-height bitmap:
- * stock label in the TOP band (above the photo), frame number in the BOTTOM band.
+ * Yellow edge print baked once per (frame number, pitch, stock?) into a full-strip-height bitmap.
+ * Like 35mm stock: perforations sit against the photo, and the type sits outside them —
+ * stock label in the outer TOP band, frame number in the outer BOTTOM band.
  * Used as a slice background so the type bends with the film (no extra DOM).
+ * Hole tiles are 18px (see CSS); they occupy PHOTO_TOP-18..PHOTO_TOP and
+ * PHOTO_TOP+PHOTO_H..PHOTO_TOP+PHOTO_H+18.
  */
 function printUrl(num: string, pitch: number, gap: number, ink: string, stock: string): string {
   const cv = document.createElement('canvas');
@@ -484,27 +686,31 @@ function printUrl(num: string, pitch: number, gap: number, ink: string, stock: s
   g.font = printFontCss();
   const x0 = gap / 2 + 1;
   const mid = pitch / 2; // centre of the photo window
+  const HOLE_TILE = 18;
 
-  // Top band (between upper sprockets and photo): stock label, sparse
+  // Outer top band, above the upper perforations: stock label, sparse
   if (stock && pitch - gap >= NARROW_PHOTO) {
     g.textAlign = 'left';
-    g.fillText(stock, x0, PHOTO_TOP - 6);
+    g.fillText(stock, x0, 13);
   }
 
-  // Bottom band: frame marker + number, centred under the photo
+  // Outer bottom band, below the lower perforations: frame marker + number
   g.textAlign = 'left';
   const triW = 9;
   const triPad = 6;
   const numW = g.measureText(num).width;
   const groupW = triW + triPad + numW;
   const left = mid - groupW / 2;
+  const bandTop = PHOTO_TOP + PHOTO_H + HOLE_TILE;
+  const triH = 10;
+  const triMid = bandTop + (STRIP_H - bandTop) / 2;
   g.beginPath();
-  g.moveTo(left, 153.5);
-  g.lineTo(left + triW, 158.5);
-  g.lineTo(left, 163.5);
+  g.moveTo(left, triMid - triH / 2);
+  g.lineTo(left + triW, triMid);
+  g.lineTo(left, triMid + triH / 2);
   g.closePath();
   g.fill();
-  g.fillText(num, left + triW + triPad, 164);
+  g.fillText(num, left + triW + triPad, triMid + triH / 2 + 0.5);
 
   const bin = atob(cv.toDataURL('image/png').split(',')[1]);
   const bytes = new Uint8Array(bin.length);
@@ -528,6 +734,13 @@ const cssUrl = (src: string) => `url("${src.replace(/["\\\n\r]/g, (c) => encodeU
 
 const subscribeNever = () => () => {};
 const serverFalse = () => false;
+const NARROW_MQ = '(max-width: 640px)';
+const subscribeNarrow = (cb: () => void) => {
+  const mq = window.matchMedia(NARROW_MQ);
+  mq.addEventListener?.('change', cb);
+  return () => mq.removeEventListener?.('change', cb);
+};
+const getNarrow = () => window.matchMedia(NARROW_MQ).matches;
 function detectWeakDevice(): boolean {
   const nav = navigator as Navigator & { deviceMemory?: number };
   return (
@@ -546,8 +759,12 @@ export default function FilmStrip3D({
   items,
   onSelect,
   speed = 1,
-  variant = 'ribbon',
+  variant = 'loop',
   amplitude = 1,
+  turnSharpness = 1,
+  depth: depthProp = 1,
+  perspective = 750,
+  height,
   gap = DEFAULT_GAP,
   stockLabel = 'KODAK EPP 5005',
   ariaLabel = 'Photo film strip',
@@ -558,8 +775,11 @@ export default function FilmStrip3D({
   const detectedLow = useSyncExternalStore(subscribeNever, detectWeakDevice, serverFalse);
   const low = lowPower ?? detectedLow;
   const baseCount = low ? 12 : 14;
+  const isLoop = variant === 'loop';
+  // phones get a more compact switchback (shorter legs, a little tighter turns) so it still reads at 390px
+  const narrow = useSyncExternalStore(subscribeNarrow, getNarrow, serverFalse);
   const gapC = 2 * Math.round(clamp(Number.isFinite(gap) ? gap : DEFAULT_GAP, MIN_GAP, MAX_GAP) / 2); // even => whole-pixel margins
-  const target = low ? SLICE_LOW : SLICE_HI;
+  const target = isLoop ? (low ? SLICE_LOOP_LOW : SLICE_LOOP) : low ? SLICE_LOW : SLICE_HI;
 
   // Layout from the declared ratios: computed once per items change (no DOM reads).
   const layoutKey = useMemo(
@@ -567,21 +787,32 @@ export default function FilmStrip3D({
     [items, gapC],
   );
   const hasUnknown = useMemo(() => items.some((it) => aspectOf(it) === undefined), [items]);
+  const loopCfg = useMemo<LoopCfg>(
+    () => ({
+      sharp: Number.isFinite(turnSharpness) ? turnSharpness : 1,
+      depth: Number.isFinite(depthProp) ? depthProp : 1,
+      compact: narrow ? 1 : 0,
+      // tightest hairpin radius such that one slice (<= target + 2px after integer rounding) bends <= MAX_SLICE_BEND
+      minR: (target + 2) / MAX_SLICE_BEND,
+    }),
+    [turnSharpness, depthProp, narrow, target],
+  );
+  const pathLp = isLoop ? loopSegs(loopCfg).Lp : baseCount * W;
   const plan = useMemo(() => {
     const lay = buildLayout(layoutKey ? layoutKey.split(',').map(Number) : [], gapC, target);
-    const p = planLayout(lay, baseCount, target);
+    const p = planLayout(lay, pathLp, target);
     if (hasUnknown) {
       // some pitches may still change once the photo is measured: size the rings for the narrowest case
       const worst = planLayout(
         buildLayout(new Array(lay.L).fill(PHOTO_H * MIN_ASPECT + gapC), gapC, target),
-        baseCount,
+        pathLp,
         target,
       );
       p.N = Math.max(p.N, worst.N);
       p.NS = Math.max(p.NS, worst.NS);
     }
     return { lay, ...p, target };
-  }, [layoutKey, hasUnknown, baseCount, gapC, target]);
+  }, [layoutKey, hasUnknown, pathLp, gapC, target]);
   const sliceCount = plan.NS;
   const frameCount = plan.N;
 
@@ -603,7 +834,6 @@ export default function FilmStrip3D({
     pointerDown: (e: PointerEvent<HTMLDivElement>) => void;
     pointerMove: (e: PointerEvent<HTMLDivElement>) => void;
     pointerUp: (e: PointerEvent<HTMLDivElement>) => void;
-    hover: (v: boolean) => void;
     focusSlot: (slot: number, fromKeyboard: boolean) => void;
     blurAll: () => void;
     nudge: (frames: number) => void;
@@ -626,7 +856,22 @@ export default function FilmStrip3D({
     const gp = gapC;
     let lay = plan.lay; // may be refined in place by the measured ratio of photos without a declared one
     const meanPitch = () => lay.mean;
-    const table = buildPath(variant, clamp(amplitude, 0.3, 2), Lp + 2 * pad, plan.target * 1.15);
+    const loop = variant === 'loop';
+    const table: PathTable & { bend: number; edge: number } = loop
+      ? (() => {
+          let bank = 0.05;
+          let t = generateLoop(loopCfg, pad, bank);
+          let edge = maxEdgeMismatch(t, plan.target);
+          for (let n = 0; n < 4 && edge > MAX_EDGE * 1.5; n++) {
+            bank *= 0.5; // rigid slices can only hinge about their height axis: bank less until corners agree
+            t = generateLoop(loopCfg, pad, bank);
+            edge = maxEdgeMismatch(t, plan.target);
+          }
+          return Object.assign(t, { bend: maxBend(t, plan.target), edge });
+        })()
+      : buildPath(variant, clamp(amplitude, 0.3, 2), Lp + 2 * pad, plan.target * 1.15);
+    const heroS = loop ? (table.heroS ?? Lp / 2) : Lp / 2; // where a focused frame is brought to
+    const D = clamp(perspective, 350, 4000); // loop camera distance (world px)
     const slices = Array.from(root.querySelectorAll<HTMLElement>('[data-fs3d-slice]'));
     const hits = Array.from(root.querySelectorAll<HTMLElement>('[data-fs3d-hit]'));
     if (slices.length !== NS || hits.length !== N) return;
@@ -649,6 +894,7 @@ export default function FilmStrip3D({
     // per-frame (hit button) caches
     const lastK = new Array<number>(N).fill(NaN);
     const lastFOp = new Array<boolean | null>(N).fill(null);
+    const hitOn = new Int8Array(N).fill(1);
     const slotK = new Array<number>(N).fill(0);
     const printCache = new Map<string, string>();
     const sliceIdx = new Int32Array(NS);
@@ -677,17 +923,15 @@ export default function FilmStrip3D({
 
     // state
     // `off` = strip scroll offset in world px (frame k starts at cumAt(k) + off along the path)
-    let off = Lp / 2 - pitchAt(lay, 0) / 2; // start with frame 0 at centre
+    let off = heroS - pitchAt(lay, 0) / 2; // start with frame 0 at centre
     let kmin = 0; // first virtual frame that overlaps the path
     let jmin = 0; // first virtual slice that overlaps the path
     let focusK = NaN; // virtual frame that shows the keyboard focus ring
     let inertia = 0; // px/s
-    let playF = 1; // 0..1 autoplay factor
+    let playF = 1; // 0..1 autoplay factor. Hover and keyboard focus do not change this.
     let clock = 0;
     let snapTo: number | null = null;
-    let hovering = false;
     let pressed = false;
-    let focusWithin = false;
     let visible = true;
     let docVisible = !document.hidden;
     let raf = 0;
@@ -697,6 +941,10 @@ export default function FilmStrip3D({
 
     // geometry (updated on resize only)
     let S = 1;
+    let shX = 0; // loop: camera-space shift (world px) that centres the projected shape
+    let shY = 0;
+    let rootW = 640;
+    let rootH = 400;
 
     // drag
     let drag: { id: number; x0: number; lastX: number; lastT: number; moved: boolean; vel: number } | null = null;
@@ -768,7 +1016,12 @@ export default function FilmStrip3D({
       const el = slices[slot];
       el.style.setProperty('--u0', u0.toFixed(2));
       el.style.setProperty('--ph', ph.toFixed(2));
-
+      // loop: data-back keeps the gloss off. The photo stays — u0 above already
+      // samples the other end of the frame so it reads un-mirrored from behind.
+      if (loop) {
+        if (flip) el.setAttribute('data-back', '');
+        else el.removeAttribute('data-back');
+      }
     };
 
     /** Bind a recycled slice slot to virtual slice j (photo, edge print, geometry vars). */
@@ -812,8 +1065,8 @@ export default function FilmStrip3D({
 
     const render = () => {
       // camera rotation: tilt (look from above) then yaw sway
-      const tilt = ((variant === 'helix' ? 13 : 11) + 2.2 * Math.sin(clock * 0.42)) * (Math.PI / 180);
-      const yaw = (variant === 'helix' ? 0 : 6.5 * Math.sin(clock * 0.27)) * (Math.PI / 180);
+      const tilt = (loop ? LOOP_TILT + 1.2 * Math.sin(clock * 0.42) : (variant === 'helix' ? 13 : 11) + 2.2 * Math.sin(clock * 0.42)) * (Math.PI / 180);
+      const yaw = (loop ? 2.2 * Math.sin(clock * 0.27) : variant === 'helix' ? 0 : 6.5 * Math.sin(clock * 0.27)) * (Math.PI / 180);
       const ct = Math.cos(tilt),
         st = Math.sin(tilt),
         cy = Math.cos(yaw),
@@ -839,8 +1092,8 @@ export default function FilmStrip3D({
       for (let i = 0; i <= NS; i++) {
         sample(sliceStartAt(lay, jmin + i) + off + pad, pA, dA);
         const o = i * 3;
-        jp[o] = R[0] * pA[0] + R[1] * pA[1] + R[2] * pA[2];
-        jp[o + 1] = R[3] * pA[0] + R[4] * pA[1] + R[5] * pA[2];
+        jp[o] = R[0] * pA[0] + R[1] * pA[1] + R[2] * pA[2] + shX;
+        jp[o + 1] = R[3] * pA[0] + R[4] * pA[1] + R[5] * pA[2] + shY;
         jp[o + 2] = R[6] * pA[0] + R[7] * pA[1] + R[8] * pA[2];
         jd[o] = R[0] * dA[0] + R[1] * dA[1] + R[2] * dA[2];
         jd[o + 1] = R[3] * dA[0] + R[4] * dA[1] + R[5] * dA[2];
@@ -899,8 +1152,13 @@ export default function FilmStrip3D({
         const ps = sliceStartAt(lay, jmin + i) + off; // joint position along the path, 0..Lp
         const fade = smooth(Math.min(ps, Lp - ps) / END_FADE);
         jFade[i] = fade;
-        // Keep depth cue subtle — heavy fog was muddying photos on cream
-        const bright = (0.9 + 0.1 * lam) * (1 - 0.22 * depth) * Math.max(fade, 0.35);
+        // Keep depth cue subtle — heavy fog was muddying photos on cream.
+        // The back is only slightly dimmer than the front so those photos stay clear.
+        // Ends still fade fully to black (they sit off-screen / in the distance).
+        const back = loop ? ((sa < 0 ? 1 : 0) + (sb < 0 ? 1 : 0)) * 0.5 : 0;
+        const bright = loop
+          ? (0.92 + 0.08 * lam) * (1 - 0.2 * depth) * (1 - 0.12 * back) * fade
+          : (0.9 + 0.1 * lam) * (1 - 0.22 * depth) * Math.max(fade, 0.35);
         jShade[i] = Math.round((1 - bright) * 100) / 100;
         const sp = hx * n0 + hy * n1 + hz * n2;
         const spec = sp > 0 ? Math.pow(sp, 14) : 0;
@@ -986,7 +1244,10 @@ export default function FilmStrip3D({
           lastFOp[i] = vis;
           el.style.visibility = vis ? 'visible' : 'hidden';
         }
-        if (!vis) continue;
+        if (!vis) {
+          hitOn[i] = 1;
+          continue;
+        }
         sample(x0 + pad, pA, dA);
         sample(x0 + fw + pad, pB, dB);
         let ex0 = pB[0] - pA[0],
@@ -1026,14 +1287,23 @@ export default function FilmStrip3D({
         const T1 = R[3] * c0 + R[4] * c1 + R[5] * c2;
         const T2 = R[6] * c0 + R[7] * c1 + R[8] * c2;
         const fx = (S * chord) / fw;
+        if (loop) {
+          // only frames that face the viewer take clicks; the back stays focusable
+          // for the keyboard (focus brings it round to the hero spot) but ignores the pointer
+          const on = Z2 > 0.2 ? 1 : 0;
+          if (on !== hitOn[i]) {
+            hitOn[i] = on;
+            el.style.pointerEvents = on ? '' : 'none';
+          }
+        }
         el.style.transform =
           'matrix3d(' +
           (X0 * fx).toFixed(4) + ',' + (X1 * fx).toFixed(4) + ',' + (X2 * fx).toFixed(4) + ',0,' +
           (Y0 * S).toFixed(4) + ',' + (Y1 * S).toFixed(4) + ',' + (Y2 * S).toFixed(4) + ',0,' +
           (Z0 * S).toFixed(4) + ',' + (Z1 * S).toFixed(4) + ',' + (Z2 * S).toFixed(4) + ',0,' +
           // Photo centre sits on the strip midline (PHOTO_TOP + PHOTO_H/2 === HALF_H)
-          (T0 * S).toFixed(2) + ',' + (T1 * S).toFixed(2) + ',' + (T2 * S).toFixed(2) + ',1)';
-        const dc = Math.abs(cs - Lp / 2);
+          ((T0 + shX) * S).toFixed(2) + ',' + ((T1 + shY) * S).toFixed(2) + ',' + (T2 * S).toFixed(2) + ',1)';
+        const dc = Math.abs(cs - heroS);
         if (dc < bestFront) {
           bestFront = dc;
           frontSlot = i;
@@ -1047,9 +1317,94 @@ export default function FilmStrip3D({
       }
     };
 
+    /** loop: fit the visible ribbon (approach, both hairpins, receding leg; film edges included) and centre it */
+    const measureLoop = () => {
+      const h = rootH;
+      const w = rootW;
+      const t0 = LOOP_TILT * (Math.PI / 180);
+      const ct = Math.cos(t0),
+        st = Math.sin(t0);
+      const [c0, c1] = table.core ?? [0, Lp];
+      const pts: number[][] = [];
+      // one slice past each end: a slice's screen box reaches past the centreline sample
+      const s0 = Math.max(0, c0 - 36);
+      const s1 = Math.min(Lp, c1 + 28);
+      for (let s = s0; s <= s1; s += 14) {
+        sample(s + pad, pA, dA);
+        for (const e of [-HALF_H, HALF_H]) {
+          const x = pA[0] + dA[0] * e,
+            y = pA[1] + dA[1] * e,
+            z = pA[2] + dA[2] * e;
+          pts.push([x, ct * y + st * z, -st * y + ct * z]);
+        }
+      }
+      const vpY = 0.5;
+      let px = 0,
+        py = 0,
+        sc = 1;
+      // shX is added in camera space, then multiplied by each point's own perspective factor.
+      // Correct the shift by that factor so the projected box actually lands on the container centre
+      // (subtracting raw projected pixels walks the near foreground off the left).
+      const bounds = () => {
+        let x0 = 1e9,
+          x1 = -1e9,
+          y0 = 1e9,
+          y1 = -1e9,
+          kL = 1,
+          kR = 1,
+          kT = 1,
+          kB = 1;
+        for (const p of pts) {
+          const k = D / Math.max(40, D - p[2]);
+          const X = (p[0] + px) * k,
+            Y = (p[1] + py) * k;
+          if (X < x0) {
+            x0 = X;
+            kL = k;
+          }
+          if (X > x1) {
+            x1 = X;
+            kR = k;
+          }
+          if (Y < y0) {
+            y0 = Y;
+            kT = k;
+          }
+          if (Y > y1) {
+            y1 = Y;
+            kB = k;
+          }
+        }
+        return { x0, x1, y0, y1, kL, kR, kT, kB };
+      };
+      for (let it = 0; it < 12; it++) {
+        const b = bounds();
+        const midX = (b.x0 + b.x1) / 2;
+        const midY = (b.y0 + b.y1) / 2;
+        px -= midX / ((b.kL + b.kR) / 2 || 1);
+        py -= midY / ((b.kT + b.kB) / 2 || 1);
+        if (Math.abs(midX) < 0.5 && Math.abs(midY) < 0.5) break;
+      }
+      const fitted = bounds();
+      // ~18% under the old 0.86 / 0.88 fill so frames and the loop read smaller.
+      // The straight bleed outside this core still runs off both page edges.
+      sc = Math.min((w * 0.70) / (fitted.x1 - fitted.x0), (h * 0.72) / (fitted.y1 - fitted.y0));
+      S = clamp(sc, 0.2, 2.2);
+      shX = px;
+      shY = py;
+      root.style.perspective = Math.round(D * S) + 'px';
+      root.style.perspectiveOrigin = '50% ' + vpY * 100 + '%';
+    };
+
     const measure = () => {
       const h = root.clientHeight || 400;
       const w = root.clientWidth || 640;
+      rootW = w;
+      rootH = h;
+      if (loop) {
+        measureLoop();
+        return;
+      }
       // Fit height AND width so narrow phones don't crop the Z-swing / S fold
       const pad = 0.9;
       const sH = (h * pad) / table.fitH;
@@ -1077,8 +1432,9 @@ export default function FilmStrip3D({
       if (lastT === 0) dt = 0.016;
       lastT = now;
 
-      // autoplay factor
-      const target = reduced ? 0 : pressed || focusWithin ? 0 : hovering ? 0.12 : 1;
+      // autoplay keeps full speed while hovering or while a frame merely has focus.
+      // It pauses only while the strip is pressed (drag) or when the user prefers reduced motion.
+      const target = reduced || pressed ? 0 : 1;
       playF += (target - playF) * (1 - Math.exp(-dt * 5));
       if (Math.abs(target - playF) < 0.002) playF = target;
 
@@ -1219,21 +1575,15 @@ export default function FilmStrip3D({
         pressed = false;
         kick();
       },
-      hover(v: boolean) {
-        hovering = v;
-        kick();
-      },
       focusSlot(slot: number, fromKeyboard: boolean) {
-        focusWithin = true;
         if (fromKeyboard) {
           const k = slotK[slot];
           focusK = k;
-          snapTo = Lp / 2 - pitchAt(lay, k) / 2 - cumAt(lay, k); // centre this frame
+          snapTo = heroS - pitchAt(lay, k) / 2 - cumAt(lay, k); // bring this frame to the hero spot
           kick();
         }
       },
       blurAll() {
-        focusWithin = false;
         focusK = NaN;
         kick();
       },
@@ -1296,7 +1646,7 @@ export default function FilmStrip3D({
       reduceMQ.removeEventListener?.('change', onMQ);
       api.current = null;
     };
-  }, [variant, amplitude, plan, lowPower, frameCount, sliceCount, gapC, stockLabel]);
+  }, [variant, amplitude, loopCfg, perspective, plan, lowPower, frameCount, sliceCount, gapC, stockLabel]);
 
   // items changed → re-sync labels / srcs
   useIsoLayoutEffect(() => {
@@ -1359,13 +1709,14 @@ export default function FilmStrip3D({
 
   /* ---------------- markup ---------------- */
   const list = items.length ? items : [];
-  const rootClass = className ? `${styles.root} ${className}` : styles.root;
+  const rootBase = variant === 'loop' ? `${styles.root} ${styles.loop}` : styles.root;
+  const rootClass = className ? `${rootBase} ${className}` : rootBase;
 
   return (
     <div
       ref={rootRef}
       className={rootClass}
-      style={{ '--gap': gapC } as CSSProperties}
+      style={{ '--gap': gapC, ...(height !== undefined ? { height } : null) } as CSSProperties}
       role="group"
       aria-roledescription="film strip"
       aria-label={ariaLabel}
@@ -1375,8 +1726,6 @@ export default function FilmStrip3D({
       onPointerMove={(e) => api.current?.pointerMove(e)}
       onPointerUp={(e) => api.current?.pointerUp(e)}
       onPointerCancel={(e) => api.current?.pointerUp(e)}
-      onPointerEnter={(e) => e.pointerType === 'mouse' && api.current?.hover(true)}
-      onPointerLeave={(e) => e.pointerType === 'mouse' && api.current?.hover(false)}
       onClickCapture={onClickCapture}
       onClick={onClick}
       onFocus={onFocus}

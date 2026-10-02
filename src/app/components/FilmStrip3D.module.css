@@ -43,6 +43,11 @@
   cursor: grabbing;
 }
 
+/* loop variant: the strip swings far past the box (foreground frames are big), so nothing may clip it */
+.loop {
+  overflow: visible;
+}
+
 /* pre-baked soft contact shadow under the strip (one element, no blur filter) */
 .floor {
   position: absolute;
@@ -91,12 +96,14 @@
   /* background-image (print + sprockets + base) is set inline by the script: a `var()` inside background-image
      makes Chrome re-rasterise every transformed slice on every frame. */
   background-repeat: no-repeat, repeat-x, repeat-x, no-repeat;
-  /* print bitmap is full strip height: stock on top band, frame # on bottom band */
+  /* print bitmap is full strip height: stock on the outer top band, frame # on the
+     outer bottom band. Hole tiles (18px) sit against the photo (top 36px, height 112px),
+     so the type is outside the perforations. */
   background-size: calc(var(--pw, 200) * 1px) 184px, 25px 18px, 25px 18px, 100% 100%;
   background-position:
     calc((2 - var(--u0, 0)) * 1px) 0,
-    calc(var(--ph, 0) * 1px) 0,
-    calc(var(--ph, 0) * 1px) 100%,
+    calc(var(--ph, 0) * 1px) 18px,
+    calc(var(--ph, 0) * 1px) 148px,
     0 0;
 }
 
@@ -154,6 +161,14 @@
   opacity: var(--sh, 0);
 }
 
+/* loop: the back shows the same photo. The slice is already turned 180° and
+   samples the frame from the other end, so the picture is not mirrored.
+   Gloss stays off so the far side stays flatter; the fog overlay (--sh) is
+   stronger there. Sprockets and edge print stay on the film base. */
+.slice[data-back]::before {
+  display: none;
+}
+
 /* keyboard focus ring, drawn on the bent photo itself */
 .slice[data-focus] .ph {
   box-shadow:
@@ -184,6 +199,8 @@
   appearance: none;
   visibility: hidden;
 }
+
+/* the loop's frames that face away from the viewer (or sit far behind) never take the pointer; set from JS */
 
 @media (prefers-reduced-motion: reduce) {
   .root {

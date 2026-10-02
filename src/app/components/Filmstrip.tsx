@@ -179,8 +179,8 @@ export default function Filmstrip({ photos }: FilmstripProps) {
       <section
         className="relative w-full overflow-x-clip overflow-y-visible"
         style={{
-          // svh keeps the full S-curve in view on short mobile viewports
-          ['--fs3d-height' as string]: 'clamp(340px, 56svh, 520px)',
+          // svh keeps the whole switchback in view on short mobile viewports (the loop needs more height than the old S-wave)
+          ['--fs3d-height' as string]: 'clamp(400px, 66svh, 640px)',
           ['--fs3d-ink' as string]: 'var(--signal-yellow)',
         }}
         aria-label="Photo filmstrip"
@@ -188,7 +188,10 @@ export default function Filmstrip({ photos }: FilmstripProps) {
         <FilmStrip3D
           items={items}
           speed={0.8}
-          amplitude={1.35}
+          // 'loop' = arches towards the viewer, hairpin U-turn, doubles back and recedes (tunables: turnSharpness, depth, perspective)
+          variant="loop"
+          turnSharpness={1}
+          depth={1}
           ariaLabel="Photo film strip"
           // Drags never fire onSelect, so a plain click/tap/Enter always opens the lightbox.
           onSelect={(_item, index) => setSelectedIndex(index)}
