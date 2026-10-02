@@ -40,7 +40,8 @@ export default function SignalHero({
           />
         </div>
 
-        <div className="relative z-20 -mx-4 mt-2 md:-mx-6 md:-mt-2">
+        {/* Extra bottom pad: the 3D ribbon hangs below its box and was covering the bio */}
+        <div className="relative z-20 -mx-4 mt-2 pb-16 md:-mx-6 md:-mt-2 md:pb-10">
           {photos && photos.length > 0 ? (
             <Filmstrip photos={photos} />
           ) : (
@@ -55,7 +56,7 @@ export default function SignalHero({
           )}
         </div>
 
-        <div className="mt-8 flex flex-col gap-6 md:mt-10 md:flex-row md:items-end md:justify-between">
+        <div className="relative z-30 mt-10 flex flex-col gap-6 md:mt-12 md:flex-row md:items-end md:justify-between">
           <p className="max-w-xl text-sm leading-relaxed text-ink/80 md:text-base">
             {resume.summary}
           </p>
