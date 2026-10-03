@@ -68,7 +68,7 @@
   /* local origin = the left joint (2px in), vertical centre: JS puts this point on the path */
   transform-origin: 2px 92px;
   overflow: hidden;
-  will-change: transform;
+  /* no will-change: promoting 100+ slices to compositor layers OOMs iPhone Safari */
   pointer-events: none; /* clicks go to the .hit buttons */
   backface-visibility: visible;
   visibility: hidden; /* JS reveals slices once they have a pose */

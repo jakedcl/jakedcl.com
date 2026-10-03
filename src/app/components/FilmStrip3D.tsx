@@ -108,7 +108,7 @@ const SLICE_HI = 26; // nominal slice width (world px)
 const SLICE_LOW = 40; // low-power: wider slices -> ~35% fewer nodes
 const MAX_EDGE = 0.6; // world px: max misalignment of the outer corners of two neighbouring slices
 const SLICE_LOOP = 20; // loop variant: narrower slices so the hairpins stay smooth (≤ ~8° per slice)
-const SLICE_LOOP_LOW = 28;
+const SLICE_LOOP_LOW = 40; // phones: fewer DOM layers > razor hairpins
 const LOOP_TILT = 15; // camera pitch (deg) of the loop variant
 const MAX_SLICE_BEND = 0.15; // rad (≈ 8.6°): floor of the loop's hairpin radius = slice width / this
 const MIN_BEND_R = 200; // tightest allowed bend radius (world px) — lower = sharper S folds
@@ -302,11 +302,10 @@ function loopSegs(c: LoopCfg) {
   const thC = -0.1 * dk; // after hairpin 2: to the right, gently receding
   const thEnd = 0;
   // Straight continuation past the fitted ribbon. The right leg is longer because it sits farther from the
-  // camera, so the same screen bleed needs more arc length. Phones trim it, but still clear a 390px screen.
-  // Longer than the old bleed: the fitted loop is scaled down ~18%, so the
-  // straight ends need more arc length to still leave the viewport.
-  const bleedL = 1100 - 220 * k;
-  const bleedR = 2400 - 440 * k;
+  // camera, so the same screen bleed needs more arc length. Phones cut hard: every world-px of bleed
+  // becomes more DOM slices in the ring, and ~200+ matrix3d layers stall iOS Safari.
+  const bleedL = 1100 - 900 * k;
+  const bleedR = 2400 - 2100 * k;
   const segs: LoopSeg[] = [
     { len: 80 - 40 * k + bleedL, d: 0, kind: 'bump' }, // run-in, continues off the left edge
     { len: 720 - 500 * k, d: thA - th0, kind: 'bump' }, // arch towards the hairpin
@@ -773,11 +772,12 @@ export default function FilmStrip3D({
 }: FilmStrip3DProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const detectedLow = useSyncExternalStore(subscribeNever, detectWeakDevice, serverFalse);
-  const low = lowPower ?? detectedLow;
-  const baseCount = low ? 12 : 14;
-  const isLoop = variant === 'loop';
   // phones get a more compact switchback (shorter legs, a little tighter turns) so it still reads at 390px
   const narrow = useSyncExternalStore(subscribeNarrow, getNarrow, serverFalse);
+  // Narrow viewports always use low-power slices — iPhone Safari chokes on 200+ 3D layers.
+  const low = lowPower ?? (detectedLow || narrow);
+  const baseCount = low ? 12 : 14;
+  const isLoop = variant === 'loop';
   const gapC = 2 * Math.round(clamp(Number.isFinite(gap) ? gap : DEFAULT_GAP, MIN_GAP, MAX_GAP) / 2); // even => whole-pixel margins
   const target = isLoop ? (low ? SLICE_LOOP_LOW : SLICE_LOOP) : low ? SLICE_LOW : SLICE_HI;
 
@@ -792,8 +792,9 @@ export default function FilmStrip3D({
       sharp: Number.isFinite(turnSharpness) ? turnSharpness : 1,
       depth: Number.isFinite(depthProp) ? depthProp : 1,
       compact: narrow ? 1 : 0,
-      // tightest hairpin radius such that one slice (<= target + 2px after integer rounding) bends <= MAX_SLICE_BEND
-      minR: (target + 2) / MAX_SLICE_BEND,
+      // Desktop: keep hairpins ≤ ~8.6°/slice. Phones: allow a coarser bend so the
+      // path stays short — smooth curves aren't worth 200 compositor layers.
+      minR: narrow ? 110 : (target + 2) / MAX_SLICE_BEND,
     }),
     [turnSharpness, depthProp, narrow, target],
   );
@@ -918,8 +919,7 @@ export default function FilmStrip3D({
 
     const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
     let reduced = reduceMQ.matches;
-    const isLow = lowPower ?? detectWeakDevice();
-    const minDelta = isLow ? 1000 / 30 - 2 : 1000 / 60 - 3; // throttle: 30fps low-end, cap 60 otherwise
+    const minDelta = low ? 1000 / 30 - 2 : 1000 / 60 - 3; // throttle: 30fps phones/low-end, cap 60 otherwise
 
     // state
     // `off` = strip scroll offset in world px (frame k starts at cumAt(k) + off along the path)
@@ -1646,7 +1646,7 @@ export default function FilmStrip3D({
       reduceMQ.removeEventListener?.('change', onMQ);
       api.current = null;
     };
-  }, [variant, amplitude, loopCfg, perspective, plan, lowPower, frameCount, sliceCount, gapC, stockLabel]);
+  }, [variant, amplitude, loopCfg, perspective, plan, low, frameCount, sliceCount, gapC, stockLabel]);
 
   // items changed → re-sync labels / srcs
   useIsoLayoutEffect(() => {

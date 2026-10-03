@@ -13,27 +13,27 @@ export default function SignalHero({
   return (
     <header className="relative overflow-x-clip border-b border-ink/10">
       <div className="relative z-40 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-ink/10 px-4 py-2.5 md:px-6">
-        <p className="font-utility text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink/55 md:text-xs">
+        <p className="font-utility text-[0.7rem] font-medium uppercase tracking-[0.18em] text-ink/55 md:text-xs">
           NYC · WEB · SYSTEMS
         </p>
       </div>
 
-      <div className="relative px-4 pb-32 pt-6 md:px-6 md:pb-40 md:pt-10">
+      <div className="relative px-4 pb-10 pt-5 md:px-6 md:pb-40 md:pt-10">
         {/* Title stays in flow. The strip is pulled out of flow and slid up
             behind it, so the rising back-leg fills the empty right side and
             the page no longer reserves a full strip row. */}
         <div className="relative">
           <h1 className="pointer-events-none relative z-20 font-display leading-[0.82] tracking-[-0.04em]">
-            <span className="pointer-events-auto block w-fit select-text text-[clamp(4.5rem,18vw,11rem)] font-extrabold text-ink">
+            <span className="pointer-events-auto block w-fit select-text text-[clamp(3.75rem,16vw,11rem)] font-extrabold text-ink">
               JAKE
             </span>
-            <span className="pointer-events-auto relative -mt-[0.12em] block w-fit select-text text-[clamp(4.5rem,18vw,11rem)] font-extrabold text-signal-yellow">
+            <span className="pointer-events-auto relative -mt-[0.12em] block w-fit select-text text-[clamp(3.75rem,16vw,11rem)] font-extrabold text-signal-yellow">
               DCL
             </span>
           </h1>
 
           <div
-            className="pointer-events-none absolute right-0 top-[12%] z-0 h-16 w-[42%] bg-signal-red sm:top-[18%] sm:h-24 sm:w-[38%]"
+            className="pointer-events-none absolute right-0 top-[12%] z-0 h-14 w-[40%] bg-signal-red sm:top-[18%] sm:h-24 sm:w-[38%]"
             style={{
               clipPath: 'polygon(12% 0, 100% 0, 88% 100%, 0 100%)',
               opacity: 0.9,
@@ -46,14 +46,14 @@ export default function SignalHero({
               stays edge-to-edge; the header clips x. The strip starts below
               the name so the letters stay on the cream.
               Keep z below the bio row so hanging frames never cover the card. */}
-          <div className="pointer-events-none absolute -left-4 -right-4 z-0 -top-24 md:-left-6 md:-right-6 md:top-24">
+          <div className="pointer-events-none absolute -left-4 -right-4 z-0 -top-16 md:-left-6 md:-right-6 md:top-24">
             <div className="pointer-events-auto">
               {photos && photos.length > 0 ? (
                 <Filmstrip photos={photos} />
               ) : (
                 <div
                   className="flex items-center justify-center bg-ink/[0.04]"
-                  style={{ height: 'clamp(400px, 66svh, 640px)' }}
+                  style={{ height: 'clamp(320px, 52svh, 640px)' }}
                 >
                   <p className="font-utility text-xs uppercase tracking-[0.18em] text-ink/35">
                     No photos yet
@@ -63,10 +63,10 @@ export default function SignalHero({
             </div>
           </div>
 
-          {/* Spacer for the loop — bio sits closer, but paints above any hang. */}
+          {/* Spacer for the loop — tighter on phones so bio isn't marooned. */}
           <div
             aria-hidden
-            className="h-[clamp(175px,24svh,230px)] md:h-[clamp(210px,28svh,290px)]"
+            className="h-[clamp(140px,20svh,200px)] md:h-[clamp(210px,28svh,290px)]"
           />
         </div>
 
@@ -82,11 +82,11 @@ export default function SignalHero({
               {resume.summary}
             </p>
           </div>
-          <nav className="pointer-events-auto font-utility relative z-40 flex flex-wrap gap-x-4 gap-y-2 text-xs uppercase tracking-[0.14em]">
+          <nav className="pointer-events-auto font-utility relative z-40 flex flex-wrap gap-x-5 gap-y-3 text-[0.8rem] uppercase tracking-[0.14em] md:text-xs">
             {email && (
               <a
                 href={email.href}
-                className="text-signal-blue transition-colors hover:text-signal-red"
+                className="py-1 text-signal-blue transition-colors hover:text-signal-red"
               >
                 Email
               </a>
@@ -96,20 +96,20 @@ export default function SignalHero({
                 href={linkedin.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-ink/55 transition-colors hover:text-signal-blue"
+                className="py-1 text-ink/55 transition-colors hover:text-signal-blue"
               >
                 LinkedIn
               </a>
             )}
             <a
               href="#work"
-              className="text-ink/55 transition-colors hover:text-signal-blue"
+              className="py-1 text-ink/55 transition-colors hover:text-signal-blue"
             >
               Work
             </a>
             <a
               href="#resume"
-              className="text-ink/55 transition-colors hover:text-signal-blue"
+              className="py-1 text-ink/55 transition-colors hover:text-signal-blue"
             >
               Resume
             </a>

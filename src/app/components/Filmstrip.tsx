@@ -6,8 +6,11 @@ import { createPortal } from 'react-dom'
 import { urlFor } from '@/sanity/lib/image'
 import FilmStrip3D, { type FilmStripItem } from './FilmStrip3D'
 
-// Strip thumbnails: small + auto-format. The lightbox still loads the 2400px original.
-const THUMB_WIDTH = 640
+// Frame window is ~150×112 CSS px. 360w covers 2× DPR; larger just burns cellular.
+// Cap the strip — a full camera-roll dump (50–70+) stalls iPhone Safari.
+const THUMB_WIDTH = 360
+const THUMB_QUALITY = 70
+const MAX_STRIP_PHOTOS = 16
 
 interface FilmstripProps {
   photos: SanityImage[]
@@ -25,7 +28,7 @@ function photoSrc(photo: SanityImage, width: number) {
 
 function thumbSrc(photo: SanityImage) {
   try {
-    return urlFor(photo).width(THUMB_WIDTH).auto('format').url()
+    return urlFor(photo).width(THUMB_WIDTH).quality(THUMB_QUALITY).auto('format').url()
   } catch {
     return photo.asset?.url ?? ''
   }
@@ -36,7 +39,7 @@ export default function Filmstrip({ photos }: FilmstripProps) {
   const [mounted, setMounted] = useState(false)
 
   const validPhotos = useMemo(
-    () => (photos ?? []).filter((photo) => photo?.asset),
+    () => (photos ?? []).filter((photo) => photo?.asset).slice(0, MAX_STRIP_PHOTOS),
     [photos],
   )
 
@@ -179,8 +182,8 @@ export default function Filmstrip({ photos }: FilmstripProps) {
       <section
         className="relative w-full overflow-x-clip overflow-y-visible"
         style={{
-          // svh keeps the whole switchback in view on short mobile viewports (the loop needs more height than the old S-wave)
-          ['--fs3d-height' as string]: 'clamp(400px, 66svh, 640px)',
+          // Shorter on phones — less vertical chrome fighting the name + bio.
+          ['--fs3d-height' as string]: 'clamp(300px, 48svh, 640px)',
           ['--fs3d-ink' as string]: 'var(--signal-yellow)',
         }}
         aria-label="Photo filmstrip"
