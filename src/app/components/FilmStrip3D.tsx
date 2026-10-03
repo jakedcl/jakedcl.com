@@ -301,11 +301,11 @@ function loopSegs(c: LoopCfg) {
   const thB2 = thB + 0.05;
   const thC = -0.1 * dk; // after hairpin 2: to the right, gently receding
   const thEnd = 0;
-  // Straight continuation past the fitted ribbon. The right leg is longer because it sits farther from the
-  // camera, so the same screen bleed needs more arc length. Phones cut hard: every world-px of bleed
-  // becomes more DOM slices in the ring, and ~200+ matrix3d layers stall iOS Safari.
-  const bleedL = 1100 - 900 * k;
-  const bleedR = 2400 - 2100 * k;
+  // Straight bleed past the fitted body so the strip runs off both page edges.
+  // Phones still trim vs desktop, but keep enough left run that the bottom leg
+  // clears the viewport (not stopping at the bio's left edge).
+  const bleedL = 1100 - 400 * k;
+  const bleedR = 2400 - 1800 * k;
   const segs: LoopSeg[] = [
     { len: 80 - 40 * k + bleedL, d: 0, kind: 'bump' }, // run-in, continues off the left edge
     { len: 720 - 500 * k, d: thA - th0, kind: 'bump' }, // arch towards the hairpin
@@ -1386,9 +1386,10 @@ export default function FilmStrip3D({
         if (Math.abs(midX) < 0.5 && Math.abs(midY) < 0.5) break;
       }
       const fitted = bounds();
-      // ~18% under the old 0.86 / 0.88 fill so frames and the loop read smaller.
-      // The straight bleed outside this core still runs off both page edges.
-      sc = Math.min((w * 0.70) / (fitted.x1 - fitted.x0), (h * 0.72) / (fitted.y1 - fitted.y0));
+      // Fill more of the width on phones so the ribbon reaches the left edge.
+      const fillX = w < 640 ? 0.92 : 0.7;
+      const fillY = w < 640 ? 0.78 : 0.72;
+      sc = Math.min((w * fillX) / (fitted.x1 - fitted.x0), (h * fillY) / (fitted.y1 - fitted.y0));
       S = clamp(sc, 0.2, 2.2);
       shX = px;
       shY = py;
