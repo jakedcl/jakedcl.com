@@ -182,8 +182,10 @@ export default function Filmstrip({ photos }: FilmstripProps) {
       <section
         className="relative w-full overflow-x-clip overflow-y-visible"
         style={{
-          // Shorter on phones — less vertical chrome fighting the name + bio.
-          ['--fs3d-height' as string]: 'clamp(300px, 48svh, 640px)',
+          // Mobile: short canvas so the centered ribbon sits under the name.
+          // Desktop: taller loop (overridden in CSS at md).
+          ['--fs3d-height' as string]: 'clamp(200px, 34svh, 280px)',
+          ['--fs3d-height-md' as string]: 'clamp(400px, 56svh, 640px)',
           ['--fs3d-ink' as string]: 'var(--signal-yellow)',
         }}
         aria-label="Photo filmstrip"

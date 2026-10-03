@@ -18,16 +18,15 @@ export default function SignalHero({
         </p>
       </div>
 
-      <div className="relative px-4 pb-10 pt-5 md:px-6 md:pb-40 md:pt-10">
-        {/* Title stays in flow. The strip is pulled out of flow and slid up
-            behind it, so the rising back-leg fills the empty right side and
-            the page no longer reserves a full strip row. */}
+      <div className="relative px-4 pb-16 pt-5 md:px-6 md:pb-40 md:pt-10">
+        {/* Title in flow. Strip sits under the name (same idea as desktop) with
+            only a slight bite into DCL — not woven through JAKE. */}
         <div className="relative">
-          <h1 className="pointer-events-none relative z-20 font-display leading-[0.82] tracking-[-0.04em]">
-            <span className="pointer-events-auto block w-fit select-text text-[clamp(3.75rem,16vw,11rem)] font-extrabold text-ink">
+          <h1 className="pointer-events-none relative z-20 isolate font-display leading-[0.82] tracking-[-0.04em]">
+            <span className="pointer-events-auto block w-fit select-text text-[clamp(4rem,17vw,11rem)] font-extrabold text-ink">
               JAKE
             </span>
-            <span className="pointer-events-auto relative -mt-[0.12em] block w-fit select-text text-[clamp(3.75rem,16vw,11rem)] font-extrabold text-signal-yellow">
+            <span className="pointer-events-auto relative -mt-[0.12em] block w-fit select-text text-[clamp(4rem,17vw,11rem)] font-extrabold text-signal-yellow">
               DCL
             </span>
           </h1>
@@ -41,19 +40,16 @@ export default function SignalHero({
             aria-hidden
           />
 
-          {/* Under the type, above the red bar so the bar does not tint the
-              photos. Negative left/right cancel the page padding so the loop
-              stays edge-to-edge; the header clips x. The strip starts below
-              the name so the letters stay on the cream.
-              Keep z below the bio row so hanging frames never cover the card. */}
-          <div className="pointer-events-none absolute -left-4 -right-4 z-0 -top-16 md:-left-6 md:-right-6 md:top-24">
+          {/* Under the type. Container is short on phones so the centered
+              ribbon sits just under DCL (not floating in mid-canvas cream). */}
+          <div className="pointer-events-none absolute -left-4 -right-4 top-[4.5rem] z-0 md:-left-6 md:-right-6 md:top-24">
             <div className="pointer-events-auto">
               {photos && photos.length > 0 ? (
                 <Filmstrip photos={photos} />
               ) : (
                 <div
                   className="flex items-center justify-center bg-ink/[0.04]"
-                  style={{ height: 'clamp(320px, 52svh, 640px)' }}
+                  style={{ height: 'clamp(200px, 34svh, 640px)' }}
                 >
                   <p className="font-utility text-xs uppercase tracking-[0.18em] text-ink/35">
                     No photos yet
@@ -63,14 +59,14 @@ export default function SignalHero({
             </div>
           </div>
 
-          {/* Spacer for the loop — tighter on phones so bio isn't marooned. */}
+          {/* Match short mobile canvas — bio only nips the lower hang. */}
           <div
             aria-hidden
-            className="h-[clamp(140px,20svh,200px)] md:h-[clamp(210px,28svh,290px)]"
+            className="h-[clamp(180px,30svh,250px)] md:h-[clamp(210px,28svh,290px)]"
           />
         </div>
 
-        <div className="pointer-events-none relative z-40 mt-0 flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8">
+        <div className="pointer-events-none relative z-40 -mt-10 flex flex-col gap-5 md:mt-0 md:flex-row md:items-end md:justify-between md:gap-8">
           <div className="pointer-events-auto relative z-40 isolate clip-ticket-alt max-w-xl border-2 border-ink bg-cream px-5 py-4 shadow-[6px_8px_0_0_rgba(10,10,10,0.12)] md:px-6 md:py-5">
             <div className="mb-3 flex items-center gap-2.5">
               <span className="signal-badge bg-signal-yellow text-ink">B</span>
