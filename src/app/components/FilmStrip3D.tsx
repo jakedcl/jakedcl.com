@@ -32,7 +32,7 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
-  useSyncExternalStore,
+  useState,
   type CSSProperties,
   type FocusEvent,
   type KeyboardEvent,
@@ -40,9 +40,14 @@ import {
   type PointerEvent,
 } from 'react';
 import styles from './FilmStrip3D.module.css';
+import FilmStripFlat from './FilmStripFlat';
 
 export type FilmStripItem = {
   src: string;
+  /** Sharper file for 2× screens. Skipped on slow / save-data connections. */
+  src2x?: string;
+  /** Tiny data-uri so the frame isn't blank while `src` loads. */
+  placeholder?: string;
   alt: string;
   label?: string;
   href?: string;
@@ -727,19 +732,70 @@ const HOLE = `url("${HOLE_SVG}")`;
 const BASE_SHADE = `url("${BASE_SVG}")`;
 const cssUrl = (src: string) => `url("${src.replace(/["\\\n\r]/g, (c) => encodeURIComponent(c))}")`;
 
+type NetInfo = { saveData?: boolean; effectiveType?: string };
+
+/** Save-Data, 2g, or prefers-reduced-data: one modest file, no 2× candidate. */
+export function prefersSmallImages() {
+  if (typeof navigator === 'undefined') return false;
+  const conn = (navigator as Navigator & { connection?: NetInfo }).connection;
+  const reducedData =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-data: reduce)').matches;
+  return (
+    reducedData ||
+    !!conn?.saveData ||
+    conn?.effectiveType === 'slow-2g' ||
+    conn?.effectiveType === '2g'
+  );
+}
+
+function supportsFilm3D() {
+  return (
+    typeof CSS !== 'undefined' &&
+    CSS.supports('transform-style', 'preserve-3d') &&
+    CSS.supports('perspective', '1px')
+  );
+}
+
+let imageSetFn: 'image-set' | '-webkit-image-set' | 'none' | null = null;
+function imageSetFunction() {
+  if (imageSetFn) return imageSetFn;
+  const probe = 'url("data:image/gif;base64,R0lGODlhAQABAAAAACw=") 1x';
+  if (typeof CSS !== 'undefined' && CSS.supports?.('background-image', `image-set(${probe})`)) imageSetFn = 'image-set';
+  else if (typeof CSS !== 'undefined' && CSS.supports?.('background-image', `-webkit-image-set(${probe})`))
+    imageSetFn = '-webkit-image-set';
+  else imageSetFn = 'none';
+  return imageSetFn;
+}
+
+/** Sharp photo over the placeholder. One declaration so the browser fetches a single candidate. */
+function paintPhoto(el: HTMLElement, it: FilmStripItem, dense: boolean) {
+  const placeholder = it.placeholder ? cssUrl(it.placeholder) : '';
+  const basic = placeholder ? `${cssUrl(it.src)}, ${placeholder}` : cssUrl(it.src);
+  el.style.backgroundSize = placeholder ? 'cover, cover' : 'cover';
+  el.style.backgroundRepeat = 'no-repeat';
+  el.style.backgroundPosition = '50% 50%';
+  const src2x = it.src2x;
+  const fn = dense && src2x ? imageSetFunction() : 'none';
+  if (fn === 'none' || !src2x) {
+    el.style.backgroundImage = basic;
+    return;
+  }
+  const set = `${fn}(${cssUrl(it.src)} 1x, ${cssUrl(src2x)} 2x)`;
+  el.style.backgroundImage = placeholder ? `${set}, ${placeholder}` : set;
+}
+
 /* ------------------------------------------------------------------ */
 /* component                                                           */
 /* ------------------------------------------------------------------ */
 
-const subscribeNever = () => () => {};
-const serverFalse = () => false;
-const NARROW_MQ = '(max-width: 640px)';
-const subscribeNarrow = (cb: () => void) => {
-  const mq = window.matchMedia(NARROW_MQ);
-  mq.addEventListener?.('change', cb);
-  return () => mq.removeEventListener?.('change', cb);
-};
-const getNarrow = () => window.matchMedia(NARROW_MQ).matches;
+/** Phones, and wide-but-short viewports (landscape handsets). */
+const COMPACT_MQ = '(max-width: 767px), (max-height: 560px)';
+/** iPad-class widths: same loop as desktop, fewer slices so Safari stays under ~200 layers. */
+const TABLET_MQ = '(max-width: 1279px)';
+const SLICE_TABLET = 34;
+
+type StripTier = 'ssr' | 'compact' | 'tablet' | 'desk';
+
 function detectWeakDevice(): boolean {
   const nav = navigator as Navigator & { deviceMemory?: number };
   return (
@@ -771,15 +827,42 @@ export default function FilmStrip3D({
   className,
 }: FilmStrip3DProps) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const detectedLow = useSyncExternalStore(subscribeNever, detectWeakDevice, serverFalse);
-  // phones get a more compact switchback (shorter legs, a little tighter turns) so it still reads at 390px
-  const narrow = useSyncExternalStore(subscribeNarrow, getNarrow, serverFalse);
-  // Narrow viewports always use low-power slices — iPhone Safari chokes on 200+ 3D layers.
-  const low = lowPower ?? (detectedLow || narrow);
+  // 'ssr' until the client knows the viewport, so we never paint the desktop
+  // loop and then swap it for the phone one (that flash is a layout jump).
+  const [tier, setTier] = useState<StripTier>('ssr');
+  const [flat, setFlat] = useState(false);
+  useEffect(() => {
+    const compactMq = window.matchMedia(COMPACT_MQ);
+    const tabletMq = window.matchMedia(TABLET_MQ);
+    const apply = () => {
+      setFlat(!supportsFilm3D());
+      if (compactMq.matches) setTier('compact');
+      else if (tabletMq.matches) setTier('tablet');
+      else setTier('desk');
+    };
+    apply();
+    compactMq.addEventListener?.('change', apply);
+    tabletMq.addEventListener?.('change', apply);
+    return () => {
+      compactMq.removeEventListener?.('change', apply);
+      tabletMq.removeEventListener?.('change', apply);
+    };
+  }, []);
+  // Compact / tablet viewports use wider slices — iPhone and iPad Safari choke on 200+ 3D layers.
+  // Core count must not change the curve; weak machines only drop to 30fps.
+  const low = lowPower || tier === 'compact' || tier === 'tablet';
   const baseCount = low ? 12 : 14;
   const isLoop = variant === 'loop';
   const gapC = 2 * Math.round(clamp(Number.isFinite(gap) ? gap : DEFAULT_GAP, MIN_GAP, MAX_GAP) / 2); // even => whole-pixel margins
-  const target = isLoop ? (low ? SLICE_LOOP_LOW : SLICE_LOOP) : low ? SLICE_LOW : SLICE_HI;
+  const target = isLoop
+    ? tier === 'compact' || lowPower
+      ? SLICE_LOOP_LOW
+      : tier === 'tablet'
+        ? SLICE_TABLET
+        : SLICE_LOOP
+    : low
+      ? SLICE_LOW
+      : SLICE_HI;
 
   // Layout from the declared ratios: computed once per items change (no DOM reads).
   const layoutKey = useMemo(
@@ -791,12 +874,12 @@ export default function FilmStrip3D({
     () => ({
       sharp: Number.isFinite(turnSharpness) ? turnSharpness : 1,
       depth: Number.isFinite(depthProp) ? depthProp : 1,
-      compact: narrow ? 1 : 0,
+      compact: tier === 'compact' ? 1 : 0,
       // Desktop: keep hairpins ≤ ~8.6°/slice. Phones: allow a coarser bend so the
       // path stays short — smooth curves aren't worth 200 compositor layers.
-      minR: narrow ? 110 : (target + 2) / MAX_SLICE_BEND,
+      minR: tier === 'compact' ? 110 : (target + 2) / MAX_SLICE_BEND,
     }),
-    [turnSharpness, depthProp, narrow, target],
+    [turnSharpness, depthProp, tier, target],
   );
   const pathLp = isLoop ? loopSegs(loopCfg).Lp : baseCount * W;
   const plan = useMemo(() => {
@@ -841,6 +924,7 @@ export default function FilmStrip3D({
     slotIndex: (slot: number) => number;
     neighbor: (slot: number, dir: number) => number;
     wasDrag: () => boolean;
+    consumeSwallow: () => boolean;
     refresh: () => void;
   } | null>(null);
 
@@ -849,7 +933,7 @@ export default function FilmStrip3D({
   /* ---------------- engine ---------------- */
   useIsoLayoutEffect(() => {
     const root = rootRef.current;
-    if (!root) return;
+    if (!root || flat || tier === 'ssr') return;
     const N = frameCount; // frame (button) ring
     const NS = sliceCount; // slice ring
     const Lp = plan.Lp;
@@ -919,7 +1003,10 @@ export default function FilmStrip3D({
 
     const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
     let reduced = reduceMQ.matches;
-    const minDelta = low ? 1000 / 30 - 2 : 1000 / 60 - 3; // throttle: 30fps phones/low-end, cap 60 otherwise
+    const weak = detectWeakDevice();
+    const preferSmall = prefersSmallImages();
+    // 30fps on phones and weak CPUs. The path shape does not change with that.
+    const minDelta = low || weak ? 1000 / 30 - 2 : 1000 / 60 - 3;
 
     // state
     // `off` = strip scroll offset in world px (frame k starts at cumAt(k) + off along the path)
@@ -947,9 +1034,19 @@ export default function FilmStrip3D({
     let rootH = 400;
 
     // drag
-    let drag: { id: number; x0: number; lastX: number; lastT: number; moved: boolean; vel: number } | null = null;
+    let drag: {
+      id: number;
+      x0: number;
+      lastX: number;
+      lastT: number;
+      moved: boolean;
+      vel: number;
+      threshold: number;
+    } | null = null;
     let dragEndedAt = -1e9;
     let dragWasMove = false;
+    let swallowClick = false;
+    let ignoreClickUntil = 0;
 
     const camR = new Float64Array(9);
     const pA = new Float64Array(3),
@@ -1043,7 +1140,14 @@ export default function FilmStrip3D({
       const st = slices[slot].style;
       st.setProperty('--w', sliceW[slot].toFixed(3));
       st.setProperty('--pw', pitch.toFixed(2));
-      (slices[slot].firstElementChild as HTMLElement).style.backgroundImage = cssUrl(it.src);
+      const ph = slices[slot].firstElementChild as HTMLElement;
+      const dense = !preferSmall;
+      const paintKey = `${it.src}|${dense ? '2' : '1'}`;
+      if (ph.dataset.paint !== paintKey) {
+        ph.dataset.paint = paintKey;
+        ph.dataset.src = it.src;
+        paintPhoto(ph, it, dense);
+      }
       sliceIdx[slot] = idx;
       st.backgroundImage = `${printFor(slot)}, ${HOLE}, ${HOLE}, ${BASE_SHADE}`;
       lastFlip[slot] = -1;
@@ -1387,8 +1491,9 @@ export default function FilmStrip3D({
       }
       const fitted = bounds();
       // Fill more of the width on phones so the ribbon reaches the left edge.
-      const fillX = w < 640 ? 0.92 : 0.7;
-      const fillY = w < 640 ? 0.78 : 0.72;
+      const compactFit = w < 768 || h < 560;
+      const fillX = compactFit ? 0.92 : 0.7;
+      const fillY = compactFit ? 0.78 : 0.72;
       sc = Math.min((w * fillX) / (fitted.x1 - fitted.x0), (h * fillY) / (fitted.y1 - fitted.y0));
       S = clamp(sc, 0.2, 2.2);
       shX = px;
@@ -1500,6 +1605,28 @@ export default function FilmStrip3D({
     };
     reduceMQ.addEventListener?.('change', onMQ);
 
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) return; // pinch-zoom
+      let dx = e.deltaX;
+      let dy = e.deltaY;
+      if (e.deltaMode === 1) {
+        dx *= 16;
+        dy *= 16;
+      } else if (e.deltaMode === 2) {
+        dx *= rootW;
+        dy *= rootH;
+      }
+      // Vertical wheel / trackpad scroll keeps moving the page.
+      if (Math.abs(dx) <= Math.abs(dy)) return;
+      e.preventDefault();
+      const world = dx / (S * 1.12);
+      off += world;
+      inertia = reduced ? 0 : clamp(world * 14, -MAX_FLICK * meanPitch(), MAX_FLICK * meanPitch());
+      snapTo = null;
+      kick();
+    };
+    root.addEventListener('wheel', onWheel, { passive: false });
+
     const ro = new ResizeObserver(() => {
       measure();
       render();
@@ -1523,7 +1650,16 @@ export default function FilmStrip3D({
       kick,
       pointerDown(e: PointerEvent<HTMLDivElement>) {
         if (e.pointerType === 'mouse' && e.button !== 0) return;
-        drag = { id: e.pointerId, x0: e.clientX, lastX: e.clientX, lastT: performance.now(), moved: false, vel: 0 };
+        const threshold = e.pointerType === 'touch' || e.pointerType === 'pen' ? 14 : DRAG_THRESHOLD;
+        drag = {
+          id: e.pointerId,
+          x0: e.clientX,
+          lastX: e.clientX,
+          lastT: performance.now(),
+          moved: false,
+          vel: 0,
+          threshold,
+        };
         pressed = true;
         dragWasMove = false;
         snapTo = null;
@@ -1536,7 +1672,7 @@ export default function FilmStrip3D({
         const d = drag;
         if (!d || e.pointerId !== d.id) return;
         if (!d.moved) {
-          if (Math.abs(e.clientX - d.x0) < DRAG_THRESHOLD) return;
+          if (Math.abs(e.clientX - d.x0) < d.threshold) return;
           d.moved = true;
           dragWasMove = true;
           try {
@@ -1561,6 +1697,7 @@ export default function FilmStrip3D({
       pointerUp(e: PointerEvent<HTMLDivElement>) {
         const d = drag;
         if (!d || e.pointerId !== d.id) return;
+        const wasTap = !d.moved;
         if (d.moved) {
           const stale = performance.now() - d.lastT > 90;
           inertia = reduced || stale ? 0 : clamp(d.vel, -MAX_FLICK * meanPitch(), MAX_FLICK * meanPitch());
@@ -1574,6 +1711,25 @@ export default function FilmStrip3D({
         root.removeAttribute('data-dragging');
         drag = null;
         pressed = false;
+        // Touch often never fires click on a preserve-3d button. Open from the
+        // tap here, and swallow the click if the browser also emits one.
+        if (wasTap && (e.pointerType === 'touch' || e.pointerType === 'pen')) {
+          const fromPoint = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+          const hit =
+            ((e.target as HTMLElement | null)?.closest?.('[data-fs3d-hit]') as HTMLElement | null) ??
+            (fromPoint?.closest?.('[data-fs3d-hit]') as HTMLElement | null);
+          const slot = hit ? Number(hit.dataset.fs3dSlot) : -1;
+          if (slot >= 0) {
+            // Open immediately. Ignore the click that may follow, so a tap
+            // never fires the lightbox twice and still works when click doesn't.
+            ignoreClickUntil = performance.now() + 450;
+            swallowClick = true;
+            const len = itemsRef.current.length;
+            const idx = len ? mod(slotK[slot], len) : 0;
+            const item = itemsRef.current[idx];
+            if (item) onSelectRef.current?.(item, idx);
+          }
+        }
         kick();
       },
       focusSlot(slot: number, fromKeyboard: boolean) {
@@ -1602,6 +1758,12 @@ export default function FilmStrip3D({
       },
       wasDrag() {
         return dragWasMove && performance.now() - dragEndedAt < 120;
+      },
+      consumeSwallow() {
+        if (performance.now() < ignoreClickUntil) return true;
+        const v = swallowClick;
+        swallowClick = false;
+        return v;
       },
       refresh,
     };
@@ -1645,9 +1807,10 @@ export default function FilmStrip3D({
       ro.disconnect();
       document.removeEventListener('visibilitychange', onVis);
       reduceMQ.removeEventListener?.('change', onMQ);
+      root.removeEventListener('wheel', onWheel);
       api.current = null;
     };
-  }, [variant, amplitude, loopCfg, perspective, plan, low, frameCount, sliceCount, gapC, stockLabel]);
+  }, [variant, amplitude, loopCfg, perspective, plan, low, frameCount, sliceCount, gapC, stockLabel, flat, tier]);
 
   // items changed → re-sync labels / srcs
   useIsoLayoutEffect(() => {
@@ -1661,14 +1824,14 @@ export default function FilmStrip3D({
   };
 
   const onClickCapture = useCallback((e: MouseEvent<HTMLDivElement>) => {
-    if (api.current?.wasDrag()) {
+    if (api.current?.wasDrag() || api.current?.consumeSwallow()) {
       e.preventDefault();
       e.stopPropagation();
     }
   }, []);
 
   const onClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
-    if (!api.current) return;
+    if (!api.current || api.current.consumeSwallow()) return;
     const slot = slotOf(e.target);
     if (slot < 0) return;
     const idx = api.current.slotIndex(slot);
@@ -1712,6 +1875,8 @@ export default function FilmStrip3D({
   const list = items.length ? items : [];
   const rootBase = variant === 'loop' ? `${styles.root} ${styles.loop}` : styles.root;
   const rootClass = className ? `${rootBase} ${className}` : rootBase;
+  const ready = tier !== 'ssr';
+  const show3d = ready && !flat && list.length > 0;
 
   return (
     <div
@@ -1721,8 +1886,11 @@ export default function FilmStrip3D({
       role="group"
       aria-roledescription="film strip"
       aria-label={ariaLabel}
+      aria-busy={ready ? undefined : true}
       data-variant={variant}
       data-fs3d-root=""
+      data-compact={tier === 'ssr' ? undefined : tier === 'compact' ? 'true' : 'false'}
+      data-tier={tier === 'ssr' ? undefined : tier}
       onPointerDown={(e) => api.current?.pointerDown(e)}
       onPointerMove={(e) => api.current?.pointerMove(e)}
       onPointerUp={(e) => api.current?.pointerUp(e)}
@@ -1733,32 +1901,36 @@ export default function FilmStrip3D({
       onBlur={onBlur}
       onKeyDown={onKeyDown}
     >
-      {/* the film itself: base + photos, sliced along the path (decorative; the buttons below carry the semantics) */}
-      <div className={styles.stage}>
-        {list.length > 0 &&
-          Array.from({ length: sliceCount }, (_, i) => (
-            <div key={i} className={styles.slice} data-fs3d-slice={i} style={SLICE_INIT} aria-hidden="true">
-              <i className={styles.ph} />
-            </div>
-          ))}
-        {list.length > 0 &&
-          Array.from({ length: frameCount }, (_, i) => {
-          const it = list[i % list.length];
-          const common = {
-            className: styles.hit,
-            'data-fs3d-hit': '',
-            'data-fs3d-slot': i,
-            'aria-label': it.label ?? it.alt,
-            tabIndex: i === 0 ? 0 : -1,
-            style: SLICE_INIT,
-          } as const;
-          return asLinks ? (
-            <a key={i} {...common} href={it.href} />
-          ) : (
-            <button key={i} type="button" {...common} />
-          );
-        })}
-      </div>
+      {flat ? (
+        <FilmStripFlat items={list} onSelect={onSelect} />
+      ) : (
+        /* base + photos, sliced along the path (decorative; the buttons below carry the semantics) */
+        <div className={styles.stage}>
+          {show3d &&
+            Array.from({ length: sliceCount }, (_, i) => (
+              <div key={i} className={styles.slice} data-fs3d-slice={i} style={SLICE_INIT} aria-hidden="true">
+                <i className={styles.ph} />
+              </div>
+            ))}
+          {show3d &&
+            Array.from({ length: frameCount }, (_, i) => {
+              const it = list[i % list.length];
+              const common = {
+                className: styles.hit,
+                'data-fs3d-hit': '',
+                'data-fs3d-slot': i,
+                'aria-label': it.label ?? it.alt,
+                tabIndex: i === 0 ? 0 : -1,
+                style: SLICE_INIT,
+              } as const;
+              return asLinks ? (
+                <a key={i} {...common} href={it.href} />
+              ) : (
+                <button key={i} type="button" {...common} />
+              );
+            })}
+        </div>
+      )}
     </div>
   );
 }

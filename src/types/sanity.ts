@@ -8,6 +8,7 @@ export interface SanityImage {
     _type?: 'reference'
     url: string
     metadata?: {
+      lqip?: string
       dimensions?: {
         width: number
         height: number
