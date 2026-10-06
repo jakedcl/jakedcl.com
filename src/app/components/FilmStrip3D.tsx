@@ -790,11 +790,15 @@ function paintPhoto(el: HTMLElement, it: FilmStripItem, dense: boolean) {
 
 /** Phones, and wide-but-short viewports (landscape handsets). */
 const COMPACT_MQ = '(max-width: 767px), (max-height: 560px)';
-/** iPad-class widths: same loop as desktop, fewer slices so Safari stays under ~200 layers. */
-const TABLET_MQ = '(max-width: 1279px)';
-const SLICE_TABLET = 34;
+/**
+ * Hairpin radius for every non-phone window. Tied to the fine desktop slice,
+ * not to whatever slice width a viewport happens to use. A larger floor
+ * (the old 768–1279px tier) widened the turn until the back leg sat edge-on
+ * and the overhead view disappeared.
+ */
+const DESK_MIN_R = (SLICE_LOOP + 2) / MAX_SLICE_BEND;
 
-type StripTier = 'ssr' | 'compact' | 'tablet' | 'desk';
+type StripTier = 'ssr' | 'compact' | 'desk';
 
 function detectWeakDevice(): boolean {
   const nav = navigator as Navigator & { deviceMemory?: number };
@@ -833,33 +837,24 @@ export default function FilmStrip3D({
   const [flat, setFlat] = useState(false);
   useEffect(() => {
     const compactMq = window.matchMedia(COMPACT_MQ);
-    const tabletMq = window.matchMedia(TABLET_MQ);
     const apply = () => {
       setFlat(!supportsFilm3D());
-      if (compactMq.matches) setTier('compact');
-      else if (tabletMq.matches) setTier('tablet');
-      else setTier('desk');
+      setTier(compactMq.matches ? 'compact' : 'desk');
     };
     apply();
     compactMq.addEventListener?.('change', apply);
-    tabletMq.addEventListener?.('change', apply);
-    return () => {
-      compactMq.removeEventListener?.('change', apply);
-      tabletMq.removeEventListener?.('change', apply);
-    };
+    return () => compactMq.removeEventListener?.('change', apply);
   }, []);
-  // Compact / tablet viewports use wider slices — iPhone and iPad Safari choke on 200+ 3D layers.
-  // Core count must not change the curve; weak machines only drop to 30fps.
-  const low = lowPower || tier === 'compact' || tier === 'tablet';
+  // Phones use wider slices — iPhone Safari chokes on 200+ 3D layers.
+  // That must not change the desktop hairpin. Weak machines only drop to 30fps.
+  const low = lowPower || tier === 'compact';
   const baseCount = low ? 12 : 14;
   const isLoop = variant === 'loop';
   const gapC = 2 * Math.round(clamp(Number.isFinite(gap) ? gap : DEFAULT_GAP, MIN_GAP, MAX_GAP) / 2); // even => whole-pixel margins
   const target = isLoop
     ? tier === 'compact' || lowPower
       ? SLICE_LOOP_LOW
-      : tier === 'tablet'
-        ? SLICE_TABLET
-        : SLICE_LOOP
+      : SLICE_LOOP
     : low
       ? SLICE_LOW
       : SLICE_HI;
@@ -875,11 +870,13 @@ export default function FilmStrip3D({
       sharp: Number.isFinite(turnSharpness) ? turnSharpness : 1,
       depth: Number.isFinite(depthProp) ? depthProp : 1,
       compact: tier === 'compact' ? 1 : 0,
-      // Desktop: keep hairpins ≤ ~8.6°/slice. Phones: allow a coarser bend so the
-      // path stays short — smooth curves aren't worth 200 compositor layers.
-      minR: tier === 'compact' ? 110 : (target + 2) / MAX_SLICE_BEND,
+      // Phones: coarser bend so the path stays short. Every wider window uses
+      // the desktop radius, so a half-width laptop still shows the hairpin
+      // from above. Do not derive this from `target` — wider slices would
+      // inflate the radius and flatten the loop.
+      minR: tier === 'compact' ? 110 : DESK_MIN_R,
     }),
-    [turnSharpness, depthProp, tier, target],
+    [turnSharpness, depthProp, tier],
   );
   const pathLp = isLoop ? loopSegs(loopCfg).Lp : baseCount * W;
   const plan = useMemo(() => {
