@@ -23,7 +23,7 @@ export const settingsQuery = groq`
     galleryPhotos[] {
       asset-> {
         url,
-        metadata { dimensions }
+        metadata { lqip, dimensions }
       },
       alt,
       caption

@@ -11,14 +11,14 @@ export default function SignalHero({
   const linkedin = resume.contact.find((c) => c.href.includes('linkedin'))
 
   return (
-    <header className="relative overflow-x-clip border-b border-ink/10">
+    <header className="relative overflow-x-clip border-b border-ink/10 pt-[env(safe-area-inset-top,0px)]">
       <div className="relative z-40 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-ink/10 px-4 py-2.5 md:px-6">
         <p className="font-utility text-[0.7rem] font-medium uppercase tracking-[0.18em] text-ink/55 md:text-xs">
           NYC · WEB · SYSTEMS
         </p>
       </div>
 
-      <div className="relative px-4 pb-16 pt-5 md:px-6 md:pb-40 md:pt-10">
+      <div className="relative px-4 pb-16 pt-5 md:px-6 md:pt-10 tall:pb-40">
         {/* Title in flow. Strip sits under the name (same idea as desktop) with
             only a slight bite into DCL — not woven through JAKE. */}
         <div className="relative">
@@ -42,7 +42,7 @@ export default function SignalHero({
 
           {/* Under the type. Container is short on phones so the centered
               ribbon sits just under DCL (not floating in mid-canvas cream). */}
-          <div className="pointer-events-none absolute -left-4 -right-4 top-[4.5rem] z-0 md:-left-6 md:-right-6 md:top-24">
+          <div className="pointer-events-none absolute -left-4 -right-4 top-[4.5rem] z-0 md:-left-6 md:-right-6 tall:top-24">
             <div className="pointer-events-auto">
               {photos && photos.length > 0 ? (
                 <Filmstrip photos={photos} />
@@ -62,11 +62,11 @@ export default function SignalHero({
           {/* Match short mobile canvas — bio only nips the lower hang. */}
           <div
             aria-hidden
-            className="h-[clamp(180px,30svh,250px)] md:h-[clamp(210px,28svh,290px)]"
+            className="h-[clamp(180px,30svh,250px)] tall:h-[clamp(210px,28svh,290px)]"
           />
         </div>
 
-        <div className="pointer-events-none relative z-40 -mt-10 flex flex-col gap-5 md:mt-0 md:flex-row md:items-end md:justify-between md:gap-8">
+        <div className="pointer-events-none relative z-40 -mt-10 flex flex-col gap-5 tall:mt-0 md:flex-row md:items-end md:justify-between md:gap-8">
           <div className="pointer-events-auto relative z-40 isolate clip-ticket-alt max-w-xl border-2 border-ink bg-cream px-5 py-4 shadow-[6px_8px_0_0_rgba(10,10,10,0.12)] md:px-6 md:py-5">
             <div className="mb-3 flex items-center gap-2.5">
               <span className="signal-badge bg-signal-yellow text-ink">B</span>
