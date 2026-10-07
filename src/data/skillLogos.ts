@@ -54,7 +54,6 @@ export const skillLogoSrc: Record<string, string> = {
   'Microsoft 365': '/resume-logos/microsoft-365.svg',
   'Entra ID': '/resume-logos/entra-id.svg',
   'Google Workspace': '/resume-logos/google-workspace.svg',
-  CIPP: '/resume-logos/cipp.png',
   Intune: '/resume-logos/intune.svg',
   'Apple Business Manager': '/resume-logos/macos.svg',
   Addigy: '/resume-logos/addigy.svg',

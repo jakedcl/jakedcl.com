@@ -113,7 +113,7 @@ const SLICE_HI = 26; // nominal slice width (world px)
 const SLICE_LOW = 40; // low-power: wider slices -> ~35% fewer nodes
 const MAX_EDGE = 0.6; // world px: max misalignment of the outer corners of two neighbouring slices
 const SLICE_LOOP = 20; // loop variant: narrower slices so the hairpins stay smooth (≤ ~8° per slice)
-const SLICE_LOOP_LOW = 40; // phones: fewer DOM layers > razor hairpins
+const SLICE_LOOP_LOW = 48; // phones: fewer DOM layers > razor hairpins
 const LOOP_TILT = 15; // camera pitch (deg) of the loop variant
 const MAX_SLICE_BEND = 0.15; // rad (≈ 8.6°): floor of the loop's hairpin radius = slice width / this
 const MIN_BEND_R = 200; // tightest allowed bend radius (world px) — lower = sharper S folds
@@ -1002,8 +1002,9 @@ export default function FilmStrip3D({
     let reduced = reduceMQ.matches;
     const weak = detectWeakDevice();
     const preferSmall = prefersSmallImages();
-    // 30fps on phones and weak CPUs. The path shape does not change with that.
-    const minDelta = low || weak ? 1000 / 30 - 2 : 1000 / 60 - 3;
+    // Phones / weak CPUs: fewer style writes, locked 30fps, frozen micro-sway.
+    const lite = low || weak;
+    const minDelta = lite ? 1000 / 30 - 2 : 1000 / 60 - 3;
 
     // state
     // `off` = strip scroll offset in world px (frame k starts at cumAt(k) + off along the path)
@@ -1022,6 +1023,9 @@ export default function FilmStrip3D({
     let lastT = 0;
     let rafRunning = false;
     let frontSlot = 0;
+    // Skip style.transform when the rounded matrix did not change.
+    const lastMx = new Array<string>(NS).fill('');
+    const lastHitMx = new Array<string>(N).fill('');
 
     // geometry (updated on resize only)
     let S = 1;
@@ -1148,6 +1152,13 @@ export default function FilmStrip3D({
       sliceIdx[slot] = idx;
       st.backgroundImage = `${printFor(slot)}, ${HOLE}, ${HOLE}, ${BASE_SHADE}`;
       lastFlip[slot] = -1;
+      // Lite: fixed fog/gloss once — per-frame --sh/--gl is invisible on phones and costs writes.
+      if (lite && lastSh[slot] < 0) {
+        lastSh[slot] = 0.12;
+        lastGl[slot] = 0.18;
+        st.setProperty('--sh', '0.12');
+        st.setProperty('--gl', '0.18');
+      }
     };
 
     // light (camera space, y down): upper-left-front
@@ -1165,9 +1176,20 @@ export default function FilmStrip3D({
       hz = (lz + 1) / hl;
 
     const render = () => {
-      // camera rotation: tilt (look from above) then yaw sway
-      const tilt = (loop ? LOOP_TILT + 1.2 * Math.sin(clock * 0.42) : (variant === 'helix' ? 13 : 11) + 2.2 * Math.sin(clock * 0.42)) * (Math.PI / 180);
-      const yaw = (loop ? 2.2 * Math.sin(clock * 0.27) : variant === 'helix' ? 0 : 6.5 * Math.sin(clock * 0.27)) * (Math.PI / 180);
+      // camera rotation: tilt (look from above) then yaw sway.
+      // Lite drops the micro-sway — it forced every slice matrix to change every frame.
+      const tilt = (
+        loop
+          ? LOOP_TILT + (lite ? 0 : 1.2 * Math.sin(clock * 0.42))
+          : (variant === 'helix' ? 13 : 11) + (lite ? 0 : 2.2 * Math.sin(clock * 0.42))
+      ) * (Math.PI / 180);
+      const yaw = (
+        loop
+          ? lite ? 0 : 2.2 * Math.sin(clock * 0.27)
+          : variant === 'helix' || lite
+            ? 0
+            : 6.5 * Math.sin(clock * 0.27)
+      ) * (Math.PI / 180);
       const ct = Math.cos(tilt),
         st = Math.sin(tilt),
         cy = Math.cos(yaw),
@@ -1236,7 +1258,12 @@ export default function FilmStrip3D({
       }
 
       /* ---------- 3. light + fog at the JOINTS (shared by both neighbours => no shading seams) ---------- */
+      // Lite still needs end-fade for culling; skip Lambert/spec — fog is frozen in setSlice.
       for (let i = 0; i <= NS; i++) {
+        const ps = sliceStartAt(lay, jmin + i) + off; // joint position along the path, 0..Lp
+        const fade = smooth(Math.min(ps, Lp - ps) / END_FADE);
+        jFade[i] = fade;
+        if (lite) continue;
         const a = Math.max(0, i - 1) * 3,
           b = Math.min(NS - 1, i) * 3;
         const sa = bZ[a + 2] < 0 ? -1 : 1,
@@ -1250,9 +1277,6 @@ export default function FilmStrip3D({
         n2 /= nl;
         const depth = clamp((zRef - jp[i * 3 + 2]) / zRange, 0, 1);
         const lam = Math.max(0, n0 * lx + n1 * ly + n2 * lz);
-        const ps = sliceStartAt(lay, jmin + i) + off; // joint position along the path, 0..Lp
-        const fade = smooth(Math.min(ps, Lp - ps) / END_FADE);
-        jFade[i] = fade;
         // Keep depth cue subtle — heavy fog was muddying photos on cream.
         // The back is only slightly dimmer than the front so those photos stay clear.
         // Ends still fade fully to black (they sit off-screen / in the distance).
@@ -1294,28 +1318,35 @@ export default function FilmStrip3D({
         const sx = (S * bC[i] * sgn) / w;
         const sz = S * sgn;
         const q = flip ? o + 3 : o;
-        el.style.transform =
-          'matrix3d(' +
-          (bX[o] * sx).toFixed(4) + ',' + (bX[o + 1] * sx).toFixed(4) + ',' + (bX[o + 2] * sx).toFixed(4) + ',0,' +
-          (bY[o] * S).toFixed(4) + ',' + (bY[o + 1] * S).toFixed(4) + ',' + (bY[o + 2] * S).toFixed(4) + ',0,' +
-          (bZ[o] * sz).toFixed(4) + ',' + (bZ[o + 1] * sz).toFixed(4) + ',' + (bZ[o + 2] * sz).toFixed(4) + ',0,' +
-          (jp[q] * S).toFixed(2) + ',' + (jp[q + 1] * S).toFixed(2) + ',' + (jp[q + 2] * S).toFixed(2) + ',1)';
+        // Lite: coarser rounding so subpixel drift does not rewrite transform every frame.
+        const d = lite ? 3 : 4;
+        const dp = lite ? 1 : 2;
+        const mx =
+          (bX[o] * sx).toFixed(d) + ',' + (bX[o + 1] * sx).toFixed(d) + ',' + (bX[o + 2] * sx).toFixed(d) + ',0,' +
+          (bY[o] * S).toFixed(d) + ',' + (bY[o + 1] * S).toFixed(d) + ',' + (bY[o + 2] * S).toFixed(d) + ',0,' +
+          (bZ[o] * sz).toFixed(d) + ',' + (bZ[o + 1] * sz).toFixed(d) + ',' + (bZ[o + 2] * sz).toFixed(d) + ',0,' +
+          (jp[q] * S).toFixed(dp) + ',' + (jp[q + 1] * S).toFixed(dp) + ',' + (jp[q + 2] * S).toFixed(dp) + ',1';
+        if (mx !== lastMx[slot]) {
+          lastMx[slot] = mx;
+          el.style.transform = 'matrix3d(' + mx + ')';
+        }
 
         if (lastVis[slot] !== 1) {
           lastVis[slot] = 1;
           el.style.visibility = 'visible';
         }
-        // fog / gloss: mean of the two joints (each joint is shared with the neighbour, and both are smooth
-        // functions of the path, so adjacent slices differ by < 1/100 => no visible seam)
-        const sh = Math.round((jShade[i] + jShade[i + 1]) * 50) / 100;
-        if (sh !== lastSh[slot]) {
-          lastSh[slot] = sh;
-          el.style.setProperty('--sh', String(sh));
-        }
-        const gl = Math.round((jGloss[i] + jGloss[i + 1]) * 25) / 50;
-        if (gl !== lastGl[slot]) {
-          lastGl[slot] = gl;
-          el.style.setProperty('--gl', String(gl));
+        // fog / gloss: mean of the two joints. Lite freezes these in setSlice.
+        if (!lite) {
+          const sh = Math.round((jShade[i] + jShade[i + 1]) * 50) / 100;
+          if (sh !== lastSh[slot]) {
+            lastSh[slot] = sh;
+            el.style.setProperty('--sh', String(sh));
+          }
+          const gl = Math.round((jGloss[i] + jGloss[i + 1]) * 25) / 50;
+          if (gl !== lastGl[slot]) {
+            lastGl[slot] = gl;
+            el.style.setProperty('--gl', String(gl));
+          }
         }
         const foc = sliceK[slot] === focusK ? 1 : 0;
         if (foc !== lastFocus[slot]) {
@@ -1397,13 +1428,20 @@ export default function FilmStrip3D({
             el.style.pointerEvents = on ? '' : 'none';
           }
         }
-        el.style.transform =
-          'matrix3d(' +
-          (X0 * fx).toFixed(4) + ',' + (X1 * fx).toFixed(4) + ',' + (X2 * fx).toFixed(4) + ',0,' +
-          (Y0 * S).toFixed(4) + ',' + (Y1 * S).toFixed(4) + ',' + (Y2 * S).toFixed(4) + ',0,' +
-          (Z0 * S).toFixed(4) + ',' + (Z1 * S).toFixed(4) + ',' + (Z2 * S).toFixed(4) + ',0,' +
-          // Photo centre sits on the strip midline (PHOTO_TOP + PHOTO_H/2 === HALF_H)
-          ((T0 + shX) * S).toFixed(2) + ',' + ((T1 + shY) * S).toFixed(2) + ',' + (T2 * S).toFixed(2) + ',1)';
+        {
+          const d = lite ? 3 : 4;
+          const dp = lite ? 1 : 2;
+          const mx =
+            (X0 * fx).toFixed(d) + ',' + (X1 * fx).toFixed(d) + ',' + (X2 * fx).toFixed(d) + ',0,' +
+            (Y0 * S).toFixed(d) + ',' + (Y1 * S).toFixed(d) + ',' + (Y2 * S).toFixed(d) + ',0,' +
+            (Z0 * S).toFixed(d) + ',' + (Z1 * S).toFixed(d) + ',' + (Z2 * S).toFixed(d) + ',0,' +
+            // Photo centre sits on the strip midline (PHOTO_TOP + PHOTO_H/2 === HALF_H)
+            ((T0 + shX) * S).toFixed(dp) + ',' + ((T1 + shY) * S).toFixed(dp) + ',' + (T2 * S).toFixed(dp) + ',1';
+          if (mx !== lastHitMx[i]) {
+            lastHitMx[i] = mx;
+            el.style.transform = 'matrix3d(' + mx + ')';
+          }
+        }
         const dc = Math.abs(cs - heroS);
         if (dc < bestFront) {
           bestFront = dc;

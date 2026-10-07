@@ -183,7 +183,8 @@ export const resume: Resume = {
     {
       title: 'Technology Instructor',
       organization: 'NYC DYCD COMPASS STEM',
-      organizationUrl: 'https://whizara.com',
+      organizationUrl:
+        'https://www.nyc.gov/site/dycd/services/after-school/comprehensive-after-school-system-of-new-york-city-compass.page',
       period: '09/2023–06/2024',
       bullets: [
         'Led weekly classes in introductory programming and digital literacy for elementary students using MIT Scratch',

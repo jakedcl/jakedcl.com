@@ -78,6 +78,35 @@ body::before {
   font-family: var(--font-mono);
 }
 
+/* Skill logos — simple drop into place */
+.skill-logo {
+  opacity: 0;
+  transform: translateY(-10px);
+  filter: drop-shadow(0 1px 1px rgba(10, 10, 10, 0.2));
+}
+
+.skill-logo-in {
+  animation: skill-logo-in 0.35s ease-out forwards;
+}
+
+@keyframes skill-logo-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skill-logo {
+    opacity: 1;
+    transform: none;
+  }
+
+  .skill-logo-in {
+    animation: none;
+  }
+}
+
 /* Ticket / clearance cuts */
 .clip-ticket {
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 1.5rem), calc(100% - 2.5rem) 100%, 0 100%);

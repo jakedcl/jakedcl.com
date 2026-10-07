@@ -185,7 +185,7 @@ export default function Resume({ part = 'all' }: { part?: 'all' | 'intro' | 'bod
                   </p>
                   <NameTypewriter active={motionActive} />
                 </div>
-                <span className="signal-badge bg-signal-yellow text-ink">CV</span>
+                <span className="signal-badge bg-signal-yellow text-ink">R</span>
               </div>
               <ContactLine links={resume.contact} />
             </div>

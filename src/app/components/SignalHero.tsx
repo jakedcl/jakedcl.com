@@ -104,7 +104,7 @@ export default function SignalHero({
               Work
             </a>
             <a
-              href="#resume"
+              href="/resume"
               className="py-1 text-ink/55 transition-colors hover:text-signal-blue"
             >
               Resume
