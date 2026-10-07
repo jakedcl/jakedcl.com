@@ -113,7 +113,7 @@ const SLICE_HI = 26; // nominal slice width (world px)
 const SLICE_LOW = 40; // low-power: wider slices -> ~35% fewer nodes
 const MAX_EDGE = 0.6; // world px: max misalignment of the outer corners of two neighbouring slices
 const SLICE_LOOP = 20; // loop variant: narrower slices so the hairpins stay smooth (≤ ~8° per slice)
-const SLICE_LOOP_LOW = 48; // phones: fewer DOM layers > razor hairpins
+const SLICE_LOOP_LOW = 56; // phones: fewer DOM layers > razor hairpins
 const LOOP_TILT = 15; // camera pitch (deg) of the loop variant
 const MAX_SLICE_BEND = 0.15; // rad (≈ 8.6°): floor of the loop's hairpin radius = slice width / this
 const MIN_BEND_R = 200; // tightest allowed bend radius (world px) — lower = sharper S folds
@@ -307,10 +307,10 @@ function loopSegs(c: LoopCfg) {
   const thC = -0.1 * dk; // after hairpin 2: to the right, gently receding
   const thEnd = 0;
   // Straight bleed past the fitted body so the strip runs off both page edges.
-  // Phones still trim vs desktop, but keep enough left run that the bottom leg
-  // clears the viewport (not stopping at the bio's left edge).
-  const bleedL = 1100 - 400 * k;
-  const bleedR = 2400 - 1800 * k;
+  // Phones cut hard: every world-px of bleed is more CSS-3D slices, and that is
+  // what stalls iPhone Safari. Keep just enough to clear the viewport edge.
+  const bleedL = 1100 - 750 * k;
+  const bleedR = 2400 - 1950 * k;
   const segs: LoopSeg[] = [
     { len: 80 - 40 * k + bleedL, d: 0, kind: 'bump' }, // run-in, continues off the left edge
     { len: 720 - 500 * k, d: thA - th0, kind: 'bump' }, // arch towards the hairpin
@@ -838,18 +838,15 @@ export default function FilmStrip3D({
   useEffect(() => {
     const compactMq = window.matchMedia(COMPACT_MQ);
     const apply = () => {
-      const compact = compactMq.matches;
-      // Phones always get the flat strip. CSS 3D with dozens of matrix3d layers
-      // stays janky on real iPhone Safari no matter how we thin the lite path —
-      // Chrome device mode does not reproduce that cost.
-      setFlat(compact || !supportsFilm3D());
-      setTier(compact ? 'compact' : 'desk');
+      setFlat(!supportsFilm3D());
+      setTier(compactMq.matches ? 'compact' : 'desk');
     };
     apply();
     compactMq.addEventListener?.('change', apply);
     return () => compactMq.removeEventListener?.('change', apply);
   }, []);
-  // Desk only: wider slices / 30fps on weak machines. Phones never enter the 3D engine.
+  // Phones use wider slices — iPhone Safari chokes on 200+ 3D layers.
+  // That must not change the desktop hairpin. Weak machines only drop to 30fps.
   const low = lowPower || tier === 'compact';
   const baseCount = low ? 12 : 14;
   const isLoop = variant === 'loop';
@@ -1005,9 +1002,10 @@ export default function FilmStrip3D({
     let reduced = reduceMQ.matches;
     const weak = detectWeakDevice();
     const preferSmall = prefersSmallImages();
-    // Phones / weak CPUs: fewer style writes, locked 30fps, frozen micro-sway.
+    // Phones / weak CPUs: fewer style writes, locked ~24fps, frozen micro-sway.
+    // 24 is steadier on iPhone Safari than chasing 30 and dropping frames.
     const lite = low || weak;
-    const minDelta = lite ? 1000 / 30 - 2 : 1000 / 60 - 3;
+    const minDelta = lite ? 1000 / 24 - 2 : 1000 / 60 - 3;
 
     // state
     // `off` = strip scroll offset in world px (frame k starts at cumAt(k) + off along the path)
@@ -1313,6 +1311,15 @@ export default function FilmStrip3D({
 
         const o = i * 3;
         const flip = bZ[o + 2] < 0 ? 1 : 0;
+        // Lite: skip posing deep back-facing slices (still show near back at the hairpin).
+        // Cuts roughly a third of matrix3d writes on the loop without losing the U-turn.
+        if (lite && loop && flip && jFade[i] < 0.55 && jFade[i + 1] < 0.55) {
+          if (lastVis[slot] !== 0) {
+            lastVis[slot] = 0;
+            el.style.visibility = 'hidden';
+          }
+          continue;
+        }
         if (flip !== lastFlip[slot]) orient(slot, flip);
 
         // basis -> matrix3d. A back-facing slice is turned 180deg about its height axis (un-mirrored

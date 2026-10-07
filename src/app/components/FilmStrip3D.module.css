@@ -61,6 +61,14 @@
   cursor: grabbing;
 }
 
+/* Phones: drop gloss + fog pseudo-elements. They are barely readable at 390px
+   and each one is an extra compositing layer on every slice. */
+.root[data-compact='true'] .slice::before,
+.root[data-compact='true'] .slice::after {
+  content: none;
+  display: none;
+}
+
 /* loop variant: the strip swings far past the box (foreground frames are big), so nothing may clip it */
 .loop {
   overflow: visible;
