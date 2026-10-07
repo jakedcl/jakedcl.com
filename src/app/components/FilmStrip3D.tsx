@@ -838,15 +838,18 @@ export default function FilmStrip3D({
   useEffect(() => {
     const compactMq = window.matchMedia(COMPACT_MQ);
     const apply = () => {
-      setFlat(!supportsFilm3D());
-      setTier(compactMq.matches ? 'compact' : 'desk');
+      const compact = compactMq.matches;
+      // Phones always get the flat strip. CSS 3D with dozens of matrix3d layers
+      // stays janky on real iPhone Safari no matter how we thin the lite path —
+      // Chrome device mode does not reproduce that cost.
+      setFlat(compact || !supportsFilm3D());
+      setTier(compact ? 'compact' : 'desk');
     };
     apply();
     compactMq.addEventListener?.('change', apply);
     return () => compactMq.removeEventListener?.('change', apply);
   }, []);
-  // Phones use wider slices — iPhone Safari chokes on 200+ 3D layers.
-  // That must not change the desktop hairpin. Weak machines only drop to 30fps.
+  // Desk only: wider slices / 30fps on weak machines. Phones never enter the 3D engine.
   const low = lowPower || tier === 'compact';
   const baseCount = low ? 12 : 14;
   const isLoop = variant === 'loop';

@@ -6,8 +6,8 @@ import type { FilmStripItem } from './FilmStrip3D'
 
 /**
  * Same frames and sprockets as the 3D strip, laid out in a straight row.
- * Used when CSS 3D is unavailable. Mouse drag, trackpad, touch, and arrows
- * all scroll the same overflow track.
+ * Used on phones (iOS Safari can't keep dozens of CSS-3D slices smooth) and
+ * when preserve-3d is unavailable. Native overflow scroll + a light autoplay.
  */
 export default function FilmStripFlat({
   items,
@@ -22,9 +22,21 @@ export default function FilmStripFlat({
     const el = trackRef.current
     if (!el) return
     let drag: { id: number; x: number; left: number; moved: boolean } | null = null
+    let raf = 0
+    let lastT = 0
+    let paused = false
+    let resumeAt = 0
+    let autoScrolling = false
+    const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let reduced = reduceMQ.matches
+    // Duplicate list length for seamless wrap — scroll through one copy, then jump.
+    const loopWidth = () => el.scrollWidth / 2
 
     const down = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse' || e.button !== 0) return
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      paused = true
+      resumeAt = performance.now() + 2200
+      if (e.pointerType !== 'mouse') return // touch uses native pan-x
       drag = { id: e.pointerId, x: e.clientX, left: el.scrollLeft, moved: false }
     }
     const move = (e: PointerEvent) => {
@@ -36,28 +48,72 @@ export default function FilmStripFlat({
       el.scrollLeft = drag.left - dx
     }
     const up = (e: PointerEvent) => {
-      if (!drag || e.pointerId !== drag.id) return
-      if (drag.moved) {
-        const block = (ev: Event) => {
-          ev.preventDefault()
-          ev.stopPropagation()
-          el.removeEventListener('click', block, true)
+      if (drag && e.pointerId === drag.id) {
+        if (drag.moved) {
+          const block = (ev: Event) => {
+            ev.preventDefault()
+            ev.stopPropagation()
+            el.removeEventListener('click', block, true)
+          }
+          el.addEventListener('click', block, true)
         }
-        el.addEventListener('click', block, true)
+        drag = null
+        el.removeAttribute('data-dragging')
       }
-      drag = null
-      el.removeAttribute('data-dragging')
+      resumeAt = performance.now() + 2200
+    }
+
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick)
+      if (reduced || document.hidden) return
+      if (paused) {
+        if (now < resumeAt) return
+        paused = false
+        lastT = now
+      }
+      const dt = lastT ? Math.min((now - lastT) / 1000, 0.05) : 0.016
+      lastT = now
+      const half = loopWidth()
+      if (half < 8) return
+      autoScrolling = true
+      el.scrollLeft += 28 * dt // ~slow crawl, matches 3D autoplay feel
+      if (el.scrollLeft >= half) el.scrollLeft -= half
+      autoScrolling = false
+    }
+
+    const onScroll = () => {
+      const half = loopWidth()
+      if (half > 8 && el.scrollLeft >= half - 1) {
+        autoScrolling = true
+        el.scrollLeft -= half
+        autoScrolling = false
+      }
+      // Ignore scrolls we caused; pause only for real user scrubbing.
+      if (autoScrolling || drag) return
+      paused = true
+      resumeAt = performance.now() + 2200
+    }
+
+    const onMQ = () => {
+      reduced = reduceMQ.matches
     }
 
     el.addEventListener('pointerdown', down)
     el.addEventListener('pointermove', move)
+    el.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('pointerup', up)
     window.addEventListener('pointercancel', up)
+    reduceMQ.addEventListener?.('change', onMQ)
+    raf = requestAnimationFrame(tick)
+
     return () => {
+      cancelAnimationFrame(raf)
       el.removeEventListener('pointerdown', down)
       el.removeEventListener('pointermove', move)
+      el.removeEventListener('scroll', onScroll)
       window.removeEventListener('pointerup', up)
       window.removeEventListener('pointercancel', up)
+      reduceMQ.removeEventListener?.('change', onMQ)
     }
   }, [])
 
@@ -85,41 +141,46 @@ export default function FilmStripFlat({
         className={styles.flatTrack}
         onKeyDown={onKeyDown}
       >
-        {items.map((it, i) => (
-          <button
-            key={`${it.src}-${i}`}
-            type="button"
-            className={styles.flatFrame}
-            aria-label={it.label ?? it.alt}
-            onClick={() => onSelect?.(it, i)}
-          >
-            <span
-              className={styles.flatWindow}
-              style={
-                it.placeholder
-                  ? { backgroundImage: `url("${it.placeholder.replace(/"/g, '')}")` }
-                  : undefined
-              }
+        {/* Two copies so autoplay can wrap without a jump. Second set is aria-hidden. */}
+        {[0, 1].map((copy) =>
+          items.map((it, i) => (
+            <button
+              key={`${copy}-${it.src}-${i}`}
+              type="button"
+              className={styles.flatFrame}
+              aria-label={copy === 0 ? (it.label ?? it.alt) : undefined}
+              aria-hidden={copy === 1 ? true : undefined}
+              tabIndex={copy === 1 ? -1 : undefined}
+              onClick={() => copy === 0 && onSelect?.(it, i)}
             >
-              {/* Decorative: the button name is the accessible label. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={it.src}
-                srcSet={it.src2x ? `${it.src} 480w, ${it.src2x} 800w` : undefined}
-                sizes="(max-width: 767px) 42vw, 168px"
-                alt=""
-                width={168}
-                height={112}
-                loading={i < 3 ? 'eager' : 'lazy'}
-                decoding="async"
-                draggable={false}
-                onError={(e) => {
-                  e.currentTarget.style.visibility = 'hidden'
-                }}
-              />
-            </span>
-          </button>
-        ))}
+              <span
+                className={styles.flatWindow}
+                style={
+                  it.placeholder
+                    ? { backgroundImage: `url("${it.placeholder.replace(/"/g, '')}")` }
+                    : undefined
+                }
+              >
+                {/* Decorative: the button name is the accessible label. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={it.src}
+                  srcSet={it.src2x ? `${it.src} 480w, ${it.src2x} 800w` : undefined}
+                  sizes="(max-width: 767px) 42vw, 168px"
+                  alt=""
+                  width={168}
+                  height={112}
+                  loading={copy === 0 && i < 3 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  draggable={false}
+                  onError={(e) => {
+                    e.currentTarget.style.visibility = 'hidden'
+                  }}
+                />
+              </span>
+            </button>
+          )),
+        )}
       </div>
     </div>
   )

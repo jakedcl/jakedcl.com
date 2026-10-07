@@ -64,18 +64,11 @@ export default async function Home() {
         <SignalHero photos={settings?.galleryPhotos} />
 
         <section id="work" className="scroll-mt-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink px-4 py-5 md:px-6">
-            <div className="flex items-center gap-3">
-              <span className="signal-badge bg-signal-yellow text-ink">W</span>
-              <h2 className="font-display text-3xl font-extrabold tracking-tight text-ink md:text-4xl">
-                WORK
-              </h2>
-            </div>
-            <span className="stamp-chip">
-              {projects.length > 0
-                ? `${String(projects.length).padStart(2, '0')} projects`
-                : 'coming soon'}
-            </span>
+          <div className="flex flex-wrap items-center gap-3 border-b-2 border-ink px-4 py-5 md:px-6">
+            <span className="signal-badge bg-signal-yellow text-ink">W</span>
+            <h2 className="font-display text-3xl font-extrabold tracking-tight text-ink md:text-4xl">
+              WORK
+            </h2>
           </div>
           <ProjectsList projects={projects} />
         </section>
