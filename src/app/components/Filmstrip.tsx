@@ -168,6 +168,15 @@ export default function Filmstrip({ photos }: FilmstripProps) {
     selectedIndex !== null
       ? `${String(selectedIndex + 1).padStart(2, '0')} / ${String(validPhotos.length).padStart(2, '0')}`
       : ''
+  const photoW = selected?.asset?.metadata?.dimensions?.width
+  const photoH = selected?.asset?.metadata?.dimensions?.height
+  const photoRatio = photoW && photoH ? photoW / photoH : undefined
+  // Cap the frame by viewport, then let width follow the photo so the box
+  // matches the file. A full-width frame was painting the LQIP as side bars.
+  const frameMaxH =
+    typeof CSS !== 'undefined' && CSS.supports('height', '1dvh')
+      ? 'min(78dvh, 78vh)'
+      : '78vh'
 
   const close = () => setSelectedIndex(null)
 
@@ -274,15 +283,16 @@ export default function Filmstrip({ photos }: FilmstripProps) {
           onClick={(e) => e.stopPropagation()}
         >
           <div
-            className="relative flex w-full items-center justify-center bg-[#1a1a1a]"
-            style={{
-              backgroundImage: selected.asset?.metadata?.lqip
-                ? `url("${selected.asset.metadata.lqip}")`
-                : undefined,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              minHeight: imgState === 'error' ? '12rem' : undefined,
-            }}
+            className="relative bg-[#1a1a1a]"
+            style={
+              imgState === 'error' || !photoRatio
+                ? { minHeight: '12rem', width: '100%' }
+                : {
+                    aspectRatio: `${photoW} / ${photoH}`,
+                    width: `min(100%, calc(${frameMaxH} * ${photoRatio}))`,
+                    maxHeight: frameMaxH,
+                  }
+            }
           >
             {imgState === 'error' ? (
               <p className="font-utility px-6 py-16 text-center text-xs uppercase tracking-[0.16em] text-white/70">
@@ -296,8 +306,8 @@ export default function Filmstrip({ photos }: FilmstripProps) {
                 srcSet={selectedSet}
                 sizes="(max-width: 768px) 92vw, min(80vw, 1200px)"
                 alt={selected.alt || `Gallery image ${(selectedIndex ?? 0) + 1}`}
-                width={selected.asset?.metadata?.dimensions?.width || 1200}
-                height={selected.asset?.metadata?.dimensions?.height || 900}
+                width={photoW || 1200}
+                height={photoH || 900}
                 decoding="async"
                 fetchPriority="high"
                 ref={(node) => {
@@ -306,14 +316,8 @@ export default function Filmstrip({ photos }: FilmstripProps) {
                 }}
                 onLoad={() => setImgState('ready')}
                 onError={() => setImgState('error')}
-                className="h-auto w-auto max-w-full object-contain"
-                style={{
-                  maxHeight:
-                    typeof CSS !== 'undefined' && CSS.supports('height', '1dvh')
-                      ? 'min(78dvh, 78vh)'
-                      : '78vh',
-                  opacity: imgState === 'ready' ? 1 : 0,
-                }}
+                className="block h-full w-full object-contain"
+                style={{ opacity: imgState === 'ready' ? 1 : 0 }}
                 aria-busy={imgState === 'loading'}
               />
             )}
