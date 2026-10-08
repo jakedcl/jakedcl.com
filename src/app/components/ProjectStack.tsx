@@ -6,26 +6,46 @@ import ProjectCard from './ProjectCard'
 
 function sheetStyle(index: number, progress: number): CSSProperties {
   const delta = index - progress
-  const dist = Math.abs(delta)
-  // Incoming sheet wins ties so the card underneath never ghosts through.
-  const zIndex = 80 - Math.round(dist * 20) + (delta >= 0 ? 2 : 0)
 
-  if (delta < 0) {
-    const t = Math.min(1, -delta)
+  // Already flipped away.
+  if (delta <= -1) {
     return {
-      transform: `translate3d(0, ${-18 * t}%, 0) scale(${1 - t * 0.03})`,
-      opacity: Math.max(0, 1 - t * 1.35),
-      zIndex,
+      transform: 'translate3d(0, -100%, 0)',
+      opacity: 0,
+      zIndex: 0,
       pointerEvents: 'none',
+      visibility: 'hidden',
     }
   }
 
-  const behind = Math.min(delta, 5)
+  // The card you are scrolling off. Stays solid and slides up.
+  if (delta < 0) {
+    return {
+      transform: `translate3d(0, ${-100 * -delta}%, 0)`,
+      opacity: 1,
+      zIndex: 3,
+      pointerEvents: 'none',
+      visibility: 'visible',
+    }
+  }
+
+  // The card underneath, fully readable once the one above slides off.
+  if (delta < 1) {
+    return {
+      transform: 'translate3d(0, 0, 0)',
+      opacity: 1,
+      zIndex: 2,
+      pointerEvents: 'auto',
+      visibility: 'visible',
+    }
+  }
+
   return {
-    transform: `translate3d(0, ${behind * 12}px, 0) scale(${1 - behind * 0.035})`,
-    opacity: Math.max(0.15, 1 - behind * 0.22),
-    zIndex,
-    pointerEvents: behind < 0.4 ? 'auto' : 'none',
+    transform: 'translate3d(0, 0, 0)',
+    opacity: 0,
+    zIndex: 0,
+    pointerEvents: 'none',
+    visibility: 'hidden',
   }
 }
 
@@ -102,11 +122,11 @@ export default function ProjectStack({ projects }: { projects: Project[] }) {
   return (
     <div
       ref={trackRef}
-      className="relative border-b border-ink/10"
-      style={{ height: `calc(100dvh + ${steps * 78}dvh)` }}
+      className="relative"
+      style={{ height: `calc(min(32rem, 100dvh - 7rem) + ${steps * 9}vh + 2.5rem)` }}
     >
-      <div className="sticky top-0 flex h-dvh items-center px-4 py-6 md:px-8 md:py-10">
-        <div className="relative mx-auto h-[min(36rem,calc(100dvh-4.5rem))] w-full max-w-5xl">
+      <div className="sticky top-0 border-b-2 border-ink bg-background px-4 pt-4 pb-4 md:px-8">
+        <div className="relative mx-auto h-[min(32rem,calc(100dvh-7rem))] w-full max-w-5xl overflow-hidden">
           {projects.map((project, index) => (
             <ProjectCard
               key={project._id}
