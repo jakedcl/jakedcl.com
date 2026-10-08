@@ -2,6 +2,7 @@ import { client } from '@/sanity/lib/client'
 import { projectsQuery, settingsQuery } from '@/sanity/lib/queries'
 import { Project, Settings } from '@/types/sanity'
 import ProjectCard from './components/ProjectCard'
+import ProjectScrollLift from './components/ProjectScrollLift'
 import Resume from './components/Resume'
 import SignalHero from './components/SignalHero'
 import { resume } from '@/data/resume'
@@ -28,11 +29,11 @@ function ProjectsList({ projects }: { projects: Project[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-2 border-b border-ink/10 pb-6 pt-2 md:gap-3 md:pb-10">
+    <ProjectScrollLift className="flex flex-col gap-2 border-b border-ink/10 pb-6 pt-2 md:gap-3 md:pb-10">
       {projects.map((project, index) => (
         <ProjectCard key={project._id} project={project} index={index} />
       ))}
-    </div>
+    </ProjectScrollLift>
   )
 }
 
