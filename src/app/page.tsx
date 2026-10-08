@@ -1,7 +1,7 @@
 import { client } from '@/sanity/lib/client'
 import { projectsQuery, settingsQuery } from '@/sanity/lib/queries'
 import { Project, Settings } from '@/types/sanity'
-import ProjectStack from './components/ProjectStack'
+import ProjectCard from './components/ProjectCard'
 import Resume from './components/Resume'
 import SignalHero from './components/SignalHero'
 import { resume } from '@/data/resume'
@@ -14,6 +14,26 @@ async function getProjects(): Promise<Project[]> {
 
 async function getSettings(): Promise<Settings | null> {
   return await client.fetch(settingsQuery)
+}
+
+function ProjectsList({ projects }: { projects: Project[] }) {
+  if (projects.length === 0) {
+    return (
+      <div className="border-b border-ink/10 px-5 py-16 md:px-8">
+        <p className="font-utility text-sm uppercase tracking-[0.16em] text-ink/40">
+          No projects on the board — check back soon.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-2 border-b border-ink/10 pb-6 pt-2 md:gap-3 md:pb-10">
+      {projects.map((project, index) => (
+        <ProjectCard key={project._id} project={project} index={index} />
+      ))}
+    </div>
+  )
 }
 
 export default async function Home() {
@@ -50,7 +70,7 @@ export default async function Home() {
               WORK
             </h2>
           </div>
-          <ProjectStack projects={projects} />
+          <ProjectsList projects={projects} />
         </section>
 
         <section
