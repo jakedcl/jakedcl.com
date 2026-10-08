@@ -40,7 +40,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <main className="relative overflow-x-clip">
+      <main className="relative overflow-x-hidden">
         <SignalHero photos={settings?.galleryPhotos} />
 
         <section id="work" className="scroll-mt-4">

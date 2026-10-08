@@ -105,6 +105,9 @@ export default function ProjectCard({
             >
               {num}
             </span>
+            <span className="font-utility text-[0.6rem] uppercase tracking-[0.16em] text-ink/35">
+              {num}
+            </span>
           </div>
           <PortableText
             value={project.title}
@@ -147,7 +150,7 @@ export default function ProjectCard({
     </div>
   )
 
-  const rootClass = `group block bg-cream ${fit ? 'h-full' : ''} ${className}`.trim()
+  const rootClass = `group block ${fit ? 'h-full' : ''} ${className}`.trim()
 
   if (project.link) {
     return (
