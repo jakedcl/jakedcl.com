@@ -13,9 +13,9 @@ function supportsViewTimeline() {
 
 /**
  * Fallback for browsers without `animation-timeline: view()`.
- * Writes `--lift` (0 at the viewport edges, 1 at the center) so the CSS
- * transform tracks scroll. Modern Safari/Chrome use the view timeline instead
- * and this effect returns before attaching listeners.
+ * Writes `--lift` (0 outside a tight band around the viewport center, 1 at
+ * the center) so the CSS transform tracks scroll. Modern Safari/Chrome use
+ * the view timeline instead and this effect returns before attaching listeners.
  */
 export default function ProjectScrollLift({ className, children }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -47,9 +47,10 @@ export default function ProjectScrollLift({ className, children }: Props) {
       const rects = books.map((el) => el.getBoundingClientRect())
       for (let i = 0; i < books.length; i++) {
         const rect = rects[i]
-        const range = (vh + rect.height) * 0.5
         const dist = Math.abs(rect.top + rect.height * 0.5 - mid)
-        const lift = range > 0 ? Math.max(0, 1 - dist / range) : 0
+        // Matches the 40%–60% keyframe window on the view() cover timeline.
+        const radius = (vh + rect.height) * 0.1
+        const lift = radius > 0 ? Math.max(0, 1 - dist / radius) : 0
         write(books[i], lift < 0.004 ? '0' : lift.toFixed(3))
       }
     }
