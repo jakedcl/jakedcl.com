@@ -11,11 +11,29 @@ function supportsViewTimeline() {
   return typeof CSS !== 'undefined' && CSS.supports('animation-timeline: view()')
 }
 
+/** CSS ease-in-out, cubic-bezier(0.42, 0, 0.58, 1). */
+function easeInOut(x: number) {
+  if (x <= 0) return 0
+  if (x >= 1) return 1
+  const sample = (t: number, a: number, b: number) => {
+    const u = 1 - t
+    return 3 * u * u * t * a + 3 * u * t * t * b + t * t * t
+  }
+  let t = x
+  for (let i = 0; i < 5; i++) {
+    const u = 1 - t
+    const slope = 3 * u * u * 0.42 + 6 * u * t * 0.16 + 3 * t * t * 0.42
+    if (Math.abs(slope) < 1e-6) break
+    t = Math.min(1, Math.max(0, t - (sample(t, 0.42, 0.58) - x) / slope))
+  }
+  return sample(t, 0, 1)
+}
+
 /**
  * Fallback for browsers without `animation-timeline: view()`.
- * Writes `--lift` (0 outside a tight band around the viewport center, 1 at
- * the center) so the CSS transform tracks scroll. Modern Safari/Chrome use
- * the view timeline instead and this effect returns before attaching listeners.
+ * `--lift` is 0 when the card meets the viewport edge and 1 at the center,
+ * on the same ease-in-out curve as the view() timeline. Modern Safari and
+ * Chrome use that timeline and this effect returns before attaching listeners.
  */
 export default function ProjectScrollLift({ className, children }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -48,9 +66,10 @@ export default function ProjectScrollLift({ className, children }: Props) {
       for (let i = 0; i < books.length; i++) {
         const rect = rects[i]
         const dist = Math.abs(rect.top + rect.height * 0.5 - mid)
-        // Matches the 40%–60% keyframe window on the view() cover timeline.
-        const radius = (vh + rect.height) * 0.1
-        const lift = radius > 0 ? Math.max(0, 1 - dist / radius) : 0
+        // Cover range: 0 at the viewport edge, 1 at the center.
+        const radius = (vh + rect.height) * 0.5
+        const along = radius > 0 ? Math.max(0, 1 - dist / radius) : 0
+        const lift = easeInOut(along)
         write(books[i], lift < 0.004 ? '0' : lift.toFixed(3))
       }
     }

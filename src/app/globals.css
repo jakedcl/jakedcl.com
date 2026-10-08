@@ -321,8 +321,10 @@ body::before {
 }
 
 /* Project books — short wide open volumes, slight tilt-back POV.
-   Lift only while the card center is within 10% of (viewport + card) of
-   the viewport center. Outside that the pose stays at rest. */
+   Cover 0% is the card touching the incoming viewport edge, 50% is
+   centered, 100% is the card just clear of the outgoing edge.
+   ease-in-out on each half, so it leaves rest slowly, settles into the
+   lift at center, then eases back to rest. */
 .project-book-scene {
   perspective: 1400px;
   perspective-origin: 50% 70%;
@@ -339,32 +341,32 @@ body::before {
 }
 
 @keyframes project-book-lift {
-  0%,
-  40%,
-  60%,
-  100% {
+  0% {
     transform: rotateX(11deg) translateY(0);
   }
   50% {
     transform: rotateX(7deg) translateY(-6px);
   }
+  100% {
+    transform: rotateX(11deg) translateY(0);
+  }
 }
 
 @keyframes project-book-lift-sm {
-  0%,
-  40%,
-  60%,
-  100% {
+  0% {
     transform: rotateX(7deg) translateY(0);
   }
   50% {
     transform: rotateX(4deg) translateY(-4px);
   }
+  100% {
+    transform: rotateX(7deg) translateY(0);
+  }
 }
 
 @supports (animation-timeline: view()) {
   .project-book {
-    animation: project-book-lift 1s linear both;
+    animation: project-book-lift 1s ease-in-out both;
     animation-timeline: view();
     animation-range: cover 0% cover 100%;
   }
