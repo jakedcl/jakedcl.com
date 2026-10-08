@@ -71,7 +71,6 @@ export default function ProjectCard({
 }) {
   const photos = project.photos ?? []
   const spine = SPINE[index % SPINE.length]
-  const num = String(index + 1).padStart(2, '0')
 
   const book = (
     <div className="project-book-scene px-4 py-5 md:px-8 md:py-7">
@@ -91,17 +90,6 @@ export default function ProjectCard({
           {/* Left page — description */}
           <div className="relative flex flex-col justify-between gap-5 px-5 py-6 sm:px-7 sm:py-8">
             <div>
-              <div className="mb-3 flex items-center gap-2">
-                <span
-                  className={`signal-badge h-7 w-7 text-[0.6rem] ${spine} text-ink`}
-                  aria-hidden
-                >
-                  {num}
-                </span>
-                <span className="font-utility text-[0.6rem] uppercase tracking-[0.16em] text-ink/35">
-                  Vol. {num}
-                </span>
-              </div>
               <PortableText
                 value={project.title}
                 components={{
