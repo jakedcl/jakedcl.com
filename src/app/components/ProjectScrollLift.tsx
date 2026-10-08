@@ -31,9 +31,9 @@ function easeInOut(x: number) {
 
 /**
  * Fallback for browsers without `animation-timeline: view()`.
- * `--lift` is 0 when the card meets the viewport edge and 1 at the center,
- * on the same ease-in-out curve as the view() timeline. Modern Safari and
- * Chrome use that timeline and this effect returns before attaching listeners.
+ * `--lift` follows the 0% / 25% / 75% / 100% plateau: eased ramps at the
+ * viewport edges, full lift through the middle. Modern Safari and Chrome
+ * use the view timeline and this effect returns before attaching listeners.
  */
 export default function ProjectScrollLift({ className, children }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -66,10 +66,11 @@ export default function ProjectScrollLift({ className, children }: Props) {
       for (let i = 0; i < books.length; i++) {
         const rect = rects[i]
         const dist = Math.abs(rect.top + rect.height * 0.5 - mid)
-        // Cover range: 0 at the viewport edge, 1 at the center.
+        // u is 0 at center and 1 at either viewport edge (cover 0% / 100%).
+        // Full lift from cover 25% to 75% (u <= 0.5); ease-in-out on the ramps.
         const radius = (vh + rect.height) * 0.5
-        const along = radius > 0 ? Math.max(0, 1 - dist / radius) : 0
-        const lift = easeInOut(along)
+        const u = radius > 0 ? dist / radius : 1
+        const lift = u <= 0.5 ? 1 : u >= 1 ? 0 : easeInOut((1 - u) / 0.5)
         write(books[i], lift < 0.004 ? '0' : lift.toFixed(3))
       }
     }
