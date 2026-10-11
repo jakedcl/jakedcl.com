@@ -273,7 +273,7 @@ function generatePath(variant: 'ribbon' | 'helix', pr: PathParams, length: numbe
 /* loop path: a switchback ribbon with two hairpin U-turns             */
 /* ------------------------------------------------------------------ */
 
-type LoopCfg = { sharp: number; depth: number; compact: number; minR: number };
+type LoopCfg = { sharp: number; depth: number; compact: number; minR: number; viewW: number };
 
 const RAMP = 0.3; // curvature ramps in/out over this fraction of a hairpin (no kinks)
 const bumpW = (u: number) => 1 - Math.cos(TAU * clamp(u, 0, 1)); // ∫ over [0,1] = 1
@@ -308,9 +308,13 @@ function loopSegs(c: LoopCfg) {
   const thEnd = 0;
   // Straight bleed past the fitted body so the strip runs off both page edges.
   // Phones cut hard: every world-px of bleed is more CSS-3D slices, and that is
-  // what stalls iPhone Safari. Keep just enough to clear the viewport edge.
+  // what stalls iPhone Safari. Portrait phones already clear both edges.
+  // Wider compact windows (just under 768px, landscape, short laptop windows)
+  // are height-limited, so that short tail stops on screen. Grow the right
+  // run with the extra width; the fitted hairpin does not include this bleed.
   const bleedL = 1100 - 750 * k;
-  const bleedR = 2400 - 1950 * k;
+  const extraW = k > 0 ? Math.max(0, c.viewW - 420) : 0;
+  const bleedR = 2400 - 1950 * k + extraW * 3.4;
   const segs: LoopSeg[] = [
     { len: 80 - 40 * k + bleedL, d: 0, kind: 'bump' }, // run-in, continues off the left edge
     { len: 720 - 500 * k, d: thA - th0, kind: 'bump' }, // arch towards the hairpin
@@ -835,15 +839,22 @@ export default function FilmStrip3D({
   // loop and then swap it for the phone one (that flash is a layout jump).
   const [tier, setTier] = useState<StripTier>('ssr');
   const [flat, setFlat] = useState(false);
+  const [viewW, setViewW] = useState(0);
   useEffect(() => {
     const compactMq = window.matchMedia(COMPACT_MQ);
     const apply = () => {
       setFlat(!supportsFilm3D());
       setTier(compactMq.matches ? 'compact' : 'desk');
+      // 40px buckets so a drag-resize doesn't rebuild the path every pixel.
+      setViewW(Math.round(window.innerWidth / 40) * 40);
     };
     apply();
     compactMq.addEventListener?.('change', apply);
-    return () => compactMq.removeEventListener?.('change', apply);
+    window.addEventListener('resize', apply);
+    return () => {
+      compactMq.removeEventListener?.('change', apply);
+      window.removeEventListener('resize', apply);
+    };
   }, []);
   // Phones use wider slices — iPhone Safari chokes on 200+ 3D layers.
   // That must not change the desktop hairpin. Weak machines only drop to 30fps.
@@ -875,8 +886,9 @@ export default function FilmStrip3D({
       // from above. Do not derive this from `target` — wider slices would
       // inflate the radius and flatten the loop.
       minR: tier === 'compact' ? 110 : DESK_MIN_R,
+      viewW: tier === 'compact' ? viewW : 0,
     }),
-    [turnSharpness, depthProp, tier],
+    [turnSharpness, depthProp, tier, viewW],
   );
   const pathLp = isLoop ? loopSegs(loopCfg).Lp : baseCount * W;
   const plan = useMemo(() => {
