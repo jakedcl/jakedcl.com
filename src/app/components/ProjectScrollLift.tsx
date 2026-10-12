@@ -32,7 +32,8 @@ function easeInOut(x: number) {
 /**
  * Fallback for browsers without `animation-timeline: view()`.
  * `--lift` follows the 0% / 25% / 75% / 100% plateau: eased ramps at the
- * viewport edges, full lift through the middle. Modern Safari and Chrome
+ * viewport edges, full lift through the middle. Scale tracks the same
+ * value, from the rest size up to 1. Modern Safari and Chrome
  * use the view timeline and this effect returns before attaching listeners.
  */
 export default function ProjectScrollLift({ className, children }: Props) {
