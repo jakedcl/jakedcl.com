@@ -60,7 +60,7 @@ export default function SignalHero({
           </h1>
 
           <div
-            className="hero-in hero-in-slash hero-wait-dcl pointer-events-none absolute right-0 top-[12%] z-0 h-14 w-[40%] bg-signal-red sm:top-[18%] sm:h-24 sm:w-[38%]"
+            className="hero-in hero-in-slash pointer-events-none absolute right-0 top-[12%] z-0 h-14 w-[40%] bg-signal-red sm:top-[18%] sm:h-24 sm:w-[38%]"
             style={{
               clipPath: 'polygon(12% 0, 100% 0, 88% 100%, 0 100%)',
             }}

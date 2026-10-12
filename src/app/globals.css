@@ -262,11 +262,9 @@ body::before {
 
 @keyframes hero-slash-in {
   from {
-    opacity: 0;
-    transform: translate3d(-12px, 0, 0);
+    transform: translate3d(100%, 0, 0);
   }
   to {
-    opacity: 0.9;
     transform: none;
   }
 }
@@ -384,25 +382,29 @@ body::before {
 }
 
 .hero-in-slash {
+  opacity: 0.9;
   animation-name: hero-slash-in;
-  animation-duration: 0.75s;
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.16, 0.8, 0.24, 1);
 }
 
-/* Sits over the strip until the first posed frame, then fades off.
-   Opacity on an ancestor would flatten the 3D ribbon. */
-.hero-strip-veil {
-  position: absolute;
-  z-index: 2;
-  left: -18%;
-  right: -18%;
-  top: -28%;
-  bottom: -70%;
-  background: var(--background);
-  pointer-events: none;
+/* The strip itself fades in over the slash. A cream cover hid the red
+   bar and made it look like the slash left and came back. */
+@keyframes hero-film-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.hero-strip-veil.is-out {
-  animation: hero-fade-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) reverse both;
+.hero-film-hold {
+  opacity: 0;
+}
+
+.hero-film-in {
+  animation: hero-film-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .hero-in-rise {
@@ -428,10 +430,6 @@ body::before {
 
 .hero-wait-5 {
   animation-delay: 0.5s;
-}
-
-.hero-wait-dcl {
-  animation-delay: 1.45s;
 }
 
 .hero-wait-bio {
@@ -509,9 +507,10 @@ body::before {
     display: none !important;
   }
 
-  .hero-strip-veil.is-out {
+  .hero-film-hold,
+  .hero-film-in {
     animation: none !important;
-    opacity: 0 !important;
+    opacity: 1 !important;
   }
 
   .stamp-btn:hover {
