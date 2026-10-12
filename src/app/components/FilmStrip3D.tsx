@@ -736,6 +736,10 @@ const BASE_SVG =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='184' viewBox='0 0 4 184' preserveAspectRatio='none'%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23232327'/%3E%3Cstop offset='.14' stop-color='%231b1b1e'/%3E%3Cstop offset='.45' stop-color='%230d0d0f'/%3E%3Cstop offset='1' stop-color='%23070708'/%3E%3C/linearGradient%3E%3Crect width='4' height='184' fill='url(%23g)'/%3E%3C/svg%3E";
 const HOLE = `url("${HOLE_SVG}")`;
 const BASE_SHADE = `url("${BASE_SVG}")`;
+/* Old flat-strip scratch plate, black floor lifted to alpha. 720px tile width
+   must match the slice / .ph background-size in FilmStrip3D.module.css. */
+const GRAIN_TILE = 720;
+const GRAIN = 'url("/film-scratches-grain.webp")';
 const cssUrl = (src: string) => `url("${src.replace(/["\\\n\r]/g, (c) => encodeURIComponent(c))}")`;
 
 type NetInfo = { saveData?: boolean; effectiveType?: string };
@@ -773,21 +777,22 @@ function imageSetFunction() {
   return imageSetFn;
 }
 
-/** Sharp photo over the placeholder. One declaration so the browser fetches a single candidate. */
+/** Sharp photo under the scratch plate. One declaration so the browser fetches a single photo candidate.
+ *  Grain is a separate layer (not inside image-set) and is positioned with --grain-x, which
+ *  changes only when a slice is recycled or flipped — not every animation frame. */
 function paintPhoto(el: HTMLElement, it: FilmStripItem, dense: boolean) {
   const placeholder = it.placeholder ? cssUrl(it.placeholder) : '';
-  const basic = placeholder ? `${cssUrl(it.src)}, ${placeholder}` : cssUrl(it.src);
-  el.style.backgroundSize = placeholder ? 'cover, cover' : 'cover';
-  el.style.backgroundRepeat = 'no-repeat';
-  el.style.backgroundPosition = '50% 50%';
   const src2x = it.src2x;
   const fn = dense && src2x ? imageSetFunction() : 'none';
-  if (fn === 'none' || !src2x) {
-    el.style.backgroundImage = basic;
-    return;
-  }
-  const set = `${fn}(${cssUrl(it.src)} 1x, ${cssUrl(src2x)} 2x)`;
-  el.style.backgroundImage = placeholder ? `${set}, ${placeholder}` : set;
+  const photo =
+    fn === 'none' || !src2x ? cssUrl(it.src) : `${fn}(${cssUrl(it.src)} 1x, ${cssUrl(src2x)} 2x)`;
+  const layers = [GRAIN, photo];
+  if (placeholder) layers.push(placeholder);
+  const rest = layers.length - 1;
+  el.style.backgroundImage = layers.join(', ');
+  el.style.backgroundSize = [`${GRAIN_TILE}px 184px`, ...Array(rest).fill('cover')].join(', ');
+  el.style.backgroundRepeat = ['repeat-x', ...Array(rest).fill('no-repeat')].join(', ');
+  el.style.backgroundPosition = ['var(--grain-x) -36px', ...Array(rest).fill('50% 50%')].join(', ');
 }
 
 /* ------------------------------------------------------------------ */
@@ -1131,9 +1136,12 @@ export default function FilmStrip3D({
       const u0 = flip ? sliceP[slot] - sliceA[slot] - w : sliceA[slot];
       // (+2: the slice box reaches OVERLAP/2 = 2px past each joint, so box x = 2 sits on the joint)
       const ph = flip ? mod(sliceS0[slot] + w + 2, SPROCKET) : mod(2 - sliceS0[slot], SPROCKET);
+      // Same phase rule as the sprockets, modulo the scratch tile, so the plate is continuous across slices.
+      const gx = flip ? mod(sliceS0[slot] + w + 2, GRAIN_TILE) : mod(2 - sliceS0[slot], GRAIN_TILE);
       const el = slices[slot];
       el.style.setProperty('--u0', u0.toFixed(2));
       el.style.setProperty('--ph', ph.toFixed(2));
+      el.style.setProperty('--gx', gx.toFixed(2));
       // loop: data-back keeps the gloss off. The photo stays — u0 above already
       // samples the other end of the frame so it reads un-mirrored from behind.
       if (loop) {
@@ -1170,7 +1178,7 @@ export default function FilmStrip3D({
         paintPhoto(ph, it, dense);
       }
       sliceIdx[slot] = idx;
-      st.backgroundImage = `${printFor(slot)}, ${HOLE}, ${HOLE}, ${BASE_SHADE}`;
+      st.backgroundImage = `${printFor(slot)}, ${HOLE}, ${HOLE}, ${GRAIN}, ${BASE_SHADE}`;
       lastFlip[slot] = -1;
       // Lite: fixed fog/gloss once — per-frame --sh/--gl is invisible on phones and costs writes.
       if (lite && lastSh[slot] < 0) {

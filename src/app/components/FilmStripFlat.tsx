@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, type KeyboardEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, type KeyboardEvent } from 'react'
 import styles from './FilmStrip3D.module.css'
 import type { FilmStripItem } from './FilmStrip3D'
 
@@ -17,6 +17,21 @@ export default function FilmStripFlat({
   onSelect?: (item: FilmStripItem, index: number) => void
 }) {
   const trackRef = useRef<HTMLDivElement>(null)
+
+  // Shift the scratch plate by each frame's x so it is one continuous strip, then scrolls with the frames.
+  useLayoutEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+    const apply = () => {
+      for (const frame of el.querySelectorAll<HTMLElement>('[data-film-frame]')) {
+        frame.style.setProperty('--grain-shift', `${-Math.round(frame.offsetLeft)}px`)
+      }
+    }
+    apply()
+    const ro = new ResizeObserver(apply)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [items])
 
   useEffect(() => {
     const el = trackRef.current
@@ -148,6 +163,7 @@ export default function FilmStripFlat({
               key={`${copy}-${it.src}-${i}`}
               type="button"
               className={styles.flatFrame}
+              data-film-frame=""
               aria-label={copy === 0 ? (it.label ?? it.alt) : undefined}
               aria-hidden={copy === 1 ? true : undefined}
               tabIndex={copy === 1 ? -1 : undefined}
