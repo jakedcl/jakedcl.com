@@ -74,6 +74,25 @@
   overflow: visible;
 }
 
+/* One static scratch plate over the strip. The flat filmstrip (pre–Oct 2026)
+   painted public/film-scratches.jpg on the rails with mix-blend-mode: screen.
+   That file is a near-black plate; screen was what kept the black from fogging
+   the photos. film-scratches-grain.webp is the same plate with the floor lifted
+   into alpha, so this stays a normal translucent overlay: no blend mode, no
+   per-slice layer, no will-change. Gated on data-tier so it doesn't flash
+   during SSR before the strip is posed. */
+.root[data-tier]::after {
+  content: '';
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  pointer-events: none;
+  background-image: url('/film-scratches-grain.webp');
+  background-repeat: repeat;
+  background-size: 680px auto;
+  opacity: 0.38;
+}
+
 .stage {
   position: absolute;
   inset: 0;
