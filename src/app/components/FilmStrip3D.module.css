@@ -16,6 +16,7 @@
  *   - gloss:          a photo-sized gradient (also clipped by the slice)
  * Per-slice custom properties written from JS:
  *   --w slice width   --pw frame pitch   --u0 offset inside the frame   --ph sprocket phase
+ *   --gx scratch-plate phase along the strip (mod 720)
  *   --pr edge-print image   --sh fog opacity   --gl gloss opacity
  * Root: --gap (black margin between two photos, px).
  */
@@ -74,25 +75,6 @@
   overflow: visible;
 }
 
-/* One static scratch plate over the strip. The flat filmstrip (pre–Oct 2026)
-   painted public/film-scratches.jpg on the rails with mix-blend-mode: screen.
-   That file is a near-black plate; screen was what kept the black from fogging
-   the photos. film-scratches-grain.webp is the same plate with the floor lifted
-   into alpha, so this stays a normal translucent overlay: no blend mode, no
-   per-slice layer, no will-change. Gated on data-tier so it doesn't flash
-   during SSR before the strip is posed. */
-.root[data-tier]::after {
-  content: '';
-  position: absolute;
-  z-index: 4;
-  inset: 0;
-  pointer-events: none;
-  background-image: url('/film-scratches-grain.webp');
-  background-repeat: repeat;
-  background-size: 680px auto;
-  opacity: 0.38;
-}
-
 .stage {
   position: absolute;
   inset: 0;
@@ -117,23 +99,32 @@
   pointer-events: none; /* clicks go to the .hit buttons */
   backface-visibility: visible;
   visibility: hidden; /* JS reveals slices once they have a pose */
-  /* layers, top to bottom: edge print, sprocket row (top), sprocket row (bottom), film base.
-     Everything here depends only on strip coordinates or on y, so it is identical in every slice.
-     Layer order is fixed by the script: [print, sprocket, sprocket, base shading] (all images, no CSS gradients:
+  /* layers, top to bottom: edge print, sprocket row (top), sprocket row (bottom),
+     scratch plate, film base. The scratch plate is the old film-scratches.jpg
+     (alpha WebP) so the grit is painted into the slice that already carries the
+     3D transform — it travels with the film. No extra element, blend mode, or
+     will-change. --gx is the plate's phase along the strip (same idea as --ph)
+     so neighbouring slices meet without a seam. Tile width 720px must match
+     GRAIN_TILE in FilmStrip3D.tsx. Layer order is fixed by the script:
+     [print, sprocket, sprocket, grain, base] (all images, no CSS gradients:
      mixing gradients with images on transformed slices also forced a re-raster per frame). */
   background-color: #08080a;
-  /* background-image (print + sprockets + base) is set inline by the script: a `var()` inside background-image
+  /* background-image is set inline by the script: a `var()` inside background-image
      makes Chrome re-rasterise every transformed slice on every frame. */
-  background-repeat: no-repeat, repeat-x, repeat-x, no-repeat;
+  background-repeat: no-repeat, repeat-x, repeat-x, repeat-x, no-repeat;
   /* print bitmap is full strip height: stock on the outer top band, frame # on the
      outer bottom band. Hole tiles (18px) sit against the photo (top 36px, height 112px),
-     so the type is outside the perforations. */
-  background-size: calc(var(--pw, 200) * 1px) 184px, 25px 18px, 25px 18px, 100% 100%;
+     so the type is outside the perforations. Grain is one tile tall (184px), so it
+     does not repeat vertically across the film. */
+  background-size: calc(var(--pw, 200) * 1px) 184px, 25px 18px, 25px 18px, 720px 184px, 100% 100%;
   background-position:
     calc((2 - var(--u0, 0)) * 1px) 0,
     calc(var(--ph, 0) * 1px) 18px,
     calc(var(--ph, 0) * 1px) 148px,
+    calc(var(--gx, 0) * 1px) 0,
     0 0;
+  /* x position of the same plate inside .ph, so scratches cross the photo edge unbroken */
+  --grain-x: calc((var(--gx, 0) - (var(--gap, 30) * 0.5 - var(--u0, 0) + 2)) * 1px);
 }
 
 /* the photo: a photo-sized box (so rounded corners / border / cover-crop are those of the whole
@@ -147,11 +138,12 @@
   height: 112px;
   border-radius: 0;
   background-color: #23252a;
-  /* two layers when a placeholder sits under the photo — one value would
-     size only the top image and leave the stand-in at its intrinsic size */
-  background-size: cover, cover;
-  background-position: 50% 50%, 50% 50%;
-  background-repeat: no-repeat, no-repeat;
+  /* Grain sits on top of the photo (set inline with the photo). Same 720×184
+     plate as the slice, shifted by --grain-x so it is stuck to this frame. */
+  background-image: url('/film-scratches-grain.webp');
+  background-size: 720px 184px;
+  background-position: var(--grain-x, 0px) -36px;
+  background-repeat: repeat-x;
   /* hairline dark ring + subtle inner highlight */
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.6),
@@ -253,6 +245,7 @@
 }
 
 .flatTrack {
+  position: relative;
   display: flex;
   align-items: stretch;
   width: 100%;
@@ -288,10 +281,12 @@
   background-color: #08080a;
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='25' height='18'%3E%3Crect x='5.5' y='4' width='14' height='10' rx='2.6' fill='%23f3f0e6' stroke='%23b4afa2' stroke-width='.6'/%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='25' height='18'%3E%3Crect x='5.5' y='4' width='14' height='10' rx='2.6' fill='%23f3f0e6' stroke='%23b4afa2' stroke-width='.6'/%3E%3C/svg%3E");
-  background-repeat: repeat-x, repeat-x;
-  background-size: 25px 18px, 25px 18px;
-  background-position: center 0, center 130px;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='25' height='18'%3E%3Crect x='5.5' y='4' width='14' height='10' rx='2.6' fill='%23f3f0e6' stroke='%23b4afa2' stroke-width='.6'/%3E%3C/svg%3E"),
+    url('/film-scratches-grain.webp');
+  background-repeat: repeat-x, repeat-x, repeat-x;
+  background-size: 25px 18px, 25px 18px, 720px 148px;
+  /* --grain-shift is this frame's x in the track, so the plate stays continuous across frames */
+  background-position: center 0, center 130px, var(--grain-shift, 0px) 0;
   cursor: pointer;
 }
 
@@ -301,6 +296,7 @@
 }
 
 .flatWindow {
+  position: relative;
   display: block;
   height: 112px;
   background-color: #23252a;
@@ -310,6 +306,19 @@
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.6),
     inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Same plate as the rails, over the photo. The frame already scrolls; this
+   pseudo does not animate on its own. */
+.flatWindow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url('/film-scratches-grain.webp');
+  background-repeat: repeat-x;
+  background-size: 720px 148px;
+  background-position: calc(var(--grain-shift, 0px) - 10px) -18px;
 }
 
 .flatWindow img {
