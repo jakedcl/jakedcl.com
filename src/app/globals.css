@@ -250,6 +250,198 @@ body::before {
   animation-delay: 0.08s;
 }
 
+/* First-view load only. One-shot on wrappers; the filmstrip keeps its own loop. */
+@keyframes hero-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hero-slash-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-12px, 0, 0);
+  }
+  to {
+    opacity: 0.9;
+    transform: none;
+  }
+}
+
+@keyframes hero-rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-in {
+  animation-duration: 0.62s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-fill-mode: both;
+}
+
+.hero-in-fade {
+  animation-name: hero-fade-in;
+  animation-duration: 0.4s;
+}
+
+.hero-in-type {
+  animation-name: hero-type-in;
+}
+
+@keyframes hero-letter-in {
+  from {
+    max-width: 0;
+    opacity: 0;
+  }
+  to {
+    max-width: 1.5em;
+    opacity: 1;
+  }
+}
+
+.hero-letter {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  animation-name: hero-letter-in;
+  animation-duration: 0.01s;
+  animation-timing-function: steps(1, end);
+  animation-fill-mode: both;
+}
+
+@keyframes hero-caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* One 2.4s clock for both carets. JAKE's cursor rests through the hitch
+   before E, then hands off when D is struck. DCL's cursor stays a beat after L. */
+@keyframes hero-caret-jake-life {
+  0%,
+  9% {
+    visibility: hidden;
+  }
+  10%,
+  60% {
+    visibility: visible;
+  }
+  61%,
+  100% {
+    visibility: hidden;
+  }
+}
+
+@keyframes hero-caret-dcl-life {
+  0%,
+  60% {
+    visibility: hidden;
+  }
+  61%,
+  85% {
+    visibility: visible;
+  }
+  86%,
+  100% {
+    visibility: hidden;
+  }
+}
+
+.hero-caret {
+  display: inline-block;
+  width: 0.055em;
+  height: 0.72em;
+  margin-left: 0.04em;
+  background: var(--signal-red);
+  vertical-align: top;
+  transform: translateY(0.08em);
+}
+
+.hero-caret-jake {
+  animation:
+    hero-caret-blink 0.76s steps(1, end) infinite,
+    hero-caret-jake-life 2.4s linear both;
+}
+
+.hero-caret-dcl {
+  animation:
+    hero-caret-blink 0.76s steps(1, end) infinite,
+    hero-caret-dcl-life 2.4s linear both;
+}
+
+.hero-in-slash {
+  animation-name: hero-slash-in;
+  animation-duration: 0.75s;
+}
+
+/* Sits over the strip until the first posed frame, then fades off.
+   Opacity on an ancestor would flatten the 3D ribbon. */
+.hero-strip-veil {
+  position: absolute;
+  z-index: 2;
+  left: -18%;
+  right: -18%;
+  top: -28%;
+  bottom: -70%;
+  background: var(--background);
+  pointer-events: none;
+}
+
+.hero-strip-veil.is-out {
+  animation: hero-fade-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) reverse both;
+}
+
+.hero-in-rise {
+  animation-name: hero-rise-in;
+  animation-duration: 0.55s;
+}
+
+.hero-wait-1 {
+  animation-delay: 0.08s;
+}
+
+.hero-wait-2 {
+  animation-delay: 0.18s;
+}
+
+.hero-wait-3 {
+  animation-delay: 0.28s;
+}
+
+.hero-wait-4 {
+  animation-delay: 0.4s;
+}
+
+.hero-wait-5 {
+  animation-delay: 0.5s;
+}
+
+.hero-wait-dcl {
+  animation-delay: 1.45s;
+}
+
+.hero-wait-bio {
+  animation-delay: 1.41s;
+}
+
+.hero-wait-nav {
+  animation-delay: 1.69s;
+}
+
 @supports (animation-timeline: scroll()) {
   .hero-scrub {
     animation: hero-scrub linear both;
@@ -300,10 +492,26 @@ body::before {
   .hero-field,
   .hero-type-line,
   .hero-type-line-delay,
+  .hero-in,
+  .hero-letter,
+  .hero-caret,
   .band-enter {
     animation: none !important;
     transform: none !important;
     opacity: 1 !important;
+  }
+
+  .hero-in-slash {
+    opacity: 0.9 !important;
+  }
+
+  .hero-caret {
+    display: none !important;
+  }
+
+  .hero-strip-veil.is-out {
+    animation: none !important;
+    opacity: 0 !important;
   }
 
   .stamp-btn:hover {

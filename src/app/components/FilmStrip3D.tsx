@@ -91,6 +91,8 @@ export type FilmStrip3DProps = {
   /** Force low-power mode (30fps, wider slices => fewer DOM nodes). Default: auto-detect. */
   lowPower?: boolean;
   className?: string;
+  /** Fires once the first posed frame (or the flat fallback) is in the DOM. */
+  onReady?: () => void;
 };
 
 /* ------------------------------------------------------------------ */
@@ -833,8 +835,13 @@ export default function FilmStrip3D({
   ariaLabel = 'Photo film strip',
   lowPower,
   className,
+  onReady,
 }: FilmStrip3DProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const onReadyRef = useRef(onReady);
+  useIsoLayoutEffect(() => {
+    onReadyRef.current = onReady;
+  });
   // 'ssr' until the client knows the viewport, so we never paint the desktop
   // loop and then swap it for the phone one (that flash is a layout jump).
   const [tier, setTier] = useState<StripTier>('ssr');
@@ -1692,6 +1699,7 @@ export default function FilmStrip3D({
 
     measure();
     render();
+    onReadyRef.current?.();
     start();
 
     /* ---- handlers exposed to React ---- */
@@ -1868,6 +1876,11 @@ export default function FilmStrip3D({
       api.current = null;
     };
   }, [variant, amplitude, loopCfg, perspective, plan, low, frameCount, sliceCount, gapC, stockLabel, flat, tier]);
+
+  useEffect(() => {
+    if (tier === 'ssr' || !flat) return;
+    onReadyRef.current?.();
+  }, [flat, tier]);
 
   // items changed → re-sync labels / srcs
   useIsoLayoutEffect(() => {

@@ -18,6 +18,8 @@ interface FilmstripProps {
   photos: SanityImage[]
   /** Kept for API compat; the strip always renders its own film chrome. */
   framed?: boolean
+  /** Cover the strip until its first frame is posed, then fade the cover off. */
+  entrance?: boolean
 }
 
 function sizedSrc(photo: SanityImage, width: number, quality: number) {
@@ -28,7 +30,9 @@ function sizedSrc(photo: SanityImage, width: number, quality: number) {
   }
 }
 
-export default function Filmstrip({ photos }: FilmstripProps) {
+export default function Filmstrip({ photos, entrance = false }: FilmstripProps) {
+  const [revealed, setRevealed] = useState(false)
+  const onReady = useCallback(() => setRevealed(true), [])
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [mounted, setMounted] = useState(false)
   const [imgState, setImgState] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -350,6 +354,7 @@ export default function Filmstrip({ photos }: FilmstripProps) {
       >
         <FilmStrip3D
           items={items}
+          onReady={entrance ? onReady : undefined}
           speed={selectedIndex === null ? 0.8 : 0}
           // 'loop' = arches towards the viewer, hairpin U-turn, doubles back and recedes
           variant="loop"
@@ -362,6 +367,12 @@ export default function Filmstrip({ photos }: FilmstripProps) {
             setSelectedIndex(index)
           }}
         />
+        {entrance && (
+          <div
+            aria-hidden
+            className={revealed ? 'hero-strip-veil is-out' : 'hero-strip-veil'}
+          />
+        )}
       </section>
 
       {lightbox}
