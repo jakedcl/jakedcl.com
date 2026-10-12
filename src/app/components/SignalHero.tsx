@@ -6,7 +6,7 @@ import type { SanityImage } from '@/types/sanity'
 // The gap before D is the breath between lines.
 const JAKE = [
   ['J', '0.28s'],
-  ['A', '0.4s'],
+  ['A', '0.5s'],
   ['K', '0.71s'],
   ['E', '1.21s'],
 ] as const
