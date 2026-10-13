@@ -31,6 +31,9 @@ export default function ResumePage() {
           >
             Work
           </Link>
+          <Link href="/photos" className="text-ink/55 transition-colors hover:text-signal-blue">
+            Photos
+          </Link>
           {email && (
             <a
               href={email.href}

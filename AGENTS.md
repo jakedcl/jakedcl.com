@@ -12,7 +12,8 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 15 App Router, React 19, Tailwind v4
 
 ## Routes
 
-- `/` — hero + WORK + in-page resume
+- `/` — hero filmstrip (project showcase) + in-page resume
+- `/photos` — gallery grid (`settings.galleryPhotos`)
 - `/resume` — standalone resume
 - `/studio` — Sanity Studio
 - `/skyline` → redirect to skyinfoline (see `next.config.ts`)
@@ -21,8 +22,8 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 15 App Router, React 19, Tailwind v4
 
 | Source | Powers |
 | --- | --- |
-| Sanity `project` | WORK cards (`displayOrder`). Copy facts only from `docs/PROJECT_BRIEFS.md` — never invent clients, features, or URLs. |
-| Sanity `settings.galleryPhotos` | Hero filmstrip. Site uses first **16** frames; more stalls phones. |
+| Sanity `project` | Homepage filmstrip. Each project is 3 frames: text (`title` h3 + second block, `stack`) then `screenshots` (exactly 2). Order: `displayOrder`. Copy facts only from `docs/PROJECT_BRIEFS.md`. |
+| Sanity `settings.galleryPhotos` | `/photos` grid. Do not delete these. Not the homepage strip. |
 | `src/data/resume.ts` | Resume / contact on `/` and `/resume`. Not CMS-backed. |
 
 `settings.bioText` exists in schema but is unused — hero copy is local UI, not that field. Types: `src/types/sanity.ts`. Queries: `src/sanity/lib/queries.ts`.
@@ -38,7 +39,7 @@ Fonts: Syne (display), Bricolage Grotesque (shape), IBM Plex Mono (utility), Hel
 ## Code map
 
 - Pages: `src/app/page.tsx`, `src/app/resume/page.tsx`
-- UI: `src/app/components/` — `SignalHero`, `Filmstrip` → `FilmStrip3D` / `FilmStripFlat`, `ProjectCard`, `Resume`
+- UI: `src/app/components/` — `SignalHero`, `Filmstrip` → `FilmStrip3D` / `FilmStripFlat`, `Resume`
 - Sanity: `src/sanity/schemaTypes/`, `lib/`, `env.ts`, `structure.ts`
 - Filmstrip is the mobile Safari hot path — prefer perf/clarity over new visual effects there.
 

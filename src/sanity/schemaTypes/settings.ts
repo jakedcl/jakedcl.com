@@ -67,7 +67,7 @@ export const settingsType = defineType({
         },
       ],
       description:
-        'Photos for the homepage filmstrip. Keep this to about 12–16 strong frames — the site only uses the first 16, and a big dump stalls phones.',
+        'Photo gallery for the /photos page. These are not the homepage filmstrip — that strip is the project showcase. Do not delete this list.',
     }),
   ],
   preview: {

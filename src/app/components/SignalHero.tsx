@@ -1,6 +1,6 @@
 import { resume } from '@/data/resume'
+import type { Project } from '@/types/sanity'
 import Filmstrip from './Filmstrip'
-import type { SanityImage } from '@/types/sanity'
 
 // A known word, then initials. Fast pair, a hitch, the last letter.
 // The gap before D is the breath between lines.
@@ -18,9 +18,11 @@ const DCL = [
 ] as const
 
 export default function SignalHero({
-  photos,
+  projects,
+  error = false,
 }: {
-  photos: SanityImage[] | undefined
+  projects: Project[]
+  error?: boolean
 }) {
   const email = resume.contact.find((c) => c.href.startsWith('mailto:'))
   const linkedin = resume.contact.find((c) => c.href.includes('linkedin'))
@@ -71,15 +73,24 @@ export default function SignalHero({
               ribbon sits just under DCL (not floating in mid-canvas cream). */}
           <div className="pointer-events-none absolute -left-4 -right-4 top-[4.5rem] z-0 md:-left-6 md:-right-6 tall:top-24">
             <div className="pointer-events-auto">
-              {photos && photos.length > 0 ? (
-                <Filmstrip photos={photos} entrance />
+              {error ? (
+                <div
+                  className="hero-in hero-in-fade hero-wait-3 flex items-center justify-center bg-ink/[0.04]"
+                  style={{ height: 'clamp(200px, 34svh, 640px)' }}
+                >
+                  <p className="font-utility text-xs uppercase tracking-[0.18em] text-ink/45">
+                    Projects didn&apos;t load. Refresh to try again.
+                  </p>
+                </div>
+              ) : projects.length > 0 ? (
+                <Filmstrip projects={projects} entrance />
               ) : (
                 <div
                   className="hero-in hero-in-fade hero-wait-3 flex items-center justify-center bg-ink/[0.04]"
                   style={{ height: 'clamp(200px, 34svh, 640px)' }}
                 >
                   <p className="font-utility text-xs uppercase tracking-[0.18em] text-ink/35">
-                    No photos yet
+                    No projects on the board yet.
                   </p>
                 </div>
               )}
@@ -129,6 +140,12 @@ export default function SignalHero({
               className="py-1 text-ink/55 transition-colors hover:text-signal-blue"
             >
               Work
+            </a>
+            <a
+              href="/photos"
+              className="py-1 text-ink/55 transition-colors hover:text-signal-blue"
+            >
+              Photos
             </a>
             <a
               href="/resume"

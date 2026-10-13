@@ -1,376 +1,229 @@
 'use client'
 
-import { SanityImage } from '@/types/sanity'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { urlFor } from '@/sanity/lib/image'
-import FilmStrip3D, { type FilmStripItem, prefersSmallImages } from './FilmStrip3D'
+import type { Project, SanityImage } from '@/types/sanity'
+import type { PortableTextBlock } from 'next-sanity'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import FilmStrip3D, { type FilmStripItem } from './FilmStrip3D'
 
-// Photo window is ~150×112 CSS px and can scale up to ~2.2× on the near side
-// of the loop. 480 covers that at 1×; 800 covers 2× and most 3× phones.
-// The strip only uses the first 16 frames — a full camera roll stalls phones.
-const THUMB_WIDTH = 480
-const THUMB_2X = 800
-const MAX_STRIP_PHOTOS = 16
-const LIGHTBOX_WIDTHS = [640, 960, 1280, 1600, 2000] as const
+const GROUP = 3
+const FRAME_ASPECT = 4 / 3
+const STEP_MS = 5000
 
-interface FilmstripProps {
-  photos: SanityImage[]
-  /** Kept for API compat; the strip always renders its own film chrome. */
-  framed?: boolean
-  /** Hold the strip invisible until its first frame is posed, then fade it in. */
-  entrance?: boolean
+const mod = (n: number, m: number) => ((n % m) + m) % m
+
+function blockText(block: PortableTextBlock | undefined) {
+  if (!block || !Array.isArray(block.children)) return ''
+  return block.children
+    .map((child) =>
+      child && typeof child === 'object' && 'text' in child && typeof child.text === 'string'
+        ? child.text
+        : '',
+    )
+    .join('')
+    .trim()
 }
 
-function sizedSrc(photo: SanityImage, width: number, quality: number) {
+function shotUrl(shot: SanityImage, width: number, height: number) {
+  if (!shot.asset?.url && !shot.asset?._ref) return ''
   try {
-    return urlFor(photo).width(width).quality(quality).auto('format').fit('max').url()
+    return urlFor(shot).width(width).height(height).fit('crop').auto('format').quality(68).url()
   } catch {
-    return photo.asset?.url ?? ''
+    return shot.asset?.url ?? ''
   }
 }
 
-export default function Filmstrip({ photos, entrance = false }: FilmstripProps) {
-  const [revealed, setRevealed] = useState(false)
+function framesFor(projects: Project[]): FilmStripItem[] {
+  const frames: FilmStripItem[] = []
+  for (const project of projects) {
+    const blocks = project.title ?? []
+    const title = blockText(blocks.find((block) => block.style === 'h3') ?? blocks[0]) || 'Untitled'
+    const description = blocks.length > 1 ? blockText(blocks[1]) : ''
+    const stack = (project.stack ?? []).map((item) => item.trim()).filter(Boolean)
+    frames.push({
+      src: '',
+      alt: title,
+      label: `Open ${title}`,
+      aspect: FRAME_ASPECT,
+      copy: { title, description, stack },
+    })
+    for (let i = 0; i < 2; i++) {
+      const shot = project.screenshots?.[i]
+      const src = shot ? shotUrl(shot, 480, 360) : ''
+      const src2x = shot ? shotUrl(shot, 800, 600) : ''
+      frames.push({
+        src,
+        src2x: src2x || undefined,
+        placeholder: shot?.asset?.metadata?.lqip,
+        alt: shot?.alt || `${title} screenshot ${i + 1}`,
+        label: `Open ${title}`,
+        aspect: FRAME_ASPECT,
+      })
+    }
+  }
+  return frames
+}
+
+function Arrow({ dir }: { dir: 'left' | 'right' }) {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d={dir === 'left' ? 'M10 3 L5 8 L10 13' : 'M6 3 L11 8 L6 13'}
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="square"
+      />
+    </svg>
+  )
+}
+
+export default function Filmstrip({
+  projects,
+  entrance = false,
+}: {
+  projects: Project[]
+  entrance?: boolean
+}) {
+  const [cursor, setCursor] = useState(0)
+  const [hovering, setHovering] = useState(false)
+  const [engaged, setEngaged] = useState(false)
+  const [reduced, setReduced] = useState(false)
+  const [hidden, setHidden] = useState(false)
+  const [revealed, setRevealed] = useState(!entrance)
+  const sectionRef = useRef<HTMLElement>(null)
+  const cursorRef = useRef(0)
+  cursorRef.current = cursor
+
+  const count = projects.length
+  const index = count ? mod(cursor, count) : 0
+  const project = projects[index]
+  const blocks = project?.title ?? []
+  const title = blockText(blocks.find((block) => block.style === 'h3') ?? blocks[0]) || 'Untitled'
+  const description = blocks.length > 1 ? blockText(blocks[1]) : ''
+
   const onReady = useCallback(() => setRevealed(true), [])
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
-  const [mounted, setMounted] = useState(false)
-  const [imgState, setImgState] = useState<'loading' | 'ready' | 'error'>('loading')
-  const dialogRef = useRef<HTMLDivElement>(null)
-  const openerRef = useRef<HTMLElement | null>(null)
-  const swipeRef = useRef<{ x: number; y: number; id: number } | null>(null)
-  const swipedRef = useRef(false)
-
-  const validPhotos = useMemo(
-    () => (photos ?? []).filter((photo) => photo?.asset).slice(0, MAX_STRIP_PHOTOS),
-    [photos],
-  )
-
-  // FilmStrip3D loops the list forever, so no manual repeating is needed.
-  // Force 4:3 landscape so every frame is the same pitch (cover-crops in the window).
-  const items = useMemo<FilmStripItem[]>(
-    () =>
-      validPhotos.map((photo, i) => {
-        const alt = photo.alt || `Frame ${i + 1}`
-        return {
-          src: sizedSrc(photo, THUMB_WIDTH, 68),
-          src2x: sizedSrc(photo, THUMB_2X, 70),
-          placeholder: photo.asset?.metadata?.lqip,
-          alt,
-          label: `Open ${alt}`,
-          aspect: 4 / 3,
-        }
-      }),
-    [validPhotos],
-  )
 
   useEffect(() => {
-    setMounted(true)
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const apply = () => setReduced(mq.matches)
+    apply()
+    mq.addEventListener?.('change', apply)
+    return () => mq.removeEventListener?.('change', apply)
   }, [])
 
-  const navigateLightbox = useCallback(
-    (direction: 'prev' | 'next') => {
-      if (selectedIndex === null || validPhotos.length === 0) return
-      if (direction === 'prev') {
-        setSelectedIndex(
-          selectedIndex === 0 ? validPhotos.length - 1 : selectedIndex - 1,
-        )
-      } else {
-        setSelectedIndex(
-          selectedIndex === validPhotos.length - 1 ? 0 : selectedIndex + 1,
-        )
-      }
-    },
-    [selectedIndex, validPhotos.length],
-  )
+  useEffect(() => {
+    const onVis = () => setHidden(document.hidden)
+    onVis()
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
 
   useEffect(() => {
-    setImgState('loading')
-  }, [selectedIndex])
+    if (reduced || hovering || engaged || hidden || count < 2) return
+    const id = window.setTimeout(() => setCursor((c) => c + 1), STEP_MS)
+    return () => window.clearTimeout(id)
+  }, [reduced, hovering, engaged, hidden, count, cursor])
 
-  useEffect(() => {
-    if (selectedIndex === null) return
+  const open = useCallback(() => {
+    const current = projects[mod(cursorRef.current, projects.length)]
+    const href = current?.link || 'https://example.com'
+    window.open(href, '_blank', 'noopener,noreferrer')
+  }, [projects])
 
-    openerRef.current = document.activeElement as HTMLElement | null
-    const scrollY = window.scrollY
-    const body = document.body
-    const prev = {
-      position: body.style.position,
-      top: body.style.top,
-      left: body.style.left,
-      right: body.style.right,
-      width: body.style.width,
-    }
-    // position:fixed stops iOS from scrolling the page behind the dialog.
-    // overflow:hidden alone does not.
-    body.style.position = 'fixed'
-    body.style.top = `-${scrollY}px`
-    body.style.left = '0'
-    body.style.right = '0'
-    body.style.width = '100%'
+  const step = (dir: 1 | -1) => setCursor((c) => c + dir)
 
-    const dialog = dialogRef.current
-    dialog?.focus()
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault()
-        setSelectedIndex(null)
-        return
-      }
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault()
-        navigateLightbox('prev')
-        return
-      }
-      if (e.key === 'ArrowRight') {
-        e.preventDefault()
-        navigateLightbox('next')
-        return
-      }
-      if (e.key !== 'Tab' || !dialog) return
-      const nodes = [...dialog.querySelectorAll<HTMLElement>('button, [href], img')].filter(
-        (el) => !el.hasAttribute('disabled'),
-      )
-      if (nodes.length === 0) return
-      const first = nodes[0]
-      const last = nodes[nodes.length - 1]
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault()
-        last.focus()
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault()
-        first.focus()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      body.style.position = prev.position
-      body.style.top = prev.top
-      body.style.left = prev.left
-      body.style.right = prev.right
-      body.style.width = prev.width
-      window.scrollTo(0, scrollY)
-      openerRef.current?.focus?.()
-    }
-  }, [selectedIndex, navigateLightbox])
-
-  if (!validPhotos.length) return null
-
-  const selected = selectedIndex !== null ? validPhotos[selectedIndex] : null
-  const smallNet = mounted && selected ? prefersSmallImages() : false
-  const selectedSrc = selected
-    ? sizedSrc(selected, smallNet ? 960 : 1280, smallNet ? 65 : 75)
-    : ''
-  const selectedSet =
-    selected && !smallNet
-      ? LIGHTBOX_WIDTHS.map((w) => `${sizedSrc(selected, w, w >= 1600 ? 72 : 75)} ${w}w`).join(', ')
-      : undefined
-  const countLabel =
-    selectedIndex !== null
-      ? `${String(selectedIndex + 1).padStart(2, '0')} / ${String(validPhotos.length).padStart(2, '0')}`
-      : ''
-  const photoW = selected?.asset?.metadata?.dimensions?.width
-  const photoH = selected?.asset?.metadata?.dimensions?.height
-  const photoRatio = photoW && photoH ? photoW / photoH : undefined
-  // Cap the frame by viewport, then let width follow the photo so the box
-  // matches the file. A full-width frame was painting the LQIP as side bars.
-  const frameMaxH =
-    typeof CSS !== 'undefined' && CSS.supports('height', '1dvh')
-      ? 'min(78dvh, 78vh)'
-      : '78vh'
-
-  const close = () => setSelectedIndex(null)
-
-  const onLightboxPointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === 'mouse' && e.button !== 0) return
-    swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId }
-    swipedRef.current = false
-  }
-
-  const onLightboxPointerUp = (e: React.PointerEvent) => {
-    const start = swipeRef.current
-    swipeRef.current = null
-    if (!start || start.id !== e.pointerId) return
-    const dx = e.clientX - start.x
-    const dy = e.clientY - start.y
-    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy)) return
-    swipedRef.current = true
-    navigateLightbox(dx < 0 ? 'next' : 'prev')
-  }
-
-  const onBackdropClick = () => {
-    if (swipedRef.current) {
-      swipedRef.current = false
+  const onSectionClick = (e: React.MouseEvent<HTMLElement>) => {
+    if ((e.target as HTMLElement).closest('[data-film-nav]')) return
+    if (e.currentTarget.getAttribute('data-suppress-click')) {
+      e.currentTarget.removeAttribute('data-suppress-click')
       return
     }
-    close()
+    open()
   }
 
-  const lightbox =
-    mounted &&
-    selected &&
-    selectedSrc &&
-    createPortal(
-      <div
-        ref={dialogRef}
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/92 outline-none"
-        style={{
-          paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))',
-          paddingRight: 'max(0.75rem, env(safe-area-inset-right, 0px))',
-          paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))',
-          paddingLeft: 'max(0.75rem, env(safe-area-inset-left, 0px))',
-        }}
-        onClick={onBackdropClick}
-        onPointerDown={onLightboxPointerDown}
-        onPointerUp={onLightboxPointerUp}
-        onPointerCancel={() => {
-          swipeRef.current = null
-        }}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Image lightbox"
-        tabIndex={-1}
-      >
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            close()
-          }}
-          className="absolute z-10 flex h-11 w-11 items-center justify-center text-white transition-colors hover:text-gray-300"
-          style={{
-            top: 'max(0.75rem, env(safe-area-inset-top, 0px))',
-            right: 'max(0.75rem, env(safe-area-inset-right, 0px))',
-          }}
-          aria-label="Close"
-        >
-          <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+  const onKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault()
+      step(e.key === 'ArrowRight' ? 1 : -1)
+      return
+    }
+    if (e.key !== 'Enter' && e.key !== ' ') return
+    if ((e.target as HTMLElement).closest('[data-film-nav]')) return
+    e.preventDefault()
+    open()
+  }
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            navigateLightbox('prev')
-          }}
-          className="absolute z-10 flex h-11 w-11 items-center justify-center text-white transition-colors hover:text-gray-300"
-          style={{ left: 'max(0.25rem, env(safe-area-inset-left, 0px))' }}
-          aria-label="Previous"
-        >
-          <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            navigateLightbox('next')
-          }}
-          className="absolute z-10 flex h-11 w-11 items-center justify-center text-white transition-colors hover:text-gray-300"
-          style={{ right: 'max(0.25rem, env(safe-area-inset-right, 0px))' }}
-          aria-label="Next"
-        >
-          <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-
-        <div
-          className="relative z-10 flex max-h-full w-full max-w-[min(92vw,1200px)] flex-col items-center justify-center px-12"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div
-            className="relative bg-[#1a1a1a]"
-            style={
-              imgState === 'error' || !photoRatio
-                ? { minHeight: '12rem', width: '100%' }
-                : {
-                    aspectRatio: `${photoW} / ${photoH}`,
-                    width: `min(100%, calc(${frameMaxH} * ${photoRatio}))`,
-                    maxHeight: frameMaxH,
-                  }
-            }
-          >
-            {imgState === 'error' ? (
-              <p className="font-utility px-6 py-16 text-center text-xs uppercase tracking-[0.16em] text-white/70">
-                This frame didn&apos;t load.
-              </p>
-            ) : (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                key={selectedSrc}
-                src={selectedSrc}
-                srcSet={selectedSet}
-                sizes="(max-width: 768px) 92vw, min(80vw, 1200px)"
-                alt={selected.alt || `Gallery image ${(selectedIndex ?? 0) + 1}`}
-                width={photoW || 1200}
-                height={photoH || 900}
-                decoding="async"
-                fetchPriority="high"
-                ref={(node) => {
-                  // Cached images can be complete before onLoad is attached.
-                  if (node?.complete && node.naturalWidth > 0) setImgState('ready')
-                }}
-                onLoad={() => setImgState('ready')}
-                onError={() => setImgState('error')}
-                className="block h-full w-full object-contain"
-                style={{ opacity: imgState === 'ready' ? 1 : 0 }}
-                aria-busy={imgState === 'loading'}
-              />
-            )}
-          </div>
-          <p className="font-utility mt-3 text-center text-[0.7rem] uppercase tracking-[0.16em] text-signal-yellow">
-            {countLabel}
-          </p>
-          {selected.caption && (
-            <p className="mt-2 max-w-2xl px-4 text-center text-sm text-white">
-              {selected.caption}
-            </p>
-          )}
-        </div>
-      </div>,
-      document.body,
-    )
+  const items = framesFor(projects)
 
   return (
-    <>
-      <section
-        className="relative w-full overflow-x-clip overflow-y-visible"
-        style={{
-          // Mobile / short landscape: short canvas so the ribbon sits under the name.
-          // Tall desktop: taller loop (overridden in CSS).
-          ['--fs3d-height' as string]: 'clamp(200px, 34svh, 280px)',
-          ['--fs3d-height-md' as string]: 'clamp(400px, 56svh, 640px)',
-          ['--fs3d-ink' as string]: 'var(--signal-yellow)',
+    <section
+      ref={sectionRef}
+      id="work"
+      data-film-showcase=""
+      tabIndex={0}
+      aria-roledescription="carousel"
+      aria-label={`${title}. ${description}`.trim()}
+      className={`relative w-full overflow-x-clip overflow-y-visible outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal-yellow ${
+        entrance ? (revealed ? 'hero-film-in' : 'hero-film-hold') : ''
+      }`}
+      style={{
+        ['--fs3d-height' as string]: 'clamp(220px, 36svh, 300px)',
+        ['--fs3d-height-md' as string]: 'clamp(420px, 56svh, 640px)',
+        ['--fs3d-ink' as string]: 'var(--signal-yellow)',
+      }}
+      onClick={onSectionClick}
+      onKeyDown={onKeyDown}
+      onPointerEnter={(e) => {
+        if (e.pointerType === 'mouse') setHovering(true)
+      }}
+      onPointerLeave={(e) => {
+        if (e.pointerType === 'mouse') setHovering(false)
+      }}
+    >
+      <p className="sr-only" aria-live="polite">
+        {title}
+        {description ? `. ${description}` : ''}
+      </p>
+      <FilmStrip3D
+        items={items}
+        stepSize={GROUP}
+        groupCursor={cursor}
+        speed={0}
+        variant="loop"
+        turnSharpness={1}
+        depth={1}
+        ariaLabel={`${title} film strip`}
+        onReady={entrance ? onReady : undefined}
+        onStep={step}
+        onEngageChange={setEngaged}
+        onSelect={open}
+      />
+      <button
+        type="button"
+        data-film-nav=""
+        aria-label="Previous project"
+        className="absolute top-1/2 left-1 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center border border-ink/15 bg-cream/90 text-ink shadow-[2px_2px_0_0_rgba(10,10,10,0.08)] transition-colors hover:bg-signal-yellow md:left-2"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation()
+          step(-1)
         }}
-        aria-label="Photo filmstrip"
       >
-        <FilmStrip3D
-          items={items}
-          className={entrance ? (revealed ? 'hero-film-in' : 'hero-film-hold') : undefined}
-          onReady={entrance ? onReady : undefined}
-          speed={selectedIndex === null ? 0.8 : 0}
-          // 'loop' = arches towards the viewer, hairpin U-turn, doubles back and recedes
-          variant="loop"
-          turnSharpness={1}
-          depth={1}
-          ariaLabel="Photo film strip"
-          // Drags never fire onSelect, so a plain click/tap/Enter always opens the lightbox.
-          onSelect={(_item, index) => {
-            swipedRef.current = false
-            setSelectedIndex(index)
-          }}
-        />
-      </section>
-
-      {lightbox}
-    </>
+        <Arrow dir="left" />
+      </button>
+      <button
+        type="button"
+        data-film-nav=""
+        aria-label="Next project"
+        className="absolute top-1/2 right-1 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center border border-ink/15 bg-cream/90 text-ink shadow-[2px_2px_0_0_rgba(10,10,10,0.08)] transition-colors hover:bg-signal-yellow md:right-2"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation()
+          step(1)
+        }}
+      >
+        <Arrow dir="right" />
+      </button>
+    </section>
   )
 }

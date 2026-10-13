@@ -56,6 +56,15 @@ export type FilmStripItem = {
   height?: number;
   /** width / height. Alternative to width + height (e.g. Sanity `metadata.dimensions.aspectRatio`). */
   aspect?: number;
+  /**
+   * Black text card instead of a photo. Drawn in the hit (one plane) so the
+   * type stays together while the film under it still bends.
+   */
+  copy?: {
+    title: string;
+    description?: string;
+    stack?: string[];
+  };
 };
 
 export type FilmStrip3DProps = {
@@ -93,6 +102,18 @@ export type FilmStrip3DProps = {
   className?: string;
   /** Fires once the first posed frame (or the flat fallback) is in the DOM. */
   onReady?: () => void;
+  /**
+   * When set, the strip rests with this many frames centered on the hero
+   * and travels one group at a time. Continuous crawl is off.
+   */
+  stepSize?: number;
+  /** Unwrapped group index. Negative and past-the-end values loop the strip forward. */
+  groupCursor?: number;
+  /** Swipe, drag, or horizontal wheel asks to move one group. */
+  onStep?: (dir: 1 | -1) => void;
+  onHoverChange?: (hovering: boolean) => void;
+  /** Pointer is down on the strip (pause an external autoplay timer). */
+  onEngageChange?: (engaged: boolean) => void;
 };
 
 /* ------------------------------------------------------------------ */
@@ -275,7 +296,15 @@ function generatePath(variant: 'ribbon' | 'helix', pr: PathParams, length: numbe
 /* loop path: a switchback ribbon with two hairpin U-turns             */
 /* ------------------------------------------------------------------ */
 
-type LoopCfg = { sharp: number; depth: number; compact: number; minR: number; viewW: number };
+type LoopCfg = {
+  sharp: number;
+  depth: number;
+  compact: number;
+  minR: number;
+  viewW: number;
+  /** Extra straight run at the hero so one project (N frames) sits face-on. 0 keeps the old path. */
+  stage: number;
+};
 
 const RAMP = 0.3; // curvature ramps in/out over this fraction of a hairpin (no kinks)
 const bumpW = (u: number) => 1 - Math.cos(TAU * clamp(u, 0, 1)); // ∫ over [0,1] = 1
@@ -317,20 +346,25 @@ function loopSegs(c: LoopCfg) {
   const bleedL = 1100 - 750 * k;
   const extraW = k > 0 ? Math.max(0, c.viewW - 420) : 0;
   const bleedR = 2400 - 1950 * k + extraW * 3.4;
+  const stage = Math.max(0, c.stage || 0);
   const segs: LoopSeg[] = [
     { len: 80 - 40 * k + bleedL, d: 0, kind: 'bump' }, // run-in, continues off the left edge
     { len: 720 - 500 * k, d: thA - th0, kind: 'bump' }, // arch towards the hairpin
+  ];
+  // Straight, still at heading thA, so a whole project can sit face-on before the turn.
+  if (stage > 0) segs.push({ len: stage, d: 0, kind: 'bump' });
+  segs.push(
     { len: (Math.abs(thB - thA) * R1) / (1 - RAMP), d: thB - thA, kind: 'turn' },
     { len: 260 - 160 * k, d: thB2 - thB, kind: 'bump' },
     { len: (Math.abs(thC - thB2) * R2) / (1 - RAMP), d: thC - thB2, kind: 'turn' },
     { len: 820 - 600 * k, d: thEnd - thC, kind: 'bump' }, // receding leg
     { len: 160 - 100 * k + bleedR, d: 0, kind: 'bump' }, // tail, continues off the right edge
-  ];
-  return { segs, th0, dk, Lp: segs.reduce((a, s) => a + s.len, 0), bleedL, bleedR };
+  );
+  return { segs, th0, dk, Lp: segs.reduce((a, s) => a + s.len, 0), bleedL, bleedR, stage };
 }
 
 function generateLoop(c: LoopCfg, pad: number, bank = 0.05): PathTable {
-  const { segs, th0, dk, Lp, bleedL, bleedR } = loopSegs(c);
+  const { segs, th0, dk, Lp, bleedL, bleedR, stage } = loopSegs(c);
   const length = Lp + 2 * pad;
   const TABLE = Math.max(64, Math.ceil(length / TABLE_STEP));
   const ds = length / TABLE;
@@ -356,10 +390,14 @@ function generateLoop(c: LoopCfg, pad: number, bank = 0.05): PathTable {
   };
   // the legs climb through the hairpins, so the zig-zag stacks into tiers on screen
   const LIFT = 70 * dk;
-  const t1a = segStart[2] - 120;
-  const t1b = segStart[2] + segs[2].len + 420;
-  const t2a = segStart[4] - 120;
-  const t2b = segStart[4] + segs[4].len + 420;
+  const turns: number[] = [];
+  for (let i = 0; i < segs.length; i++) if (segs[i].kind === 'turn') turns.push(i);
+  const turnA = turns[0] ?? 2;
+  const turnB = turns[1] ?? 4;
+  const t1a = segStart[turnA] - 120;
+  const t1b = segStart[turnA] + segs[turnA].len + 420;
+  const t2a = segStart[turnB] - 120;
+  const t2b = segStart[turnB] + segs[turnB].len + 420;
   const yAt = (s: number) => -LIFT * smooth((s - t1a) / (t1b - t1a)) - LIFT * smooth((s - t2a) / (t2b - t2a));
 
   const pos = new Float64Array((TABLE + 1) * 3);
@@ -447,7 +485,7 @@ function generateLoop(c: LoopCfg, pad: number, bank = 0.05): PathTable {
     zScale: Math.max(200, (mxz - mnz) / 2),
     fitH: 0,
     Lp,
-    heroS: segs[0].len + segs[1].len * 0.78,
+    heroS: stage > 0 ? segs[0].len + segs[1].len + stage / 2 : segs[0].len + segs[1].len * 0.78,
     // Fitted span is the hairpin body. bleedL / bleedR run outside it and off the viewport.
     core: [bleedL + END_FADE * 0.16, Lp - bleedR - END_FADE * 0.35],
   };
@@ -619,6 +657,11 @@ function cumAt(lay: Layout, k: number): number {
 function pitchAt(lay: Layout, k: number): number {
   return lay.pitch[mod(k, lay.L)];
 }
+/** Scroll offset that puts the centre of `group` (size frames) on heroS. */
+function groupOffset(lay: Layout, group: number, size: number, heroS: number) {
+  const k0 = group * size;
+  return heroS - (cumAt(lay, k0) + cumAt(lay, k0 + size)) / 2;
+}
 /** Start of virtual slice j. */
 function sliceStartAt(lay: Layout, j: number): number {
   const q = Math.floor(j / lay.J);
@@ -781,6 +824,16 @@ function imageSetFunction() {
  *  Grain is a separate layer (not inside image-set) and is positioned with --grain-x, which
  *  changes only when a slice is recycled or flipped — not every animation frame. */
 function paintPhoto(el: HTMLElement, it: FilmStripItem, dense: boolean) {
+  // Blank screenshot or text card: black window, scratch plate only. No image request.
+  if (!it.src) {
+    el.style.backgroundImage = GRAIN;
+    el.style.backgroundColor = '#000';
+    el.style.backgroundSize = `${GRAIN_TILE}px 184px`;
+    el.style.backgroundRepeat = 'repeat-x';
+    el.style.backgroundPosition = 'var(--grain-x) -36px';
+    return;
+  }
+  el.style.backgroundColor = '#000';
   const placeholder = it.placeholder ? cssUrl(it.placeholder) : '';
   const src2x = it.src2x;
   const fn = dense && src2x ? imageSetFunction() : 'none';
@@ -841,6 +894,11 @@ export default function FilmStrip3D({
   lowPower,
   className,
   onReady,
+  stepSize = 0,
+  groupCursor = 0,
+  onStep,
+  onHoverChange,
+  onEngageChange,
 }: FilmStrip3DProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const onReadyRef = useRef(onReady);
@@ -899,8 +957,14 @@ export default function FilmStrip3D({
       // inflate the radius and flatten the loop.
       minR: tier === 'compact' ? 110 : DESK_MIN_R,
       viewW: tier === 'compact' ? viewW : 0,
+      // Face-on run long enough for one project plus a sliver of straight film
+      // before the hairpin, so the three frames are not already in the turn.
+      stage:
+        stepSize > 0
+          ? Math.round(stepSize * (PHOTO_H * (4 / 3) + gapC) + 72)
+          : 0,
     }),
-    [turnSharpness, depthProp, tier, viewW],
+    [turnSharpness, depthProp, tier, viewW, stepSize, gapC],
   );
   const pathLp = isLoop ? loopSegs(loopCfg).Lp : baseCount * W;
   const plan = useMemo(() => {
@@ -926,11 +990,21 @@ export default function FilmStrip3D({
   const onSelectRef = useRef(onSelect);
   const speedRef = useRef(speed);
   const stockRef = useRef(stockLabel);
+  const stepSizeRef = useRef(stepSize);
+  const groupRef = useRef(groupCursor);
+  const onStepRef = useRef(onStep);
+  const onHoverRef = useRef(onHoverChange);
+  const onEngageRef = useRef(onEngageChange);
+  stepSizeRef.current = stepSize;
+  groupRef.current = groupCursor;
   useIsoLayoutEffect(() => {
     itemsRef.current = items;
     onSelectRef.current = onSelect;
     speedRef.current = speed;
     stockRef.current = stockLabel;
+    onStepRef.current = onStep;
+    onHoverRef.current = onHoverChange;
+    onEngageRef.current = onEngageChange;
   });
 
   // engine <-> handler bridge (all mutable, no re-render)
@@ -942,6 +1016,8 @@ export default function FilmStrip3D({
     focusSlot: (slot: number, fromKeyboard: boolean) => void;
     blurAll: () => void;
     nudge: (frames: number) => void;
+    goToGroup: (group: number) => void;
+    setHover: (hovering: boolean) => void;
     slotIndex: (slot: number) => number;
     neighbor: (slot: number, dir: number) => number;
     wasDrag: () => boolean;
@@ -1033,7 +1109,9 @@ export default function FilmStrip3D({
 
     // state
     // `off` = strip scroll offset in world px (frame k starts at cumAt(k) + off along the path)
-    let off = heroS - pitchAt(lay, 0) / 2; // start with frame 0 at centre
+    let off = stepSizeRef.current
+      ? groupOffset(lay, groupRef.current, stepSizeRef.current, heroS)
+      : heroS - pitchAt(lay, 0) / 2; // start with frame 0 at centre
     let kmin = 0; // first virtual frame that overlaps the path
     let jmin = 0; // first virtual slice that overlaps the path
     let focusK = NaN; // virtual frame that shows the keyboard focus ring
@@ -1073,6 +1151,10 @@ export default function FilmStrip3D({
     let dragWasMove = false;
     let swallowClick = false;
     let ignoreClickUntil = 0;
+    let hoverWant = false;
+    let hoverMul = 1;
+    let wheelAt = -1e9;
+    let lastFitS = '';
 
     const camR = new Float64Array(9);
     const pA = new Float64Array(3),
@@ -1121,10 +1203,30 @@ export default function FilmStrip3D({
       if (!list.length) return;
       const idx = mod(k, list.length);
       const it = list[idx];
-      const hit = hits[slot];
-      hit.style.setProperty('--pw', pitchAt(lay, k).toFixed(2));
+    const hit = hits[slot];
+    hit.style.setProperty('--pw', pitchAt(lay, k).toFixed(2));
+    const copy = hit.querySelector<HTMLElement>('[data-fs3d-copy]');
+    const titleEl = hit.querySelector<HTMLElement>('[data-fs3d-title]');
+    const descEl = hit.querySelector<HTMLElement>('[data-fs3d-desc]');
+    const stackEl = hit.querySelector<HTMLElement>('[data-fs3d-stack]');
+    if (it.copy && copy && titleEl && descEl && stackEl) {
+      titleEl.textContent = it.copy.title;
+      descEl.textContent = it.copy.description ?? '';
+      descEl.hidden = !it.copy.description;
+      const stackLine = (it.copy.stack ?? []).filter(Boolean).join(' · ');
+      stackEl.textContent = stackLine;
+      stackEl.hidden = !stackLine;
+      copy.hidden = false;
+      hit.dataset.card = 'text';
+      hit.setAttribute('aria-label', it.label ?? it.copy.title);
+    } else if (copy) {
+      copy.hidden = true;
+      delete hit.dataset.card;
       hit.setAttribute('aria-label', it.label ?? it.alt);
-      if (hit.tagName === 'A' && it.href) hit.setAttribute('href', it.href);
+    } else {
+      hit.setAttribute('aria-label', it.label ?? it.alt);
+    }
+    if (hit.tagName === 'A' && it.href) hit.setAttribute('href', it.href);
       if (aspectOf(it) === undefined) learn(idx, it.src);
     };
 
@@ -1204,7 +1306,18 @@ export default function FilmStrip3D({
       hz = (lz + 1) / hl;
 
     const render = () => {
-      // camera rotation: tilt (look from above) then yaw sway.
+      // Hover scale is baked into the same matrix3d writes. No transform on an
+      // ancestor of the slices. Restored after the frame so measure() keeps the fit.
+      const fittedS = S;
+      const showcase = stepSizeRef.current > 0;
+      S = fittedS * (showcase ? hoverMul : 1);
+      if (showcase) {
+        const next = fittedS.toFixed(3);
+        if (next !== lastFitS) {
+          lastFitS = next;
+          root.style.setProperty('--fs3d-s', next);
+        }
+      }
       // Lite drops the micro-sway — it forced every slice matrix to change every frame.
       const tilt = (
         loop
@@ -1374,7 +1487,16 @@ export default function FilmStrip3D({
         }
         // fog / gloss: mean of the two joints. Lite freezes these in setSlice.
         if (!lite) {
-          const sh = Math.round((jShade[i] + jShade[i + 1]) * 50) / 100;
+          let sh = Math.round((jShade[i] + jShade[i + 1]) * 50) / 100;
+          if (stepSizeRef.current) {
+            const center = cumAt(lay, sliceK[slot]) + pitchAt(lay, sliceK[slot]) / 2 + off;
+            const half = (meanPitch() * stepSizeRef.current) / 2;
+            const dist = Math.abs(center - heroS);
+            if (dist > half + 1) {
+              const t = clamp((dist - half) / (meanPitch() || 1), 0, 1);
+              sh = Math.min(0.92, Math.round((sh + 0.62 + 0.18 * t) * 100) / 100);
+            }
+          }
           if (sh !== lastSh[slot]) {
             lastSh[slot] = sh;
             el.style.setProperty('--sh', String(sh));
@@ -1383,6 +1505,19 @@ export default function FilmStrip3D({
           if (gl !== lastGl[slot]) {
             lastGl[slot] = gl;
             el.style.setProperty('--gl', String(gl));
+          }
+        } else if (stepSizeRef.current) {
+          const center = cumAt(lay, sliceK[slot]) + pitchAt(lay, sliceK[slot]) / 2 + off;
+          const half = (meanPitch() * stepSizeRef.current) / 2;
+          const dist = Math.abs(center - heroS);
+          let sh = 0.12;
+          if (dist > half + 1) {
+            const t = clamp((dist - half) / (meanPitch() || 1), 0, 1);
+            sh = Math.min(0.92, Math.round((0.12 + 0.62 + 0.18 * t) * 100) / 100);
+          }
+          if (sh !== lastSh[slot]) {
+            lastSh[slot] = sh;
+            el.style.setProperty('--sh', String(sh));
           }
         }
         const foc = sliceK[slot] === focusK ? 1 : 0;
@@ -1472,8 +1607,9 @@ export default function FilmStrip3D({
             (X0 * fx).toFixed(d) + ',' + (X1 * fx).toFixed(d) + ',' + (X2 * fx).toFixed(d) + ',0,' +
             (Y0 * S).toFixed(d) + ',' + (Y1 * S).toFixed(d) + ',' + (Y2 * S).toFixed(d) + ',0,' +
             (Z0 * S).toFixed(d) + ',' + (Z1 * S).toFixed(d) + ',' + (Z2 * S).toFixed(d) + ',0,' +
-            // Photo centre sits on the strip midline (PHOTO_TOP + PHOTO_H/2 === HALF_H)
-            ((T0 + shX) * S).toFixed(dp) + ',' + ((T1 + shY) * S).toFixed(dp) + ',' + (T2 * S).toFixed(dp) + ',1';
+            // Photo centre sits on the strip midline (PHOTO_TOP + PHOTO_H/2 === HALF_H).
+            // +2 world px toward the camera so a text card sits on the film, not in it.
+            ((T0 + shX) * S).toFixed(dp) + ',' + ((T1 + shY) * S).toFixed(dp) + ',' + ((T2 + (showcase ? 2 : 0)) * S).toFixed(dp) + ',1';
           if (mx !== lastHitMx[i]) {
             lastHitMx[i] = mx;
             el.style.transform = 'matrix3d(' + mx + ')';
@@ -1486,11 +1622,19 @@ export default function FilmStrip3D({
         }
       }
 
-      // roving tabindex: the front-most frame is the Tab stop
-      for (let i = 0; i < N; i++) {
-        const want = i === frontSlot ? '0' : '-1';
-        if (hits[i].getAttribute('tabindex') !== want) hits[i].setAttribute('tabindex', want);
+      // Showcase: the section owns the keyboard. Hits stay out of the tab order.
+      if (!showcase) {
+        for (let i = 0; i < N; i++) {
+          const want = i === frontSlot ? '0' : '-1';
+          if (hits[i].getAttribute('tabindex') !== want) hits[i].setAttribute('tabindex', want);
+        }
+      } else {
+        for (let i = 0; i < N; i++) {
+          if (hits[i].getAttribute('tabindex') !== '-1') hits[i].setAttribute('tabindex', '-1');
+          if (hits[i].getAttribute('aria-hidden') !== 'true') hits[i].setAttribute('aria-hidden', 'true');
+        }
       }
+      S = fittedS;
     };
 
     /** loop: fit the visible ribbon (approach, both hairpins, receding leg; film edges included) and centre it */
@@ -1501,10 +1645,15 @@ export default function FilmStrip3D({
       const ct = Math.cos(t0),
         st = Math.sin(t0);
       const [c0, c1] = table.core ?? [0, Lp];
+      // Stay on the straight stage. A wider sample pulls the hairpin into the
+      // fit and shrinks the three frames until the curl is the subject.
+      const focusMul = w < 768 ? 1.06 : 1.16;
+      const focus = stepSizeRef.current > 0 ? meanPitch() * stepSizeRef.current * focusMul : 0;
+      // Showcase: fit the current project's frames, not the whole hairpin,
+      // so that set is fully on screen and the neighbors only peek.
+      const s0 = focus > 0 ? heroS - focus / 2 : Math.max(0, c0 - 36);
+      const s1 = focus > 0 ? heroS + focus / 2 : Math.min(Lp, c1 + 28);
       const pts: number[][] = [];
-      // one slice past each end: a slice's screen box reaches past the centreline sample
-      const s0 = Math.max(0, c0 - 36);
-      const s1 = Math.min(Lp, c1 + 28);
       for (let s = s0; s <= s1; s += 14) {
         sample(s + pad, pA, dA);
         for (const e of [-HALF_H, HALF_H]) {
@@ -1564,12 +1713,14 @@ export default function FilmStrip3D({
       const fitted = bounds();
       // Fill more of the width on phones so the ribbon reaches the left edge.
       const compactFit = w < 768 || h < 560;
-      const fillX = compactFit ? 0.92 : 0.7;
-      const fillY = compactFit ? 0.78 : 0.72;
+      const fillX = focus > 0 ? (compactFit ? 0.84 : 0.78) : compactFit ? 0.92 : 0.7;
+      const fillY = focus > 0 ? (compactFit ? 0.7 : 0.62) : compactFit ? 0.78 : 0.72;
       sc = Math.min((w * fillX) / (fitted.x1 - fitted.x0), (h * fillY) / (fitted.y1 - fitted.y0));
       S = clamp(sc, 0.2, 2.2);
       shX = px;
-      shY = py;
+      // Desktop hero: the name sits on top of the strip. Nudge the project
+      // frames down so the text card clears DCL. Phones already clear it.
+      shY = py + (focus > 0 && h > 420 ? 42 : 0);
       root.style.perspective = Math.round(D * S) + 'px';
       root.style.perspectiveOrigin = '50% ' + vpY * 100 + '%';
     };
@@ -1610,8 +1761,13 @@ export default function FilmStrip3D({
       if (lastT === 0) dt = 0.016;
       lastT = now;
 
-      // autoplay keeps full speed while hovering or while a frame merely has focus.
-      // It pauses only while the strip is pressed (drag) or when the user prefers reduced motion.
+      // Showcase steps on a timer outside this loop. Crawl stays off so the
+      // current three frames hold the hero between travels.
+      const crawl = stepSizeRef.current ? 0 : speedRef.current;
+      const hoverTarget = stepSizeRef.current && hoverWant && !reduced ? 1.045 : 1;
+      if (Math.abs(hoverMul - hoverTarget) < 0.0008) hoverMul = hoverTarget;
+      else hoverMul += (hoverTarget - hoverMul) * (1 - Math.exp(-dt * 10));
+
       const target = reduced || pressed ? 0 : 1;
       playF += (target - playF) * (1 - Math.exp(-dt * 5));
       if (Math.abs(target - playF) < 0.002) playF = target;
@@ -1626,12 +1782,18 @@ export default function FilmStrip3D({
         }
         inertia = 0;
       } else if (!(drag && drag.moved)) {
-        off += (-BASE_FPS * meanPitch() * speedRef.current * playF + inertia) * dt;
+        off += (-BASE_FPS * meanPitch() * crawl * playF + inertia) * dt;
         inertia *= Math.exp(-dt * 2.4);
         if (Math.abs(inertia) < 2) inertia = 0;
       }
       clock += dt * (reduced ? 0 : 0.3 + 0.7 * playF);
       render();
+
+      const hoverSettled = Math.abs(hoverMul - hoverTarget) < 0.001;
+      if (stepSizeRef.current && lite && !animating() && hoverSettled) {
+        stop();
+        return;
+      }
 
       if (!shouldRun()) stop();
     };
@@ -1691,6 +1853,13 @@ export default function FilmStrip3D({
       // Vertical wheel / trackpad scroll keeps moving the page.
       if (Math.abs(dx) <= Math.abs(dy)) return;
       e.preventDefault();
+      if (stepSizeRef.current) {
+        const now = performance.now();
+        if (now - wheelAt < 450) return;
+        wheelAt = now;
+        onStepRef.current?.(dx > 0 ? 1 : -1);
+        return;
+      }
       const world = dx / (S * 1.12);
       off += world;
       inertia = reduced ? 0 : clamp(world * 14, -MAX_FLICK * meanPitch(), MAX_FLICK * meanPitch());
@@ -1736,6 +1905,7 @@ export default function FilmStrip3D({
         pressed = true;
         dragWasMove = false;
         snapTo = null;
+        onEngageRef.current?.(true);
         // freeze instantly: the frame under the finger must not slide away before the click fires
         playF = 0;
         inertia = 0;
@@ -1771,6 +1941,43 @@ export default function FilmStrip3D({
         const d = drag;
         if (!d || e.pointerId !== d.id) return;
         const wasTap = !d.moved;
+        if (d.moved && stepSizeRef.current) {
+          const dx = e.clientX - d.x0;
+          const passed = Math.abs(dx) > 42 || Math.abs(d.vel) > meanPitch() * 0.65;
+          inertia = 0;
+          dragEndedAt = performance.now();
+          dragWasMove = true;
+          try {
+            root.releasePointerCapture(e.pointerId);
+          } catch {
+            /* ignore */
+          }
+          root.removeAttribute('data-dragging');
+          drag = null;
+          pressed = false;
+          onEngageRef.current?.(false);
+          const size = stepSizeRef.current;
+          if (passed) {
+            const dir: 1 | -1 = dx < 0 ? 1 : -1;
+            const next = groupRef.current + dir;
+            if (reduced) {
+              off = groupOffset(lay, next, size, heroS);
+              snapTo = null;
+              render();
+            } else {
+              snapTo = groupOffset(lay, next, size, heroS);
+            }
+            onStepRef.current?.(dir);
+          } else if (reduced) {
+            off = groupOffset(lay, groupRef.current, size, heroS);
+            snapTo = null;
+            render();
+          } else {
+            snapTo = groupOffset(lay, groupRef.current, size, heroS);
+          }
+          kick();
+          return;
+        }
         if (d.moved) {
           const stale = performance.now() - d.lastT > 90;
           inertia = reduced || stale ? 0 : clamp(d.vel, -MAX_FLICK * meanPitch(), MAX_FLICK * meanPitch());
@@ -1784,28 +1991,35 @@ export default function FilmStrip3D({
         root.removeAttribute('data-dragging');
         drag = null;
         pressed = false;
+        onEngageRef.current?.(false);
         // Touch often never fires click on a preserve-3d button. Open from the
         // tap here, and swallow the click if the browser also emits one.
         if (wasTap && (e.pointerType === 'touch' || e.pointerType === 'pen')) {
-          const fromPoint = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
-          const hit =
-            ((e.target as HTMLElement | null)?.closest?.('[data-fs3d-hit]') as HTMLElement | null) ??
-            (fromPoint?.closest?.('[data-fs3d-hit]') as HTMLElement | null);
-          const slot = hit ? Number(hit.dataset.fs3dSlot) : -1;
-          if (slot >= 0) {
-            // Open immediately. Ignore the click that may follow, so a tap
-            // never fires the lightbox twice and still works when click doesn't.
+          if (stepSizeRef.current) {
             ignoreClickUntil = performance.now() + 450;
             swallowClick = true;
-            const len = itemsRef.current.length;
-            const idx = len ? mod(slotK[slot], len) : 0;
-            const item = itemsRef.current[idx];
-            if (item) onSelectRef.current?.(item, idx);
+            const item = itemsRef.current[0];
+            if (item) onSelectRef.current?.(item, 0);
+          } else {
+            const fromPoint = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+            const hit =
+              ((e.target as HTMLElement | null)?.closest?.('[data-fs3d-hit]') as HTMLElement | null) ??
+              (fromPoint?.closest?.('[data-fs3d-hit]') as HTMLElement | null);
+            const slot = hit ? Number(hit.dataset.fs3dSlot) : -1;
+            if (slot >= 0) {
+              ignoreClickUntil = performance.now() + 450;
+              swallowClick = true;
+              const len = itemsRef.current.length;
+              const idx = len ? mod(slotK[slot], len) : 0;
+              const item = itemsRef.current[idx];
+              if (item) onSelectRef.current?.(item, idx);
+            }
           }
         }
         kick();
       },
       focusSlot(slot: number, fromKeyboard: boolean) {
+        if (stepSizeRef.current) return;
         if (fromKeyboard) {
           const k = slotK[slot];
           focusK = k;
@@ -1839,6 +2053,28 @@ export default function FilmStrip3D({
         return v;
       },
       refresh,
+      goToGroup(group: number) {
+        const size = stepSizeRef.current;
+        if (!size) return;
+        const target = groupOffset(lay, group, size, heroS);
+        if (reduced) {
+          if (Math.abs(off - target) < 0.5 && snapTo === null) return;
+          off = target;
+          snapTo = null;
+          inertia = 0;
+          render();
+          return;
+        }
+        if (snapTo !== null && Math.abs(snapTo - target) < 0.5) return;
+        if (snapTo === null && Math.abs(off - target) < 0.5) return;
+        snapTo = target;
+        inertia = 0;
+        kick();
+      },
+      setHover(hovering: boolean) {
+        hoverWant = hovering;
+        kick();
+      },
     };
     api.current = bridge;
 
@@ -1895,6 +2131,15 @@ export default function FilmStrip3D({
     api.current?.refresh();
   }, [items]);
 
+  // Travel to the requested project. Not an engine dep — restarting the path
+  // on every step would rebuild every slice.
+  useIsoLayoutEffect(() => {
+    if (!stepSize) return;
+    api.current?.goToGroup(groupCursor);
+  }, [groupCursor, stepSize]);
+
+  const [hovered, setHovered] = useState(false);
+
   /* ---------------- React event glue (delegated, no per-frame work) ---------------- */
   const slotOf = (t: EventTarget | null): number => {
     const el = (t as HTMLElement | null)?.closest?.('[data-fs3d-hit]') as HTMLElement | null;
@@ -1909,6 +2154,7 @@ export default function FilmStrip3D({
   }, []);
 
   const onClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    if (stepSizeRef.current) return;
     if (!api.current || api.current.consumeSwallow()) return;
     const slot = slotOf(e.target);
     if (slot < 0) return;
@@ -1940,6 +2186,7 @@ export default function FilmStrip3D({
   }, []);
 
   const onKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
+    if (stepSizeRef.current) return;
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
     const slot = slotOf(e.target);
     if (slot < 0) return;
@@ -1967,8 +2214,22 @@ export default function FilmStrip3D({
       aria-busy={ready ? undefined : true}
       data-variant={variant}
       data-fs3d-root=""
+      data-step={stepSize > 0 ? 'true' : undefined}
+      data-hover={hovered ? 'true' : 'false'}
       data-compact={tier === 'ssr' ? undefined : tier === 'compact' ? 'true' : 'false'}
       data-tier={tier === 'ssr' ? undefined : tier}
+      onPointerEnter={(e) => {
+        if (!stepSizeRef.current || e.pointerType !== 'mouse') return;
+        setHovered(true);
+        onHoverRef.current?.(true);
+        api.current?.setHover(true);
+      }}
+      onPointerLeave={(e) => {
+        if (!stepSizeRef.current || e.pointerType !== 'mouse') return;
+        setHovered(false);
+        onHoverRef.current?.(false);
+        api.current?.setHover(false);
+      }}
       onPointerDown={(e) => api.current?.pointerDown(e)}
       onPointerMove={(e) => api.current?.pointerMove(e)}
       onPointerUp={(e) => api.current?.pointerUp(e)}
@@ -1980,7 +2241,14 @@ export default function FilmStrip3D({
       onKeyDown={onKeyDown}
     >
       {flat ? (
-        <FilmStripFlat items={list} onSelect={onSelect} />
+        <FilmStripFlat
+          items={list}
+          onSelect={onSelect}
+          stepSize={stepSize}
+          groupCursor={groupCursor}
+          onStep={onStep}
+          onEngageChange={onEngageChange}
+        />
       ) : (
         /* base + photos, sliced along the path (decorative; the buttons below carry the semantics) */
         <div className={styles.stage}>
@@ -1998,13 +2266,25 @@ export default function FilmStrip3D({
                 'data-fs3d-hit': '',
                 'data-fs3d-slot': i,
                 'aria-label': it.label ?? it.alt,
-                tabIndex: i === 0 ? 0 : -1,
+                tabIndex: stepSize > 0 ? -1 : i === 0 ? 0 : -1,
                 style: SLICE_INIT,
               } as const;
               return asLinks ? (
-                <a key={i} {...common} href={it.href} />
+                <a key={i} {...common} href={it.href}>
+                  <span className={styles.copy} data-fs3d-copy="" hidden>
+                    <strong data-fs3d-title="" />
+                    <span data-fs3d-desc="" />
+                    <span data-fs3d-stack="" />
+                  </span>
+                </a>
               ) : (
-                <button key={i} type="button" {...common} />
+                <button key={i} type="button" {...common}>
+                  <span className={styles.copy} data-fs3d-copy="" hidden>
+                    <strong data-fs3d-title="" />
+                    <span data-fs3d-desc="" />
+                    <span data-fs3d-stack="" />
+                  </span>
+                </button>
               );
             })}
         </div>

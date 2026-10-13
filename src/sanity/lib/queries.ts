@@ -5,29 +5,37 @@ export const projectsQuery = groq`
   *[_type == "project"] | order(displayOrder asc, _createdAt desc) {
     _id,
     title,
-    photos[] {
+    stack,
+    link,
+    screenshots[] {
+      _key,
       alt,
+      hotspot,
+      crop,
       asset-> {
         _id,
         url,
-        metadata { dimensions }
-      }
-    },
-    link
-  }
-`
-
-// Settings query - only fetch what's actually used
-export const settingsQuery = groq`
-  *[_type == "settings"][0] {
-    galleryPhotos[] {
-      asset-> {
-        url,
         metadata { lqip, dimensions }
-      },
-      alt,
-      caption
+      }
     }
   }
 `
+
+export const galleryQuery = groq`
+  *[_type == "settings"][0] {
+    galleryPhotos[] {
+      _key,
+      alt,
+      caption,
+      hotspot,
+      crop,
+      asset-> {
+        _id,
+        url,
+        metadata { lqip, dimensions }
+      }
+    }
+  }
+`
+
 

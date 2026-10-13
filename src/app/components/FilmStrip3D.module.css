@@ -327,3 +327,214 @@
   height: 112px;
   object-fit: cover;
 }
+
+/* Text card sits in the hit, which is one plane on the film. --fs3d-s is the
+   fitted scale (not the hover bump) so type lays out in screen pixels and
+   then the matrix carries the hover scale with the rest of the strip. */
+.copy {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
+  width: calc(var(--fs3d-s, 1) * 100%);
+  height: calc(var(--fs3d-s, 1) * 100%);
+  margin: 0;
+  padding: 7px 8px 8px;
+  overflow: hidden;
+  color: #f4f1ea;
+  text-align: left;
+  pointer-events: none;
+  transform: scale(calc(1 / var(--fs3d-s, 1)));
+  transform-origin: 0 0;
+  container-type: size;
+}
+
+.copy[hidden] {
+  display: none;
+}
+
+.copy strong,
+.copy [data-fs3d-desc],
+.copy [data-fs3d-stack] {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.copy strong {
+  color: var(--ink, #f5c518);
+  font-family: var(--font-display, "Syne", "Helvetica Neue", Helvetica, sans-serif);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  -webkit-line-clamp: 3;
+}
+
+.copy [data-fs3d-desc] {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.25;
+  color: #f4f1ea;
+  -webkit-line-clamp: 5;
+}
+
+.copy [data-fs3d-stack] {
+  margin-top: auto;
+  font-family: var(--font-mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink, #f5c518);
+  -webkit-line-clamp: 2;
+}
+
+@container (max-height: 150px) {
+  .copy {
+    gap: 3px;
+    padding: 5px 6px;
+  }
+
+  .copy strong {
+    font-size: 13px;
+    -webkit-line-clamp: 2;
+  }
+
+  .copy [data-fs3d-desc] {
+    font-size: 11px;
+    -webkit-line-clamp: 3;
+  }
+
+  .copy [data-fs3d-stack] {
+    font-size: 9px;
+    -webkit-line-clamp: 2;
+  }
+}
+
+@container (max-height: 96px) {
+  .copy strong {
+    font-size: 12px;
+    -webkit-line-clamp: 2;
+  }
+
+  .copy [data-fs3d-desc] {
+    font-size: 10px;
+    -webkit-line-clamp: 2;
+  }
+
+  .copy [data-fs3d-stack] {
+    font-size: 8px;
+    -webkit-line-clamp: 1;
+  }
+}
+
+.hit[data-card='text'] {
+  overflow: hidden;
+}
+
+/* Flat showcase: one group centered, neighbors peeking. Transform only. */
+.flatStage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.flatRow {
+  display: flex;
+  align-items: stretch;
+  height: 148px;
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.flatRow[data-instant] {
+  transition: none;
+}
+
+.flatFrame[data-dim] {
+  opacity: 0.38;
+}
+
+.flatFrame {
+  transition: opacity 0.45s linear;
+}
+
+.flatWindow[data-blank] {
+  background-color: #000;
+}
+
+.flatCopy {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
+  box-sizing: border-box;
+  height: 112px;
+  padding: 6px 7px 7px;
+  overflow: hidden;
+  color: #f4f1ea;
+  text-align: left;
+}
+
+.flatCopy strong,
+.flatCopy span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.flatCopy strong {
+  color: var(--ink, #f5c518);
+  font-family: var(--font-display, "Syne", "Helvetica Neue", Helvetica, sans-serif);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  -webkit-line-clamp: 2;
+}
+
+.flatCopy span {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  line-height: 1.25;
+  -webkit-line-clamp: 3;
+}
+
+.flatStack {
+  margin-top: auto;
+  font-family: var(--font-mono, "IBM Plex Mono", ui-monospace, monospace) !important;
+  font-size: 9px !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink, #f5c518);
+  -webkit-line-clamp: 2;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .root[data-hover='true'] .flatStage {
+    transform: scale(1.045);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flatRow,
+  .flatFrame,
+  .root[data-hover='true'] .flatStage {
+    transition: none;
+    transform: none;
+  }
+
+  .flatRow {
+    transform: none;
+  }
+}

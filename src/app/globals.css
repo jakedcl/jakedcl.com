@@ -425,25 +425,6 @@ body::before {
   }
 }
 
-/* Fade only. A scroll-linked transform here sits on the parent of the 3D
-   book and forces that subtree to re-raster on every frame. */
-@keyframes band-enter {
-  from {
-    opacity: 0.35;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@supports (animation-timeline: view()) {
-  .band-enter {
-    animation: band-enter 1s linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 30%;
-  }
-}
-
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -463,8 +444,7 @@ body::before {
   .hero-type-line-delay,
   .hero-in,
   .hero-letter,
-  .hero-caret,
-  .band-enter {
+  .hero-caret {
     animation: none !important;
     transform: none !important;
     opacity: 1 !important;
@@ -497,126 +477,3 @@ body::before {
     opacity: 1 !important;
   }
 }
-
-/* Project books — short wide open volumes, slight tilt-back POV.
-   Cover 0% is the incoming edge, 100% is just clear of the outgoing edge.
-   The card eases up by 25%, holds the lift through 75%, then eases down. */
-.project-book-scene {
-  perspective: 1400px;
-  perspective-origin: 50% 70%;
-}
-
-.project-book {
-  --book-rest-x: 11deg;
-  --book-lift-x: 7deg;
-  --book-lift-y: -6px;
-  --book-rest-scale: 0.96;
-  position: relative;
-  transform: rotateX(var(--book-rest-x)) translateY(0) scale(var(--book-rest-scale));
-  transform-origin: center bottom;
-  transform-style: preserve-3d;
-}
-
-@keyframes project-book-lift {
-  0% {
-    transform: rotateX(11deg) translateY(0) scale(0.96);
-    animation-timing-function: ease-in-out;
-  }
-  25% {
-    transform: rotateX(7deg) translateY(-6px) scale(1);
-    animation-timing-function: linear;
-  }
-  75% {
-    transform: rotateX(7deg) translateY(-6px) scale(1);
-    animation-timing-function: ease-in-out;
-  }
-  100% {
-    transform: rotateX(11deg) translateY(0) scale(0.96);
-  }
-}
-
-@keyframes project-book-lift-sm {
-  0% {
-    transform: rotateX(7deg) translateY(0) scale(0.97);
-    animation-timing-function: ease-in-out;
-  }
-  25% {
-    transform: rotateX(4deg) translateY(-4px) scale(1);
-    animation-timing-function: linear;
-  }
-  75% {
-    transform: rotateX(4deg) translateY(-4px) scale(1);
-    animation-timing-function: ease-in-out;
-  }
-  100% {
-    transform: rotateX(7deg) translateY(0) scale(0.97);
-  }
-}
-
-@supports (animation-timeline: view()) {
-  .project-book {
-    animation: project-book-lift 1s linear both;
-    animation-timeline: view();
-    animation-range: cover 0% cover 100%;
-  }
-}
-
-@supports not (animation-timeline: view()) {
-  .project-book {
-    transform:
-      rotateX(calc(var(--book-rest-x) + (var(--book-lift-x) - var(--book-rest-x)) * var(--lift, 0)))
-      translateY(calc(var(--book-lift-y) * var(--lift, 0)))
-      scale(calc(var(--book-rest-scale) + (1 - var(--book-rest-scale)) * var(--lift, 0)));
-  }
-}
-
-.project-book-pages {
-  box-shadow:
-    0 1px 0 rgba(10, 10, 10, 0.04),
-    0 18px 40px -28px rgba(10, 10, 10, 0.45),
-    0 8px 18px -12px rgba(10, 10, 10, 0.2);
-}
-
-.project-book-spine {
-  position: relative;
-  height: 13px;
-  margin-top: -1px;
-  transform: rotateX(78deg);
-  transform-origin: top center;
-  transform-style: preserve-3d;
-  overflow: hidden;
-  box-shadow: 0 6px 14px -8px rgba(10, 10, 10, 0.45);
-}
-
-@media (max-width: 639px) {
-  .project-book {
-    --book-rest-x: 7deg;
-    --book-lift-x: 4deg;
-    --book-lift-y: -4px;
-    --book-rest-scale: 0.97;
-  }
-
-  @supports (animation-timeline: view()) {
-    .project-book {
-      animation-name: project-book-lift-sm;
-    }
-  }
-
-  .project-book-spine {
-    height: 10px;
-    transform: rotateX(70deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .project-book {
-    animation: none;
-    transform: none;
-  }
-
-  .project-book-spine {
-    transform: none;
-    height: 8px;
-  }
-}
-
