@@ -32,11 +32,11 @@ export function RoleList({
   }
 
   return (
-    <div className="border-t border-ink/10">
+    <div>
       {roles.map((role) => (
         <article
           key={`${role.title}-${role.organization}`}
-          className="border-b border-ink/10 py-4"
+          className="py-4"
         >
           <div className="flex items-baseline justify-between gap-x-4">
             <h3 className="min-w-0 text-[0.95rem] leading-snug text-ink">

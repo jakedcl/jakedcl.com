@@ -32,7 +32,7 @@ function ProjectRow({ project }: { project: Project }) {
   )
 
   return (
-    <li className="project-row relative border-b border-ink/10 py-3">
+    <li className="project-row relative py-3">
       <p className="text-[0.95rem] leading-relaxed text-ink/80 md:truncate">
         {nameEl}
         {description ? <span> - {description}</span> : null}
@@ -85,7 +85,7 @@ export default async function ProjectIndex() {
   }
 
   return (
-    <ul className="border-t border-ink/10">
+    <ul>
       {projects.map((project) => (
         <ProjectRow key={project._id} project={project} />
       ))}

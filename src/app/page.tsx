@@ -148,7 +148,7 @@ export default function Home() {
           <RoleList roles={resume.certifications} empty="No certifications listed." />
         </Section>
 
-        <footer className="mt-16 border-t border-ink/10 pt-4">
+        <footer className="mt-16 pt-4">
           <p className="font-utility text-[0.65rem] uppercase tracking-[0.16em] text-ink/40">
             JAKEDCL.COM · NYC
           </p>
