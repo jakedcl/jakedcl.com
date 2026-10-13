@@ -23,7 +23,7 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 15 App Router, React 19, Tailwind v4
 | --- | --- |
 | Sanity `project` | WORK cards (`displayOrder`). Copy facts only from `docs/PROJECT_BRIEFS.md` — never invent clients, features, or URLs. |
 | Sanity `settings.galleryPhotos` | Hero filmstrip. Site uses first **16** frames; more stalls phones. |
-| `src/data/resume.ts` + `skillLogos.ts` | Resume / contact on `/` and `/resume`. Not CMS-backed. |
+| `src/data/resume.ts` | Resume / contact on `/` and `/resume`. Not CMS-backed. |
 
 `settings.bioText` exists in schema but is unused — hero copy is local UI, not that field. Types: `src/types/sanity.ts`. Queries: `src/sanity/lib/queries.ts`.
 
@@ -38,7 +38,7 @@ Fonts: Syne (display), Bricolage Grotesque (shape), IBM Plex Mono (utility), Hel
 ## Code map
 
 - Pages: `src/app/page.tsx`, `src/app/resume/page.tsx`
-- UI: `src/app/components/` — `SignalHero`, `Filmstrip` → `FilmStrip3D` / `FilmStripFlat`, `ProjectCard`, `Resume`, `SkillLogoLane`
+- UI: `src/app/components/` — `SignalHero`, `Filmstrip` → `FilmStrip3D` / `FilmStripFlat`, `ProjectCard`, `Resume`
 - Sanity: `src/sanity/schemaTypes/`, `lib/`, `env.ts`, `structure.ts`
 - Filmstrip is the mobile Safari hot path — prefer perf/clarity over new visual effects there.
 

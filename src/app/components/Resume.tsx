@@ -1,10 +1,8 @@
 'use client'
 
 import { resume, type ResumeLink, type ResumeRole } from '@/data/resume'
-import { logoForSkill } from '@/data/skillLogos'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import NameTypewriter from './NameTypewriter'
-import SkillLogoLane from './SkillLogoLane'
 
 const CHIP = [
   'bg-signal-yellow text-ink',
@@ -117,30 +115,9 @@ function RoleEntry({ role }: { role: ResumeRole }) {
   )
 }
 
-function logosForGroup(items: string[]) {
-  const seen = new Set<string>()
-  const out: string[] = []
-  for (const item of items) {
-    const src = logoForSkill(item)
-    if (!src || seen.has(src)) continue
-    seen.add(src)
-    out.push(src)
-  }
-  return out
-}
-
 export default function Resume({ part = 'all' }: { part?: 'all' | 'intro' | 'body' }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [motionActive, setMotionActive] = useState(false)
-
-  const groupLogos = useMemo(
-    () =>
-      resume.skills.map((group) => ({
-        label: group.label,
-        logos: logosForGroup(group.items),
-      })),
-    [],
-  )
 
   useEffect(() => {
     const el = rootRef.current
@@ -214,30 +191,23 @@ export default function Resume({ part = 'all' }: { part?: 'all' | 'intro' | 'bod
           <section>
             <SectionHeading>Technical Skills</SectionHeading>
             <div className="space-y-5">
-              {resume.skills.map((group, groupIndex) => {
-                const logos =
-                  groupLogos.find((g) => g.label === group.label)?.logos ?? []
-                return (
-                  <div key={group.label}>
-                    <div className="mb-2 flex min-h-10 items-center gap-3">
-                      <p className="font-shape shrink-0 text-xs font-bold uppercase tracking-[0.06em] text-ink/55">
-                        {group.label}
-                      </p>
-                      <SkillLogoLane logos={logos} active={motionActive} />
-                    </div>
-                    <ul className="flex flex-wrap gap-2">
-                      {group.items.map((item, itemIndex) => (
-                        <li
-                          key={item}
-                          className={`font-shape px-2.5 py-1.5 text-xs font-bold uppercase tracking-[0.02em] ${CHIP[(groupIndex + itemIndex) % CHIP.length]}`}
-                        >
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )
-              })}
+              {resume.skills.map((group, groupIndex) => (
+                <div key={group.label}>
+                  <p className="font-shape mb-2 text-xs font-bold uppercase tracking-[0.06em] text-ink/55">
+                    {group.label}
+                  </p>
+                  <ul className="flex flex-wrap gap-2">
+                    {group.items.map((item, itemIndex) => (
+                      <li
+                        key={item}
+                        className={`font-shape px-2.5 py-1.5 text-xs font-bold uppercase tracking-[0.02em] ${CHIP[(groupIndex + itemIndex) % CHIP.length]}`}
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
           </section>
 
