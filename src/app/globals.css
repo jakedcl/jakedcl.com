@@ -1,9 +1,5 @@
 @import "tailwindcss";
 
-/* Desktop filmstrip spacing only when the viewport is actually tall.
-   A phone in landscape is wide but short — `md:` alone makes the hero enormous. */
-@custom-variant tall (@media (min-width: 768px) and (min-height: 561px));
-
 :root {
   /* Ever-so-slight cream stage */
   --background: #f6f3ec;
@@ -78,192 +74,74 @@ body::before {
   font-family: var(--font-mono);
 }
 
-/* Ticket / clearance cuts */
-.clip-ticket {
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 1.5rem), calc(100% - 2.5rem) 100%, 0 100%);
+:focus-visible {
+  outline: 2px solid var(--signal-blue);
+  outline-offset: 3px;
 }
 
-.clip-ticket-alt {
-  clip-path: polygon(0 0, calc(100% - 2rem) 0, 100% 2rem, 100% 100%, 0 100%);
+/* JAKE DCL types out large, then shrinks into the header.
+   Base styles are the settled header so reduced motion is the final state. */
+.intro-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.28em;
+  width: 100%;
+  margin: 0;
+  border-bottom: 3px solid var(--signal-yellow);
+  padding-bottom: 0.2em;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
-.clip-diagonal {
-  clip-path: polygon(0 8%, 100% 0, 100% 92%, 0 100%);
-}
-
-.clip-tape-window {
-  clip-path: polygon(4% 0, 100% 6%, 96% 100%, 0 94%);
-}
-
-/* Circle line badges */
-.signal-badge {
+.intro-word {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 9999px;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  align-items: baseline;
+  white-space: nowrap;
 }
 
-/* Stamp / ticket CTAs */
-.stamp-btn {
-  display: inline-block;
-  font-family: var(--font-shape);
-  font-size: 0.8rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.intro-dcl {
   color: var(--ink);
-  background: var(--cream);
-  border: 2px solid var(--ink);
-  padding: 0.7rem 1rem 0.65rem;
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 0.55rem), calc(100% - 0.7rem) 100%, 0 100%);
-  transition:
-    background-color 0.18s ease,
-    color 0.18s ease,
-    border-color 0.18s ease,
-    transform 0.18s ease;
 }
 
-.stamp-btn:hover {
-  background: var(--signal-yellow);
-  color: var(--ink);
-  transform: rotate(-1.25deg);
-}
-
-.stamp-btn-ink {
-  background: var(--ink);
-  color: var(--cream);
-}
-
-.stamp-btn-ink:hover {
-  background: var(--signal-blue);
-  color: var(--cream);
-  border-color: var(--signal-blue);
-}
-
-.stamp-chip {
-  display: inline-block;
-  font-family: var(--font-shape);
-  font-size: 0.7rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink);
-  background: var(--signal-yellow);
-  border: 2px solid var(--ink);
-  padding: 0.45rem 0.65rem 0.4rem;
-  clip-path: polygon(0 0, calc(100% - 0.45rem) 0, 100% 0.45rem, 100% 100%, 0 100%);
-}
-
-/* Tape status strip */
-.tape-strip {
-  display: inline-block;
-  background: var(--cream);
-  border: 2px solid var(--ink);
-  padding: 0.4rem 0.75rem;
-  transform: rotate(-0.8deg);
-  box-shadow: 3px 3px 0 0 rgba(10, 10, 10, 0.12);
-}
-
-/* Hero scroll scrub */
-@keyframes hero-scrub {
+@keyframes intro-settle {
   from {
-    transform: scale(1.06) translate3d(0, 0, 0);
+    border-bottom-color: transparent;
+    font-size: clamp(4rem, 17vw, 8.75rem);
+    letter-spacing: -0.045em;
+    line-height: 0.82;
+    padding-bottom: 0;
   }
   to {
-    transform: scale(0.9) translate3d(0, -6%, 0);
+    border-bottom-color: var(--signal-yellow);
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    padding-bottom: 0.2em;
   }
 }
 
-@keyframes hero-field-scrub {
+@keyframes intro-stack {
   from {
-    transform: translate3d(4%, -2%, 0) rotate(-2deg) scale(1.05);
+    flex-basis: 100%;
   }
   to {
-    transform: translate3d(-6%, 8%, 0) rotate(3deg) scale(0.92);
+    flex-basis: 0%;
   }
 }
 
-@keyframes hero-type-in {
+@keyframes intro-dcl {
   from {
-    opacity: 0;
-    transform: translate3d(0, 0.2em, 0) skewY(2deg);
+    color: var(--signal-yellow);
   }
   to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) skewY(0);
+    color: var(--ink);
   }
-}
-
-.hero-scrub {
-  transform-origin: center top;
-  will-change: transform;
-}
-
-.hero-field {
-  will-change: transform;
-}
-
-.hero-type-line {
-  animation: hero-type-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.hero-type-line-delay {
-  animation-delay: 0.08s;
-}
-
-/* First-view load only. One-shot on wrappers; the filmstrip keeps its own loop. */
-@keyframes hero-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes hero-slash-in {
-  from {
-    transform: translate3d(100%, 0, 0);
-  }
-  to {
-    transform: none;
-  }
-}
-
-@keyframes hero-rise-in {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 10px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.hero-in {
-  animation-duration: 0.62s;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-  animation-fill-mode: both;
-}
-
-.hero-in-fade {
-  animation-name: hero-fade-in;
-  animation-duration: 0.4s;
-}
-
-.hero-in-type {
-  animation-name: hero-type-in;
 }
 
 @keyframes hero-letter-in {
@@ -352,104 +230,54 @@ body::before {
     hero-caret-dcl-life 2.4s linear both;
 }
 
-.hero-in-slash {
-  opacity: 0.9;
-  animation-name: hero-slash-in;
-  animation-duration: 0.8s;
-  animation-timing-function: cubic-bezier(0.16, 0.8, 0.24, 1);
-}
-
-/* The strip itself fades in over the slash. A cream cover hid the red
-   bar and made it look like the slash left and came back. */
-@keyframes hero-film-in {
-  from {
-    opacity: 0;
+@media (prefers-reduced-motion: no-preference) {
+  .intro-name {
+    animation: intro-settle 0.9s cubic-bezier(0.22, 1, 0.36, 1) 2.6s both;
   }
-  to {
-    opacity: 1;
+
+  .intro-word {
+    animation: intro-stack 0.9s cubic-bezier(0.22, 1, 0.36, 1) 2.6s both;
+  }
+
+  .intro-dcl {
+    animation: intro-dcl 0.9s cubic-bezier(0.22, 1, 0.36, 1) 2.6s both;
   }
 }
 
-.hero-film-hold {
-  opacity: 0;
-}
-
-.hero-film-in {
-  animation: hero-film-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-.hero-in-rise {
-  animation-name: hero-rise-in;
-  animation-duration: 0.55s;
-}
-
-.hero-wait-1 {
-  animation-delay: 0.08s;
-}
-
-.hero-wait-2 {
-  animation-delay: 0.18s;
-}
-
-.hero-wait-3 {
-  animation-delay: 0.28s;
-}
-
-.hero-wait-4 {
-  animation-delay: 0.4s;
-}
-
-.hero-wait-5 {
-  animation-delay: 0.5s;
-}
-
-.hero-wait-bio {
-  animation-delay: 1.41s;
-}
-
-.hero-wait-nav {
-  animation-delay: 1.69s;
-}
-
-@supports (animation-timeline: scroll()) {
-  .hero-scrub {
-    animation: hero-scrub linear both;
-    animation-timeline: scroll();
-    animation-range: 0 40vh;
-  }
-
-  .hero-field {
-    animation: hero-field-scrub linear both;
-    animation-timeline: scroll();
-    animation-range: 0 50vh;
-  }
-}
-
-/* Fade only. A scroll-linked transform here sits on the parent of the 3D
-   book and forces that subtree to re-raster on every frame. */
-@keyframes band-enter {
-  from {
-    opacity: 0.35;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@supports (animation-timeline: view()) {
-  .band-enter {
-    animation: band-enter 1s linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 30%;
-  }
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-hide::-webkit-scrollbar {
+/* Desktop project hover card. Hidden on touch and below the md breakpoint. */
+.project-preview {
   display: none;
+  width: 16rem;
+  overflow: hidden;
+  background: var(--cream);
+  border: 1px solid rgba(10, 10, 10, 0.16);
+  box-shadow: 0 18px 40px -28px rgba(10, 10, 10, 0.65);
+}
+
+.project-preview::before {
+  content: "";
+  display: block;
+  height: 3px;
+  background: var(--signal-yellow);
+}
+
+@media (hover: hover) and (min-width: 768px) {
+  .project-row:hover .project-preview,
+  .project-row:focus-within .project-preview {
+    position: absolute;
+    z-index: 30;
+    display: block;
+    top: calc(100% + 0.35rem);
+    left: 0;
+  }
+}
+
+@media (hover: hover) and (min-width: 1280px) {
+  .project-row:hover .project-preview,
+  .project-row:focus-within .project-preview {
+    top: 0;
+    left: calc(100% + 1.25rem);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -457,166 +285,19 @@ body::before {
     scroll-behavior: auto;
   }
 
-  .hero-scrub,
-  .hero-field,
-  .hero-type-line,
-  .hero-type-line-delay,
-  .hero-in,
   .hero-letter,
   .hero-caret,
-  .band-enter {
+  .intro-name,
+  .intro-word,
+  .intro-dcl {
     animation: none !important;
     transform: none !important;
     opacity: 1 !important;
-  }
-
-  .hero-in-slash {
-    opacity: 0.9 !important;
+    visibility: visible !important;
+    max-width: none !important;
   }
 
   .hero-caret {
     display: none !important;
   }
-
-  .hero-film-hold,
-  .hero-film-in {
-    animation: none !important;
-    opacity: 1 !important;
-  }
-
-  .stamp-btn:hover {
-    transform: none;
-  }
-
-  .tape-strip {
-    transform: none;
-  }
-
-  .scroll-focus-item {
-    transform: none !important;
-    opacity: 1 !important;
-  }
 }
-
-/* Project books — short wide open volumes, slight tilt-back POV.
-   Cover 0% is the incoming edge, 100% is just clear of the outgoing edge.
-   The card eases up by 25%, holds the lift through 75%, then eases down. */
-.project-book-scene {
-  perspective: 1400px;
-  perspective-origin: 50% 70%;
-}
-
-.project-book {
-  --book-rest-x: 11deg;
-  --book-lift-x: 7deg;
-  --book-lift-y: -6px;
-  --book-rest-scale: 0.96;
-  position: relative;
-  transform: rotateX(var(--book-rest-x)) translateY(0) scale(var(--book-rest-scale));
-  transform-origin: center bottom;
-  transform-style: preserve-3d;
-}
-
-@keyframes project-book-lift {
-  0% {
-    transform: rotateX(11deg) translateY(0) scale(0.96);
-    animation-timing-function: ease-in-out;
-  }
-  25% {
-    transform: rotateX(7deg) translateY(-6px) scale(1);
-    animation-timing-function: linear;
-  }
-  75% {
-    transform: rotateX(7deg) translateY(-6px) scale(1);
-    animation-timing-function: ease-in-out;
-  }
-  100% {
-    transform: rotateX(11deg) translateY(0) scale(0.96);
-  }
-}
-
-@keyframes project-book-lift-sm {
-  0% {
-    transform: rotateX(7deg) translateY(0) scale(0.97);
-    animation-timing-function: ease-in-out;
-  }
-  25% {
-    transform: rotateX(4deg) translateY(-4px) scale(1);
-    animation-timing-function: linear;
-  }
-  75% {
-    transform: rotateX(4deg) translateY(-4px) scale(1);
-    animation-timing-function: ease-in-out;
-  }
-  100% {
-    transform: rotateX(7deg) translateY(0) scale(0.97);
-  }
-}
-
-@supports (animation-timeline: view()) {
-  .project-book {
-    animation: project-book-lift 1s linear both;
-    animation-timeline: view();
-    animation-range: cover 0% cover 100%;
-  }
-}
-
-@supports not (animation-timeline: view()) {
-  .project-book {
-    transform:
-      rotateX(calc(var(--book-rest-x) + (var(--book-lift-x) - var(--book-rest-x)) * var(--lift, 0)))
-      translateY(calc(var(--book-lift-y) * var(--lift, 0)))
-      scale(calc(var(--book-rest-scale) + (1 - var(--book-rest-scale)) * var(--lift, 0)));
-  }
-}
-
-.project-book-pages {
-  box-shadow:
-    0 1px 0 rgba(10, 10, 10, 0.04),
-    0 18px 40px -28px rgba(10, 10, 10, 0.45),
-    0 8px 18px -12px rgba(10, 10, 10, 0.2);
-}
-
-.project-book-spine {
-  position: relative;
-  height: 13px;
-  margin-top: -1px;
-  transform: rotateX(78deg);
-  transform-origin: top center;
-  transform-style: preserve-3d;
-  overflow: hidden;
-  box-shadow: 0 6px 14px -8px rgba(10, 10, 10, 0.45);
-}
-
-@media (max-width: 639px) {
-  .project-book {
-    --book-rest-x: 7deg;
-    --book-lift-x: 4deg;
-    --book-lift-y: -4px;
-    --book-rest-scale: 0.97;
-  }
-
-  @supports (animation-timeline: view()) {
-    .project-book {
-      animation-name: project-book-lift-sm;
-    }
-  }
-
-  .project-book-spine {
-    height: 10px;
-    transform: rotateX(70deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .project-book {
-    animation: none;
-    transform: none;
-  }
-
-  .project-book-spine {
-    transform: none;
-    height: 8px;
-  }
-}
-

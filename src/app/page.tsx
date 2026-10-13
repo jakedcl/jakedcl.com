@@ -1,58 +1,68 @@
-import { client } from '@/sanity/lib/client'
-import { projectsQuery, settingsQuery } from '@/sanity/lib/queries'
-import { Project, Settings } from '@/types/sanity'
-import ProjectCard from './components/ProjectCard'
-import ProjectScrollLift from './components/ProjectScrollLift'
-import Resume from './components/Resume'
-import SignalHero from './components/SignalHero'
+import { Suspense, type ReactNode } from 'react'
 import { resume } from '@/data/resume'
+import { bioParagraphs, tagline } from '@/data/bio'
+import IntroName from './components/IntroName'
+import ProjectIndex from './components/ProjectIndex'
+import { RoleList, SkillsList } from './components/ResumeSections'
 
 export const revalidate = 0
 
-async function getProjects(): Promise<Project[]> {
-  return await client.fetch(projectsQuery)
-}
+const linkClass =
+  'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
 
-async function getSettings(): Promise<Settings | null> {
-  return await client.fetch(settingsQuery)
-}
+const accents = [
+  'bg-signal-yellow',
+  'bg-signal-blue',
+  'bg-signal-red',
+  'bg-signal-green',
+] as const
 
-function ProjectsList({ projects }: { projects: Project[] }) {
-  if (projects.length === 0) {
-    return (
-      <div className="border-b border-ink/10 px-5 py-16 md:px-8">
-        <p className="font-utility text-sm uppercase tracking-[0.16em] text-ink/40">
-          No projects on the board — check back soon.
-        </p>
-      </div>
-    )
-  }
-
+function Section({
+  id,
+  title,
+  accent,
+  children,
+}: {
+  id: string
+  title: string
+  accent: string
+  children: ReactNode
+}) {
   return (
-    <ProjectScrollLift className="flex flex-col gap-2 border-b border-ink/10 pb-6 pt-2 md:gap-3 md:pb-10">
-      {projects.map((project, index) => (
-        <ProjectCard key={project._id} project={project} index={index} />
-      ))}
-    </ProjectScrollLift>
+    <section id={id} className="scroll-mt-8 mt-14">
+      <h2 className="font-shape mb-4 flex items-center gap-2.5 text-lg font-bold tracking-tight text-ink">
+        <span className={`h-2.5 w-2.5 shrink-0 ${accent}`} aria-hidden />
+        {title}
+      </h2>
+      {children}
+    </section>
   )
 }
 
-export default async function Home() {
-  const projects = await getProjects()
-  const settings = await getSettings()
-  const email = resume.contact.find((c) => c.href.startsWith('mailto:'))
+export default function Home() {
+  const email = resume.contact.find((item) => item.href.startsWith('mailto:'))
+  const linkedin = resume.contact.find((item) => item.href.includes('linkedin'))
+  const phone = resume.contact.find((item) => item.href.startsWith('tel:'))
+
+  const links = [
+    { label: 'GitHub', href: 'https://github.com/jakedcl' },
+    linkedin ? { label: 'LinkedIn', href: linkedin.href } : null,
+    email ? { label: 'Email', href: email.href } : null,
+    phone ? { label: phone.label, href: phone.href } : null,
+  ].filter((item): item is { label: string; href: string } => item !== null)
 
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'Person',
-    name: 'Jake DCL',
+    name: resume.legalName,
+    alternateName: 'Jake DCL',
     url: 'https://jakedcl.com',
+    email: 'jakedecorelurker@gmail.com',
+    telephone: '+1-347-733-1501',
     jobTitle: 'Web Developer',
-    description: 'Portfolio website for Jacob Decore Lurker (Jake DCL).',
-    sameAs: [
-      'https://github.com/jakedcl',
-      'https://www.linkedin.com/in/jakedcl',
-    ],
+    description: resume.summary,
+    alumniOf: 'CUNY College of Staten Island',
+    sameAs: ['https://github.com/jakedcl', 'https://www.linkedin.com/in/jakedcl'],
   }
 
   return (
@@ -61,52 +71,87 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      {/* overflow-x: clip keeps horizontal bleed clipped without making
-          main a scroll container, so view() timelines track the viewport. */}
-      <main className="relative overflow-x-clip">
-        <SignalHero photos={settings?.galleryPhotos} />
+      <main className="mx-auto w-full max-w-2xl px-5 pb-16 pt-[max(1.75rem,env(safe-area-inset-top))] sm:pt-14">
+        <header>
+          <IntroName />
+          <p className="mt-5 text-sm text-ink/70">{resume.legalName}</p>
+          <p className="font-utility mt-1 text-sm text-ink/60">{tagline}</p>
+        </header>
 
-        <section id="work" className="scroll-mt-4">
-          <div className="flex flex-wrap items-center gap-3 border-b-2 border-ink px-4 py-5 md:px-6">
-            <span className="signal-badge bg-signal-yellow text-ink">W</span>
-            <h2 className="font-display text-3xl font-extrabold tracking-tight text-ink md:text-4xl">
-              WORK
-            </h2>
-          </div>
-          <ProjectsList projects={projects} />
-        </section>
+        <div className="mt-8 space-y-4 text-[0.95rem] leading-relaxed text-ink/90 md:text-base">
+          <p>{resume.summary}</p>
+          {bioParagraphs.map((paragraph) =>
+            paragraph.startsWith('TODO:') ? (
+              <p
+                key={paragraph}
+                className="border-l-2 border-signal-yellow pl-3 text-ink/70"
+              >
+                {paragraph}
+              </p>
+            ) : (
+              <p key={paragraph}>{paragraph}</p>
+            ),
+          )}
+        </div>
 
-        <section
-          id="resume"
-          className="scroll-mt-4 px-4 py-12 md:px-6 md:py-16"
-        >
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 md:mb-8">
-            <div className="flex items-center gap-3">
-              <span className="signal-badge bg-signal-blue text-cream">R</span>
-              <h2 className="font-display text-3xl font-extrabold tracking-tight text-ink md:text-4xl">
-                RESUME
-              </h2>
-            </div>
-            <span className="stamp-chip">on file</span>
-          </div>
-          <div className="mx-auto max-w-3xl">
-            <div className="clip-ticket-alt border-2 border-ink bg-cream px-5 py-8 text-ink shadow-[8px_12px_0_0_rgba(10,10,10,0.08)] md:px-10 md:py-12">
-              <Resume part="body" />
-            </div>
-          </div>
-        </section>
-
-        <footer className="border-t-2 border-ink px-4 py-3 md:px-6">
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <p className="font-utility text-[0.65rem] uppercase tracking-[0.16em] text-ink/40">
-              JAKEDCL.COM · NYC
-            </p>
-            {email && (
-              <a href={email.href} className="stamp-btn text-[0.7rem]">
-                {email.label}
+        <p className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[0.95rem]">
+          {links.map((link) => {
+            const external = link.href.startsWith('http')
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                className={linkClass}
+                {...(external
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
+              >
+                {link.label}
+                {external ? (
+                  <span className="sr-only"> (opens in a new tab)</span>
+                ) : null}
               </a>
-            )}
-          </div>
+            )
+          })}
+        </p>
+        <p className="mt-3 text-[0.95rem]">
+          <a href="/resume.pdf" download="Jake_DeCore_Lurker_Resume.pdf" className={linkClass}>
+            Download resume (PDF)
+          </a>
+        </p>
+
+        <Section id="projects" title="Projects" accent={accents[0]}>
+          <Suspense
+            fallback={
+              <p className="text-sm text-ink/55" role="status">
+                Loading projects…
+              </p>
+            }
+          >
+            <ProjectIndex />
+          </Suspense>
+        </Section>
+
+        <Section id="experience" title="Experience" accent={accents[1]}>
+          <RoleList roles={resume.experience} empty="No experience listed." />
+        </Section>
+
+        <Section id="education" title="Education" accent={accents[2]}>
+          <RoleList roles={resume.education} empty="No education listed." />
+        </Section>
+
+        <Section id="skills" title="Skills" accent={accents[3]}>
+          <SkillsList />
+        </Section>
+
+        <Section id="certifications" title="Certifications" accent={accents[0]}>
+          <RoleList roles={resume.certifications} empty="No certifications listed." />
+        </Section>
+
+        <footer className="mt-16 border-t border-ink/10 pt-4">
+          <p className="font-utility text-[0.65rem] uppercase tracking-[0.16em] text-ink/40">
+            JAKEDCL.COM · NYC
+          </p>
         </footer>
       </main>
     </div>

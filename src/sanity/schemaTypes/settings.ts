@@ -42,7 +42,8 @@ export const settingsType = defineType({
           },
         },
       ],
-      description: 'Text that appears under your name (supports links and formatting)',
+      description:
+        'Not shown on the site. Homepage bio and tagline are edited in src/data/bio.ts (the summary sentence is resume.summary in src/data/resume.ts).',
     }),
     defineField({
       name: 'galleryPhotos',
@@ -67,7 +68,7 @@ export const settingsType = defineType({
         },
       ],
       description:
-        'Photos for the homepage filmstrip. Keep this to about 12–16 strong frames — the site only uses the first 16, and a big dump stalls phones.',
+        'Kept in the dataset. The homepage filmstrip is gone, so these photos are not shown on the site.',
     }),
   ],
   preview: {
