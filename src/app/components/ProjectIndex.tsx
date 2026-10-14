@@ -3,6 +3,7 @@ import { projectsQuery } from '@/sanity/lib/queries'
 import { projectCopy } from '@/lib/projectText'
 import type { Project, SanityImage } from '@/types/sanity'
 import Image from 'next/image'
+import ProjectPreviewReset from './ProjectPreviewReset'
 
 const linkClass =
   'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
@@ -85,10 +86,13 @@ export default async function ProjectIndex() {
   }
 
   return (
-    <ul>
-      {projects.map((project) => (
-        <ProjectRow key={project._id} project={project} />
-      ))}
-    </ul>
+    <>
+      <ProjectPreviewReset />
+      <ul>
+        {projects.map((project) => (
+          <ProjectRow key={project._id} project={project} />
+        ))}
+      </ul>
+    </>
   )
 }

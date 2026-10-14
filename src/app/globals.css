@@ -279,21 +279,32 @@ body::before {
 
 @media (hover: hover) and (min-width: 768px) {
   .project-row:hover .project-preview,
-  .project-row:focus-within .project-preview {
+  .project-row:has(:focus-visible) .project-preview {
     position: absolute;
     z-index: 30;
     display: block;
     top: calc(100% + 0.35rem);
     left: 0;
   }
+
+  /* One card. The row under the pointer wins over a focused row. */
+  ul:hover > .project-row:not(:hover) .project-preview {
+    display: none;
+  }
 }
 
 @media (hover: hover) and (min-width: 1280px) {
   .project-row:hover .project-preview,
-  .project-row:focus-within .project-preview {
+  .project-row:has(:focus-visible) .project-preview {
     top: 0;
     left: calc(100% + 1.25rem);
   }
+}
+
+/* Set from JS on mouseleave-after-click, pageshow, and window blur. */
+html.project-preview-off .project-row:hover .project-preview,
+html.project-preview-off .project-row:has(:focus-visible) .project-preview {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
