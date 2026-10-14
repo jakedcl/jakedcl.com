@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
         destination: 'https://skyinfoline.vercel.app',
         permanent: true,
       },
+      {
+        source: '/resume',
+        destination: '/',
+        permanent: true,
+      },
     ]
   },
   images: {

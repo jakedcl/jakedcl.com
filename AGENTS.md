@@ -12,8 +12,8 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 15 App Router, React 19, Tailwind v4
 
 ## Routes
 
-- `/` — hero + WORK + in-page resume
-- `/resume` — standalone resume
+- `/` — one-page portfolio (intro, bio, projects, resume sections)
+- `/resume` → 308 redirect to `/`
 - `/studio` — Sanity Studio
 - `/skyline` → redirect to skyinfoline (see `next.config.ts`)
 
@@ -21,15 +21,16 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 15 App Router, React 19, Tailwind v4
 
 | Source | Powers |
 | --- | --- |
-| Sanity `project` | WORK cards (`displayOrder`). Copy facts only from `docs/PROJECT_BRIEFS.md` — never invent clients, features, or URLs. |
-| Sanity `settings.galleryPhotos` | Hero filmstrip. Site uses first **16** frames; more stalls phones. |
-| `src/data/resume.ts` | Resume / contact on `/` and `/resume`. Not CMS-backed. |
+| Sanity `project` | Projects list (`displayOrder`). Name + description come from the title blocks. Copy facts only from `docs/PROJECT_BRIEFS.md` — never invent clients, features, or URLs. |
+| Sanity `settings.galleryPhotos` | Stored only. The filmstrip is gone; do not render these, and do not delete them. |
+| `src/data/resume.ts` | Experience, education, skills, certifications, contact. Not CMS-backed. |
+| `src/data/bio.ts` | Tagline and extra bio lines. TODO lines there are for Jake to replace. Summary sentence is `resume.summary`. |
 
-`settings.bioText` exists in schema but is unused — hero copy is local UI, not that field. Types: `src/types/sanity.ts`. Queries: `src/sanity/lib/queries.ts`.
+`settings.bioText` is unused on the site. Types: `src/types/sanity.ts`. Queries: `src/sanity/lib/queries.ts`. PDF: `public/resume.pdf` (`/resume.pdf`).
 
 ## Design — Signal Max (live)
 
-Cream paper stage (`#f6f3ec` / `--background`), ink, signal yellow/blue/red/green, cut shapes, ticket clips, paper grain. Tokens + utilities in `src/app/globals.css`.
+Cream paper stage (`#f6f3ec` / `--background`), ink, signal yellow/blue/red/green, paper grain. Text-first page. Tokens in `src/app/globals.css`.
 
 Fonts: Syne (display), Bricolage Grotesque (shape), IBM Plex Mono (utility), Helvetica (body) — wired in `src/app/layout.tsx`.
 
@@ -37,10 +38,10 @@ Fonts: Syne (display), Bricolage Grotesque (shape), IBM Plex Mono (utility), Hel
 
 ## Code map
 
-- Pages: `src/app/page.tsx`, `src/app/resume/page.tsx`
-- UI: `src/app/components/` — `SignalHero`, `Filmstrip` → `FilmStrip3D` / `FilmStripFlat`, `ProjectCard`, `Resume`
+- Page: `src/app/page.tsx`
+- UI: `src/app/components/` — `IntroName`, `ProjectIndex`, `ResumeSections`
 - Sanity: `src/sanity/schemaTypes/`, `lib/`, `env.ts`, `structure.ts`
-- Filmstrip is the mobile Safari hot path — prefer perf/clarity over new visual effects there.
+- `export/filmstrip/` is a portable package for other projects. Do not wire it back into this site.
 
 ## How to work here
 
