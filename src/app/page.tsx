@@ -79,19 +79,9 @@ export default function Home() {
         </header>
 
         <div className="mt-8 space-y-4 text-[0.95rem] leading-relaxed text-ink/90 md:text-base">
-          <p>{resume.summary}</p>
-          {bioParagraphs.map((paragraph) =>
-            paragraph.startsWith('TODO:') ? (
-              <p
-                key={paragraph}
-                className="border-l-2 border-signal-yellow pl-3 text-ink/70"
-              >
-                {paragraph}
-              </p>
-            ) : (
-              <p key={paragraph}>{paragraph}</p>
-            ),
-          )}
+          {bioParagraphs.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
         </div>
 
         <p className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[0.95rem]">
