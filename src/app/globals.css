@@ -109,8 +109,14 @@ body::before {
   color: var(--ink);
 }
 
-/* Settled yellow rule. Reduced motion shows it immediately.
-   Motion grows it in with the shrink — transform and opacity only. */
+/* One clock for the shrink and the rule. --intro-rule is animated on the
+   header; the line only reads it. Reduced motion leaves it at 1. */
+@property --intro-rule {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
 .intro-name::after {
   content: "";
   position: absolute;
@@ -119,9 +125,9 @@ body::before {
   left: 0;
   height: 3px;
   background: var(--signal-yellow);
-  transform: scaleX(1);
+  transform: scaleX(var(--intro-rule));
   transform-origin: left center;
-  opacity: 1;
+  opacity: var(--intro-rule);
   pointer-events: none;
 }
 
@@ -131,12 +137,14 @@ body::before {
     letter-spacing: -0.045em;
     line-height: 0.82;
     padding-bottom: 0;
+    --intro-rule: 0;
   }
   to {
     font-size: clamp(1.75rem, 4vw, 2.25rem);
     letter-spacing: -0.03em;
     line-height: 1;
     padding-bottom: 0.2em;
+    --intro-rule: 1;
   }
 }
 
@@ -146,17 +154,6 @@ body::before {
   }
   to {
     flex-basis: 0%;
-  }
-}
-
-@keyframes intro-rule {
-  from {
-    transform: scaleX(0);
-    opacity: 0;
-  }
-  to {
-    transform: scaleX(1);
-    opacity: 1;
   }
 }
 
@@ -249,14 +246,15 @@ body::before {
 @media (prefers-reduced-motion: no-preference) {
   .intro-name {
     animation: intro-settle 0.9s cubic-bezier(0.22, 1, 0.36, 1) 2.6s both;
+    will-change: transform;
+  }
+
+  .intro-name::after {
+    will-change: transform;
   }
 
   .intro-word {
     animation: intro-stack 0.9s cubic-bezier(0.22, 1, 0.36, 1) 2.6s both;
-  }
-
-  .intro-name::after {
-    animation: intro-rule 0.9s cubic-bezier(0.22, 1, 0.36, 1) 2.6s both;
   }
 }
 
@@ -279,21 +277,32 @@ body::before {
 
 @media (hover: hover) and (min-width: 768px) {
   .project-row:hover .project-preview,
-  .project-row:focus-within .project-preview {
+  .project-row:has(:focus-visible) .project-preview {
     position: absolute;
     z-index: 30;
     display: block;
     top: calc(100% + 0.35rem);
     left: 0;
   }
+
+  /* One card. The row under the pointer wins over a focused row. */
+  ul:hover > .project-row:not(:hover) .project-preview {
+    display: none;
+  }
 }
 
 @media (hover: hover) and (min-width: 1280px) {
   .project-row:hover .project-preview,
-  .project-row:focus-within .project-preview {
+  .project-row:has(:focus-visible) .project-preview {
     top: 0;
     left: calc(100% + 1.25rem);
   }
+}
+
+/* Set from JS on mouseleave-after-click, pageshow, and window blur. */
+html.project-preview-off .project-row:hover .project-preview,
+html.project-preview-off .project-row:has(:focus-visible) .project-preview {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
