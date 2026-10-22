@@ -4,11 +4,6 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: '/skyline',
-        destination: 'https://skyinfoline.vercel.app',
-        permanent: true,
-      },
-      {
         source: '/resume',
         destination: '/',
         permanent: true,
@@ -22,12 +17,6 @@ const nextConfig: NextConfig = {
         hostname: 'cdn.sanity.io',
         port: '',
         pathname: '/images/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.sanity.io',
-        port: '',
-        pathname: '/images/we7xgg1a/production/**',
       },
     ],
   },

@@ -17,4 +17,10 @@ export const projectsQuery = groq`
   }
 `
 
+export const projectLinkBySlugQuery = groq`
+  *[_type == "project" && slug.current == $slug][0]{
+    link
+  }
+`
+
 

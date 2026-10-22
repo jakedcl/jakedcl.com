@@ -38,6 +38,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# sanity local studio runtime
+.sanity
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

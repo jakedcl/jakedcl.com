@@ -74,6 +74,13 @@ export const projectType = defineType({
       description: 'Link to the live project or more details',
     }),
     defineField({
+      name: 'slug',
+      title: 'Short link',
+      type: 'slug',
+      description: 'Optional. jakedcl.com/this redirects to Project Link.',
+      options: { maxLength: 96 },
+    }),
+    defineField({
       name: 'displayOrder',
       title: 'Display Order',
       type: 'number',
