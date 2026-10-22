@@ -31,31 +31,23 @@ export const settingsType = defineType({
   name: 'settings',
   title: 'Site Settings',
   type: 'document',
-  groups: [
-    {name: 'home', title: 'Home', default: true},
-    {name: 'resume', title: 'Resume'},
-    {name: 'stored', title: 'Stored'},
-  ],
   fields: [
     defineField({
       name: 'legalName',
       title: 'Name',
       type: 'string',
-      group: 'home',
       description: 'Shown under the JAKE DCL title.',
     }),
     defineField({
       name: 'tagline',
       title: 'Tagline',
       type: 'string',
-      group: 'home',
       description: 'The line under the name.',
     }),
     defineField({
       name: 'bio',
       title: 'Bio',
       type: 'array',
-      group: 'home',
       description: 'Your bio. Each paragraph shows as its own paragraph on the homepage.',
       of: [
         defineArrayMember({
@@ -89,7 +81,6 @@ export const settingsType = defineType({
       name: 'links',
       title: 'Links',
       type: 'array',
-      group: 'home',
       description: 'Contact and social links under the bio, in order.',
       of: [
         defineArrayMember({
@@ -115,37 +106,25 @@ export const settingsType = defineType({
       name: 'resumeFile',
       title: 'Resume PDF',
       type: 'file',
-      group: 'home',
       description: 'Uploaded PDF. /resume.pdf redirects here. Nothing is served until this file is set.',
       options: {accept: 'application/pdf'},
-    }),
-    defineField({
-      name: 'summary',
-      title: 'Summary',
-      type: 'text',
-      rows: 3,
-      group: 'resume',
-      description: 'Used in the page description metadata. Not a visible section.',
     }),
     defineField({
       name: 'experience',
       title: 'Experience',
       type: 'array',
-      group: 'resume',
       of: [resumeRole()],
     }),
     defineField({
       name: 'education',
       title: 'Education',
       type: 'array',
-      group: 'resume',
       of: [resumeRole()],
     }),
     defineField({
       name: 'skills',
       title: 'Skills',
       type: 'array',
-      group: 'resume',
       of: [
         defineArrayMember({
           name: 'skillGroup',
@@ -168,14 +147,19 @@ export const settingsType = defineType({
       name: 'certifications',
       title: 'Certifications',
       type: 'array',
-      group: 'resume',
       of: [resumeRole()],
+    }),
+    defineField({
+      name: 'summary',
+      title: 'Summary',
+      type: 'text',
+      rows: 3,
+      description: 'Used in the page description metadata. Not a visible section.',
     }),
     defineField({
       name: 'galleryPhotos',
       title: 'Gallery Photos',
       type: 'array',
-      group: 'stored',
       of: [
         {
           type: 'image',
