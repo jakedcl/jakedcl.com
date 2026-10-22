@@ -79,12 +79,12 @@ body::before {
   outline-offset: 3px;
 }
 
-/* JAKE DCL types out large, then holds, then shrinks into the header.
+/* JAKE DCL types out large, then shrinks into the header as L appears.
    Base styles are the settled header so reduced motion is the final state.
-   The 2.6s hold is the pause after the last letter. The shrink is transform
-   and opacity only — font-size and flex-basis do not interpolate. */
+   The hold matches L: the 1.72s delay plus the letter's 0.01s step.
+   The shrink is transform and opacity only. */
 .intro-name {
-  --intro-hold-time: 2.6s;
+  --intro-hold-time: 1.73s;
   --intro-settle-duration: 0.9s;
   --intro-settle-ease: cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;

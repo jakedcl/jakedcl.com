@@ -3,8 +3,8 @@
 import { useEffect, useRef } from 'react'
 
 // A known word, then initials. Fast pair, a hitch, the last letter.
-// The gap before D is the breath between lines. The shrink waits on the
-// CSS hold so this cadence and the pause after it stay on one clock.
+// The gap before D is the breath between lines. The shrink starts when
+// the CSS hold ends, on this same clock, once L is drawn.
 // Reduced motion skips to the header.
 const JAKE = [
   ['J', '0.28s'],
