@@ -1,0 +1,305 @@
+{
+  "patch": {
+    "id": "9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf",
+    "set": {
+      "legalName": "Jake DeCore-Lurker",
+      "tagline": "IT Systems, Web Developer · NYC",
+      "summary": "Computer science graduate and technical professional — full-stack web apps, MSP client environments, and hands-on cloud, identity, networking, and security.",
+      "bio": [
+        {
+          "_key": "bio-1",
+          "_type": "bioParagraph",
+          "text": "I'm a recent CS grad from CUNY CSI, freelancing in New York City. I build web apps for small businesses and wire them into the services they already use with the goal of automating and centralizing the work already being done."
+        },
+        {
+          "_key": "bio-2",
+          "_type": "bioParagraph",
+          "text": "In college I built projects mostly because they were fun to make, and then people started asking what they actually did. Now I aim for both: software that feels good to use and solves a real problem. AI tools are a big part of how I ship fast and catch bugs before they hit production."
+        },
+        {
+          "_key": "bio-3",
+          "_type": "bioParagraph",
+          "text": "Before this, I worked in IT at a managed services provider supporting creative agencies. I managed Windows and Mac devices end to end, supported Google Workspace and Microsoft 365, and automated processes like user onboarding. Before that, I worked on the fabrication and production side at an event design shop. When I'm not at the computer, I'm usually hiking or biking somewhere in the Northeast."
+        },
+        {
+          "_key": "bio-4",
+          "_type": "bioParagraph",
+          "text": "I'm currently looking for a full-time role in software, solutions, or IT, and I'd love to connect."
+        }
+      ],
+      "links": [
+        {
+          "_key": "link-github",
+          "_type": "siteLink",
+          "label": "GitHub",
+          "href": "https://github.com/jakedcl"
+        },
+        {
+          "_key": "link-linkedin",
+          "_type": "siteLink",
+          "label": "LinkedIn",
+          "href": "https://www.linkedin.com/in/jakedcl"
+        },
+        {
+          "_key": "link-email",
+          "_type": "siteLink",
+          "label": "Email",
+          "href": "mailto:jakedecorelurker@gmail.com"
+        },
+        {
+          "_key": "link-phone",
+          "_type": "siteLink",
+          "label": "347-733-1501",
+          "href": "tel:+13477331501"
+        }
+      ],
+      "skills": [
+        {
+          "_key": "skill-1",
+          "_type": "skillGroup",
+          "label": "Languages & Data",
+          "items": [
+            "JavaScript",
+            "TypeScript",
+            "C#",
+            "Python",
+            "PowerShell",
+            "SQL",
+            "HTML/CSS",
+            "PostgreSQL",
+            "Neon",
+            "Excel"
+          ]
+        },
+        {
+          "_key": "skill-2",
+          "_type": "skillGroup",
+          "label": "Web & Mobile",
+          "items": [
+            "React",
+            "Next.js",
+            "ASP.NET Core",
+            "Django",
+            "Ruby on Rails",
+            "React Native",
+            "Expo",
+            "REST APIs",
+            "Drizzle ORM",
+            "JWT",
+            "Tailwind CSS",
+            "MUI",
+            "Vite",
+            "Three.js",
+            "React Three Fiber"
+          ]
+        },
+        {
+          "_key": "skill-3",
+          "_type": "skillGroup",
+          "label": "Architecture",
+          "items": [
+            "Multi-tenant SaaS",
+            "PostgreSQL RLS",
+            "SQL RBAC",
+            "Authentication",
+            "Audit logging"
+          ]
+        },
+        {
+          "_key": "skill-4",
+          "_type": "skillGroup",
+          "label": "Cloud & Tools",
+          "items": [
+            "Vercel",
+            "Render",
+            "Cloudflare",
+            "Cloudflare R2",
+            "AWS",
+            "Docker",
+            "Git",
+            "GitHub",
+            "DNS",
+            "SSL/TLS"
+          ]
+        },
+        {
+          "_key": "skill-5",
+          "_type": "skillGroup",
+          "label": "Content & Commerce",
+          "items": [
+            "Sanity",
+            "Shopify",
+            "Stripe",
+            "Prodigi",
+            "Resend",
+            "Mapbox"
+          ]
+        },
+        {
+          "_key": "skill-6",
+          "_type": "skillGroup",
+          "label": "Systems & Endpoints",
+          "items": [
+            "Windows",
+            "macOS",
+            "Microsoft 365",
+            "Entra ID",
+            "Google Workspace",
+            "GAM",
+            "CIPP",
+            "Intune",
+            "Autopilot",
+            "Apple Business Manager",
+            "Addigy",
+            "NinjaOne"
+          ]
+        },
+        {
+          "_key": "skill-7",
+          "_type": "skillGroup",
+          "label": "Networking & Security",
+          "items": [
+            "SonicWall",
+            "VPNs",
+            "DNS",
+            "DHCP",
+            "Auvik",
+            "SentinelOne",
+            "Huntress",
+            "Duo",
+            "DNSFilter",
+            "Avanan",
+            "EasyDMARC",
+            "SPF/DKIM/DMARC"
+          ]
+        },
+        {
+          "_key": "skill-8",
+          "_type": "skillGroup",
+          "label": "Backup & Service Delivery",
+          "items": [
+            "Cove",
+            "DropSuite",
+            "Autotask",
+            "Hudu",
+            "CloudRadial"
+          ]
+        }
+      ],
+      "experience": [
+        {
+          "_key": "experience-1",
+          "_type": "resumeRole",
+          "title": "Freelance Product Development",
+          "organization": "Independent",
+          "bullets": [
+            "Build, deploy, and maintain custom websites and web apps for small-business clients using modern frameworks, CMS platforms, APIs, and cloud services",
+            "Translate loosely defined client needs into technical requirements, implementation plans, and production solutions",
+            "Deploy and maintain production apps on Vercel, Cloudflare, Render, and related platforms; troubleshoot app, DNS, and SSL/TLS issues",
+            "Ongoing technical support for 6 recurring clients across hosting, domains, DNS, SSL, email, CMS, SaaS integrations, and production",
+            "Document systems and support procedures; help nontechnical clients evaluate tools and vendor platforms"
+          ],
+          "organizationUrl": "https://jakedcl.com",
+          "period": "2025–Present"
+        },
+        {
+          "_key": "experience-2",
+          "_type": "resumeRole",
+          "title": "IT Systems Administrator",
+          "organization": "KRNL Technology (MSP)",
+          "bullets": [
+            "Administered 5 client environments across Microsoft 365, Entra ID, and Google Workspace using CIPP and GAM",
+            "Supported 250+ Windows and Apple endpoints with Intune, Addigy, NinjaOne, and Windows Autopilot",
+            "Configured networks, firewalls, VPNs, and DNS; used Auvik for monitoring, discovery, and topology",
+            "Supported endpoint, identity, and email security with SentinelOne, Huntress, Duo, DNSFilter, Avanan, and EasyDMARC",
+            "Diagnosed email delivery and authentication issues involving SPF, DKIM, and DMARC",
+            "Used Autotask PSA for tickets and workflows; automated onboarding and improved client portal delivery with CloudRadial and Hudu",
+            "Administered Cove and DropSuite backups and maintained technical documentation"
+          ],
+          "organizationUrl": "https://krnltech.com",
+          "period": "10/2024–09/2025"
+        },
+        {
+          "_key": "experience-3",
+          "_type": "resumeRole",
+          "title": "Audit Intern",
+          "organization": "NYC Department of Investigation",
+          "bullets": [
+            "Analyzed structured datasets with Excel and Python to support investigative work",
+            "Produced reports from data analysis to support investigations"
+          ],
+          "organizationUrl": "https://www.nyc.gov/site/doi",
+          "period": "06/2024–08/2024"
+        },
+        {
+          "_key": "experience-4",
+          "_type": "resumeRole",
+          "title": "Technology Instructor",
+          "organization": "NYC DYCD COMPASS STEM",
+          "bullets": [
+            "Led weekly classes in introductory programming and digital literacy for elementary students using MIT Scratch"
+          ],
+          "organizationUrl": "https://www.nyc.gov/site/dycd/services/after-school/comprehensive-after-school-system-of-new-york-city-compass.page",
+          "period": "09/2023–06/2024"
+        },
+        {
+          "_key": "experience-5",
+          "_type": "resumeRole",
+          "title": "Logistics and Operations Associate",
+          "organization": "NY Design & Construction",
+          "bullets": [
+            "Managed company web systems and digital infrastructure while supporting event-production and logistics operations",
+            "Coordinated crews, vendors, equipment, and inventory for large-scale events in a fast-moving, client-facing environment"
+          ],
+          "organizationUrl": "https://nydacinc.com",
+          "period": "05/2022–05/2024"
+        },
+        {
+          "_key": "experience-6",
+          "_type": "resumeRole",
+          "title": "Frontend Web Developer",
+          "organization": "BandNada Social",
+          "bullets": [
+            "Contributed to web and mobile app development with Ruby on Rails, React Native, and Expo",
+            "Participated in collaborative Git/GitHub workflows including pull requests and code review"
+          ],
+          "organizationUrl": "https://bandnada.com",
+          "period": "01/2023–06/2023"
+        },
+        {
+          "_key": "experience-7",
+          "_type": "resumeRole",
+          "title": "Helpdesk Technician",
+          "organization": "Oneonta IT Services",
+          "bullets": [
+            "Provided helpdesk support for student accounts and devices",
+            "Supported school printers, projectors, and related campus technology"
+          ],
+          "organizationUrl": "https://suny.oneonta.edu",
+          "period": "08/2022–12/2022"
+        }
+      ],
+      "education": [
+        {
+          "_key": "education-1",
+          "_type": "resumeRole",
+          "title": "Bachelor of Science in Computer Science",
+          "organization": "CUNY College of Staten Island",
+          "bullets": [],
+          "organizationUrl": "https://cs.csi.cuny.edu",
+          "period": "May 2026"
+        }
+      ],
+      "certifications": [
+        {
+          "_key": "certification-1",
+          "_type": "resumeRole",
+          "title": "Associate Google Workspace Administrator",
+          "organization": "View credential",
+          "bullets": [],
+          "organizationUrl": "https://www.credly.com/badges/9e258fee-2bde-4253-9dd5-a10250454644"
+        }
+      ]
+    }
+  }
+}
