@@ -8,7 +8,7 @@ export default function Error({
 }) {
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center bg-background px-5 text-ink">
-      <h1 className="font-display text-3xl font-extrabold tracking-tight">
+      <h1 className="font-shape text-3xl font-extrabold tracking-tight">
         This page did not load
       </h1>
       <p className="mt-3 max-w-md text-base leading-relaxed text-ink/75">

@@ -8,16 +8,13 @@ export interface SanityImage {
     _type?: 'reference'
     url: string
     metadata?: {
-      lqip?: string
       dimensions?: {
         width: number
         height: number
-        aspectRatio?: number
       }
     }
   }
   alt?: string
-  caption?: string
 }
 
 export interface Project {
@@ -25,9 +22,6 @@ export interface Project {
   title: PortableTextBlock[]
   photos?: SanityImage[]
   link?: string
-}
-
-export interface Settings {
-  galleryPhotos?: SanityImage[]
+  slug?: { current?: string }
 }
 

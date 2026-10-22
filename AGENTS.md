@@ -15,7 +15,8 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 15 App Router, React 19, Tailwind v4
 - `/` — one-page portfolio (intro, bio, projects, resume sections)
 - `/resume` → 308 redirect to `/`
 - `/studio` — Sanity Studio
-- `/skyline` → redirect to skyinfoline (see `next.config.ts`)
+- `/<slug>` → 307 to that project's `link` when Sanity `project.slug.current` matches. Revalidate ~60s. Unknown or reserved slugs 404. Does not replace `/`, `/studio`, `/resume`, or `/resume.pdf`.
+- `/skyline` is that short link once the skyinfoline project slug is `skyline`. Until then it 404s.
 
 ## Content (do not mix sources)
 
@@ -24,7 +25,7 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 15 App Router, React 19, Tailwind v4
 | Sanity `project` | Projects list (`displayOrder`). Name + description come from the title blocks. Copy facts only from `docs/PROJECT_BRIEFS.md` — never invent clients, features, or URLs. |
 | Sanity `settings.galleryPhotos` | Stored only. The filmstrip is gone; do not render these, and do not delete them. |
 | `src/data/resume.ts` | Experience, education, skills, certifications, contact. Not CMS-backed. |
-| `src/data/bio.ts` | Tagline and extra bio lines. TODO lines there are for Jake to replace. Summary sentence is `resume.summary`. |
+| `src/data/bio.ts` | Tagline and bio paragraphs. `resume.summary` is JSON-LD only. |
 
 `settings.bioText` is unused on the site. Types: `src/types/sanity.ts`. Queries: `src/sanity/lib/queries.ts`. PDF: `public/resume.pdf` (`/resume.pdf`).
 
@@ -32,16 +33,13 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 15 App Router, React 19, Tailwind v4
 
 Cream paper stage (`#f6f3ec` / `--background`), ink, signal yellow/blue/red/green, paper grain. Text-first page. Tokens in `src/app/globals.css`.
 
-Fonts: Syne (display), Bricolage Grotesque (shape), IBM Plex Mono (utility), Helvetica (body) — wired in `src/app/layout.tsx`.
-
-**Deferred:** 90s camcorder — `docs/CAMCORDER_THEME_BRIEF.md`. Do not implement unless explicitly revived.
+Fonts: Bricolage Grotesque (display and shape), IBM Plex Mono (utility), Helvetica (body) — wired in `src/app/layout.tsx`.
 
 ## Code map
 
 - Page: `src/app/page.tsx`
 - UI: `src/app/components/` — `IntroName`, `ProjectIndex`, `ResumeSections`
 - Sanity: `src/sanity/schemaTypes/`, `lib/`, `env.ts`, `structure.ts`
-- `export/filmstrip/` is a portable package for other projects. Do not wire it back into this site.
 
 ## How to work here
 
