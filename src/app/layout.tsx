@@ -1,8 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Bricolage_Grotesque, IBM_Plex_Mono } from "next/font/google";
+import { Bricolage_Grotesque, IBM_Plex_Mono, Syne } from "next/font/google";
 import "./globals.css";
+
+const syne = Syne({
+  subsets: ["latin"],
+  variable: "--font-syne",
+  weight: ["700", "800"],
+  display: "swap",
+});
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -82,7 +89,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${bricolage.variable} ${plexMono.variable}`}
+      className={`${syne.variable} ${bricolage.variable} ${plexMono.variable}`}
     >
       <body className="font-sans antialiased text-ink bg-background">
         {children}
