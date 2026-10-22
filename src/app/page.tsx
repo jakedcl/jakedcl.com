@@ -1,5 +1,6 @@
 import { Suspense, type ReactNode } from 'react'
 import { getHomeContent, type HomeContent } from '@/lib/siteContent'
+import BioCopy from './components/BioCopy'
 import IntroName from './components/IntroName'
 import ProjectIndex from './components/ProjectIndex'
 import { RoleList, SkillsList } from './components/ResumeSections'
@@ -66,9 +67,7 @@ export default async function Home() {
 
         {content.bio.length > 0 ? (
           <div className="mt-8 space-y-4 text-[0.95rem] leading-relaxed text-ink/90 md:text-base">
-            {content.bio.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
+            <BioCopy blocks={content.bio} />
           </div>
         ) : null}
 

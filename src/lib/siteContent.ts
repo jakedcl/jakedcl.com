@@ -1,3 +1,5 @@
+import type { PortableTextBlock } from 'next-sanity'
+
 import { apiVersion, dataset, projectId } from '@/sanity/env'
 import { resumeFileQuery, settingsQuery } from '@/sanity/lib/queries'
 import type { HomeLink, HomeRole, HomeSkillGroup } from '@/types/home'
@@ -7,7 +9,7 @@ export type HomeContent = {
   legalName: string
   tagline: string
   summary: string
-  bio: string[]
+  bio: PortableTextBlock[]
   links: HomeLink[]
   skills: HomeSkillGroup[]
   experience: HomeRole[]
@@ -29,7 +31,7 @@ type SanitySettings = {
   legalName?: string | null
   tagline?: string | null
   summary?: string | null
-  bio?: Array<{ _key?: string; text?: string | null }> | null
+  bio?: PortableTextBlock[] | null
   links?: Array<{ _key?: string; label?: string | null; href?: string | null }> | null
   resumeUrl?: string | null
   skills?: Array<{
@@ -51,7 +53,7 @@ export async function getHomeContent(): Promise<HomeContent> {
       legalName: text(settings.legalName),
       tagline: text(settings.tagline),
       summary: text(settings.summary),
-      bio: paragraphsFrom(settings.bio),
+      bio: bioFrom(settings.bio),
       links: linksFrom(settings.links),
       skills: skillsFrom(settings.skills),
       experience: rolesFrom(settings.experience),
@@ -104,10 +106,15 @@ function text(value: string | null | undefined): string {
   return value?.trim() ?? ''
 }
 
-function paragraphsFrom(
-  value: Array<{ text?: string | null }> | null | undefined,
-): string[] {
-  return (value ?? []).map((item) => item.text?.trim() ?? '').filter(Boolean)
+function bioFrom(value: PortableTextBlock[] | null | undefined): PortableTextBlock[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((block) => {
+    if (block._type !== 'block' || !Array.isArray(block.children)) return false
+    return block.children.some((child) => {
+      if (!child || typeof child !== 'object' || !('text' in child)) return false
+      return typeof child.text === 'string' && child.text.trim().length > 0
+    })
+  })
 }
 
 function linksFrom(

@@ -32,7 +32,22 @@ export const settingsQuery = groq`
     legalName,
     tagline,
     summary,
-    bio[]{ _key, text },
+    bio[]{
+      _key,
+      _type,
+      style,
+      children[]{
+        _key,
+        _type,
+        marks,
+        text
+      },
+      markDefs[]{
+        _key,
+        _type,
+        href
+      }
+    },
     links[]{ _key, label, href },
     "resumeUrl": resumeFile.asset->url,
     skills[]{ _key, label, items },

@@ -24,7 +24,7 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 15 App Router, React 19, Tailwind v4
 | Source | Powers |
 | --- | --- |
 | Sanity `project` | Projects list (`displayOrder`). Name + description come from the title blocks. Copy facts only from `docs/PROJECT_BRIEFS.md` — never invent clients, features, or URLs. |
-| Sanity `settings` (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) | Homepage name, tagline, bio, links, summary, resume PDF, and resume sections. `galleryPhotos` and `bioText` stay stored and are not rendered. Do not delete them. |
+| Sanity `settings` (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) | Homepage name, tagline, bio (portable text), links, summary, resume PDF, and resume sections. `galleryPhotos` stays stored and is not rendered. Do not delete it. |
 
 Queries: `src/sanity/lib/queries.ts`. Seed: `scripts/seed-settings.json` (a patch `set`; do not createOrReplace). The resume PDF is not in the seed. Upload it on that settings document.
 
