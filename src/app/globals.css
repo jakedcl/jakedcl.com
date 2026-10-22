@@ -29,8 +29,8 @@
   --color-accent-yellow: var(--signal-yellow);
   --color-accent-green: var(--signal-green);
   --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-display: var(--font-bricolage), "Helvetica Neue", Helvetica, sans-serif;
-  --font-shape: var(--font-bricolage), "Helvetica Neue", Helvetica, sans-serif;
+  --font-display: var(--font-syne), "Helvetica Neue", Helvetica, sans-serif;
+  --font-shape: var(--font-bricolage), var(--font-syne), "Helvetica Neue", Helvetica, sans-serif;
   --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
 }
 
