@@ -56,20 +56,32 @@ export const settingsType = defineType({
       title: 'Bio',
       type: 'array',
       group: 'home',
-      description: 'One item per paragraph, in order.',
+      description: 'Your bio. Each paragraph shows as its own paragraph on the homepage.',
       of: [
         defineArrayMember({
-          name: 'bioParagraph',
-          type: 'object',
-          fields: [
-            defineField({
-              name: 'text',
-              title: 'Paragraph',
-              type: 'text',
-              rows: 4,
-            }),
-          ],
-          preview: {select: {title: 'text'}},
+          type: 'block',
+          styles: [{title: 'Normal', value: 'normal'}],
+          lists: [],
+          marks: {
+            decorators: [
+              {title: 'Bold', value: 'strong'},
+              {title: 'Italic', value: 'em'},
+            ],
+            annotations: [
+              defineArrayMember({
+                name: 'link',
+                type: 'object',
+                title: 'Link',
+                fields: [
+                  defineField({
+                    name: 'href',
+                    title: 'URL',
+                    type: 'url',
+                  }),
+                ],
+              }),
+            ],
+          },
         }),
       ],
     }),
@@ -158,47 +170,6 @@ export const settingsType = defineType({
       type: 'array',
       group: 'resume',
       of: [resumeRole()],
-    }),
-    defineField({
-      name: 'bioText',
-      title: 'Bio Text',
-      type: 'array',
-      group: 'stored',
-      of: [
-        {
-          type: 'block',
-          styles: [
-            {title: 'Normal', value: 'normal'},
-            {title: 'H3', value: 'h3'},
-          ],
-          marks: {
-            decorators: [
-              {title: 'Bold', value: 'strong'},
-              {title: 'Italic', value: 'em'},
-            ],
-            annotations: [
-              {
-                title: 'URL',
-                name: 'link',
-                type: 'object',
-                fields: [
-                  {
-                    title: 'URL',
-                    name: 'href',
-                    type: 'url',
-                    validation: (Rule) =>
-                      Rule.uri({
-                        scheme: ['http', 'https', 'mailto', 'tel'],
-                      }),
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      ],
-      description:
-        'Stored only. The homepage uses the Bio field. Do not delete this.',
     }),
     defineField({
       name: 'galleryPhotos',
