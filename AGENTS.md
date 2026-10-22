@@ -7,14 +7,15 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 15 App Router, React 19, Tailwind v4
 - `npm run dev` → `http://localhost:3000` (site + `/studio`)
 - Also: `npm run build` | `start` | `lint`
 - No `.env` needed for the public site. Fallbacks in `src/sanity/env.ts`: `projectId` `we7xgg1a`, `dataset` `production`. Needs outbound `*.sanity.io` / `cdn.sanity.io`.
-- Home: `revalidate = 0`; Sanity CDN off in dev → fresh fetch every load.
+- Home and `/resume.pdf`: `revalidate = 60`. Sanity CDN off in dev. Homepage copy comes only from the Site Settings document. Empty fields are not shown.
 - `/studio` needs a Sanity login to author. Public pages do not.
 
 ## Routes
 
 - `/` — one-page portfolio (intro, bio, projects, resume sections)
 - `/resume` → 308 redirect to `/`
-- `/studio` — Sanity Studio
+- `/resume.pdf` → 307 to the Site Settings PDF. 404 until that file is uploaded.
+- `/studio` — Sanity Studio. Sidebar is the Site Settings singleton and Projects ordered by `displayOrder`.
 - `/<slug>` → 307 to that project's `link` when Sanity `project.slug.current` matches. Revalidate ~60s. Unknown or reserved slugs 404. Does not replace `/`, `/studio`, `/resume`, or `/resume.pdf`.
 - `/skyline` is that short link once the skyinfoline project slug is `skyline`. Until then it 404s.
 
@@ -23,11 +24,9 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 15 App Router, React 19, Tailwind v4
 | Source | Powers |
 | --- | --- |
 | Sanity `project` | Projects list (`displayOrder`). Name + description come from the title blocks. Copy facts only from `docs/PROJECT_BRIEFS.md` — never invent clients, features, or URLs. |
-| Sanity `settings.galleryPhotos` | Stored only. The filmstrip is gone; do not render these, and do not delete them. |
-| `src/data/resume.ts` | Experience, education, skills, certifications, contact. Not CMS-backed. |
-| `src/data/bio.ts` | Tagline and bio paragraphs. `resume.summary` is JSON-LD only. |
+| Sanity `settings` (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) | Homepage name, tagline, bio, links, summary, resume PDF, and resume sections. `galleryPhotos` and `bioText` stay stored and are not rendered. Do not delete them. |
 
-`settings.bioText` is unused on the site. Types: `src/types/sanity.ts`. Queries: `src/sanity/lib/queries.ts`. PDF: `public/resume.pdf` (`/resume.pdf`).
+Queries: `src/sanity/lib/queries.ts`. Seed: `scripts/seed-settings.json` (a patch `set`; do not createOrReplace). The resume PDF is not in the seed. Upload it on that settings document.
 
 ## Design — Signal Max (live)
 

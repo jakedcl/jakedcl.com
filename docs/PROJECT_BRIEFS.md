@@ -1,6 +1,6 @@
 # Project briefs for jakedcl.com
 
-Source: GitHub repos under `jakedcl`, read 2026-09-25. Use these facts on the portfolio. Do not invent features, clients, or live URLs that are not listed here. Recent Projects on the site come from Sanity, not from `src/data/resume.ts`.
+Source: GitHub repos under `jakedcl`, read 2026-09-25. Use these facts on the portfolio. Do not invent features, clients, or live URLs that are not listed here. Recent Projects on the site come from Sanity `project` documents.
 
 ---
 

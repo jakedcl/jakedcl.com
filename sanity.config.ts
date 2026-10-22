@@ -17,6 +17,18 @@ export default defineConfig({
   basePath: '/studio',
   projectId,
   dataset,
+  document: {
+    actions: (prev, context) => {
+      if (context.schemaType !== 'settings') return prev
+      return prev.filter(
+        ({action}) => action !== 'delete' && action !== 'duplicate',
+      )
+    },
+    newDocumentOptions: (prev, {creationContext}) => {
+      if (creationContext.type !== 'global') return prev
+      return prev.filter((template) => template.templateId !== 'settings')
+    },
+  },
   // Add and edit the content schema in the './sanity/schemaTypes' folder
   schema,
   plugins: [

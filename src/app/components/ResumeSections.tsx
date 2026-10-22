@@ -1,9 +1,9 @@
-import { resume, type ResumeRole } from '@/data/resume'
+import type { HomeRole, HomeSkillGroup } from '@/types/home'
 
 const linkClass =
   'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
 
-function Org({ role }: { role: ResumeRole }) {
+function Org({ role }: { role: HomeRole }) {
   if (!role.organizationUrl) return role.organization
   const external = role.organizationUrl.startsWith('http')
   return (
@@ -20,22 +20,14 @@ function Org({ role }: { role: ResumeRole }) {
   )
 }
 
-export function RoleList({
-  roles,
-  empty,
-}: {
-  roles: ResumeRole[]
-  empty: string
-}) {
-  if (roles.length === 0) {
-    return <p className="text-sm text-ink/55">{empty}</p>
-  }
+export function RoleList({ roles }: { roles: HomeRole[] }) {
+  if (roles.length === 0) return null
 
   return (
     <div>
       {roles.map((role) => (
         <article
-          key={`${role.title}-${role.organization}`}
+          key={role._key ?? `${role.title}-${role.organization}`}
           className="py-4"
         >
           <div className="flex items-baseline justify-between gap-x-4">
@@ -63,15 +55,13 @@ export function RoleList({
   )
 }
 
-export function SkillsList() {
-  if (resume.skills.length === 0) {
-    return <p className="text-sm text-ink/55">No skills listed.</p>
-  }
+export function SkillsList({ groups }: { groups: HomeSkillGroup[] }) {
+  if (groups.length === 0) return null
 
   return (
     <div className="space-y-5">
-      {resume.skills.map((group) => (
-        <div key={group.label}>
+      {groups.map((group) => (
+        <div key={group._key ?? group.label}>
           <h3 className="text-sm font-medium text-ink">{group.label}</h3>
           <p className="mt-1 text-sm leading-relaxed text-ink/80">
             {group.items.length > 0 ? group.items.join(', ') : 'None listed.'}
