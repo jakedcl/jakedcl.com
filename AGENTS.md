@@ -40,7 +40,6 @@ Fonts: Bricolage Grotesque (display and shape), IBM Plex Mono (utility), Helveti
 - Page: `src/app/page.tsx`
 - UI: `src/app/components/` — `IntroName`, `ProjectIndex`, `ResumeSections`
 - Sanity: `src/sanity/schemaTypes/`, `lib/`, `env.ts`, `structure.ts`
-- `export/filmstrip/` stays in this repo. The jakedcl/metrotapes copy is missing the shell, flat fallback, and example. Do not wire it into this site, and do not delete it until that copy matches.
 
 ## How to work here
 
