@@ -79,9 +79,14 @@ body::before {
   outline-offset: 3px;
 }
 
-/* JAKE DCL types out large, then shrinks into the header.
-   Base styles are the settled header so reduced motion is the final state. */
+/* JAKE DCL types out large, then shrinks into the header as L appears.
+   Base styles are the settled header so reduced motion is the final state.
+   The hold matches L: the 1.72s delay plus the letter's 0.01s step.
+   The shrink is transform and opacity only. */
 .intro-name {
+  --intro-hold-time: 1.73s;
+  --intro-settle-duration: 0.9s;
+  --intro-settle-ease: cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -100,26 +105,39 @@ body::before {
 
 .intro-word {
   display: inline-flex;
+  position: relative;
+  z-index: 2;
   flex: 0 0 auto;
   align-items: baseline;
   white-space: nowrap;
+}
+
+.intro-glyphs {
+  display: inline-flex;
+  align-items: baseline;
 }
 
 .intro-dcl {
   color: var(--ink);
 }
 
-/* One clock for the shrink and the rule. --intro-rule is animated on the
-   header; the line only reads it. Reduced motion leaves it at 1. */
+/* No-JS fallback still drives the rule from this. Reduced motion leaves it at 1. */
 @property --intro-rule {
   syntax: "<number>";
   inherits: true;
   initial-value: 1;
 }
 
+@property --intro-hold-tick {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
 .intro-name::after {
   content: "";
   position: absolute;
+  z-index: 1;
   right: 0;
   bottom: 0;
   left: 0;
@@ -154,6 +172,15 @@ body::before {
   }
   to {
     flex-basis: 0%;
+  }
+}
+
+@keyframes intro-hold {
+  from {
+    --intro-hold-tick: 0;
+  }
+  to {
+    --intro-hold-tick: 1;
   }
 }
 
@@ -244,17 +271,75 @@ body::before {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .intro-name {
-    animation: intro-settle 0.9s cubic-bezier(0.22, 1, 0.36, 1) 2.6s both;
-    will-change: transform;
+  .intro-name:not(.is-settled) {
+    padding-bottom: 0;
+    font-size: clamp(4rem, 17vw, 8.75rem);
+    letter-spacing: -0.045em;
+    line-height: 0.82;
+    animation: intro-hold var(--intro-hold-time) linear both;
   }
 
-  .intro-name::after {
-    will-change: transform;
+  .intro-name:not(.is-settled) .intro-word {
+    flex-basis: 100%;
+  }
+
+  /* Covers the page under the shrinking name so the reflow does not show through. */
+  .intro-name::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    background: transparent;
+    transform: scaleY(var(--veil-scale, 1));
+    transform-origin: left top;
+    pointer-events: none;
+  }
+
+  .intro-name.is-settled:not(.is-done) {
+    z-index: 2;
+  }
+
+  .intro-name.is-settled:not(.is-done)::before {
+    background: var(--background);
+  }
+
+  .intro-name.is-playing::before {
+    transform: scaleY(1);
+    transition: transform var(--intro-settle-duration) var(--intro-settle-ease);
+  }
+
+  .intro-glyphs {
+    transform-origin: 0 0;
+  }
+
+  .intro-name:not(.is-playing)::after {
+    transform: translateY(var(--rule-shift, 0px)) scaleX(0);
+    opacity: 0;
+  }
+
+  .intro-name.is-playing::after {
+    transform: translateY(0px) scaleX(1);
+    opacity: 1;
+    /* Opacity snaps on so the rule reads as a solid line growing, not a fade. */
+    transition:
+      transform var(--intro-settle-duration) var(--intro-settle-ease),
+      opacity 0s linear;
+  }
+}
+
+/* Without JS the old keyframes still run. They snap, but the header does settle. */
+@media (scripting: none) and (prefers-reduced-motion: no-preference) {
+  .intro-name:not(.is-settled) {
+    animation: intro-settle var(--intro-settle-duration) var(--intro-settle-ease) var(--intro-hold-time) both;
+  }
+
+  .intro-name:not(.is-playing)::after {
+    transform: scaleX(var(--intro-rule));
+    opacity: var(--intro-rule);
   }
 
   .intro-word {
-    animation: intro-stack 0.9s cubic-bezier(0.22, 1, 0.36, 1) 2.6s both;
+    animation: intro-stack var(--intro-settle-duration) var(--intro-settle-ease) var(--intro-hold-time) both;
   }
 }
 
@@ -314,6 +399,7 @@ html.project-preview-off .project-row:has(:focus-visible) .project-preview {
   .hero-caret,
   .intro-name,
   .intro-word,
+  .intro-glyphs,
   .intro-dcl {
     animation: none !important;
     transform: none !important;
