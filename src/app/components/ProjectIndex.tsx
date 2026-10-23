@@ -1,14 +1,14 @@
 import { client } from '@/sanity/lib/client'
 import { projectsQuery } from '@/sanity/lib/queries'
 import { projectCopy } from '@/lib/projectText'
-import type { Project, SanityImage } from '@/types/sanity'
-import Image from 'next/image'
+import type { Project, SanityImage as SanityAsset } from '@/types/sanity'
 import ProjectPreviewReset from './ProjectPreviewReset'
+import SanityImage from './SanityImage'
 
 const linkClass =
   'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
 
-function screenshotOf(project: Project): SanityImage | undefined {
+function screenshotOf(project: Project): SanityAsset | undefined {
   return project.photos?.find((photo) => photo?.asset?.url)
 }
 
@@ -40,12 +40,12 @@ function ProjectRow({ project }: { project: Project }) {
       </p>
       <div className="project-preview" aria-hidden="true">
         {photo?.asset.url ? (
-          <Image
+          <SanityImage
             src={photo.asset.url}
             alt=""
             width={width}
             height={height}
-            sizes="256px"
+            sizes="16rem"
             className="aspect-[4/3] w-full object-cover"
           />
         ) : null}

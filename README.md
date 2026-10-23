@@ -9,6 +9,8 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). No `.env` file is required. Sanity falls back to project `we7xgg1a`, dataset `production`.
 
+Sanity images are resized by `cdn.sanity.io` (`src/lib/sanityImageLoader.ts`), not by Vercel image transformations. Files in `/public` still use Next's default optimizer.
+
 - `/` is the portfolio (intro, bio, projects, resume).
 - `/resume` redirects to `/`.
 - `/resume.pdf` redirects to the resume file uploaded in Studio. It 404s until that file is set.
