@@ -64,7 +64,7 @@ export function SkillsList({ groups }: { groups: HomeSkillGroup[] }) {
         <div key={group._key ?? group.label}>
           <h3 className="text-sm font-medium text-ink">{group.label}</h3>
           <p className="mt-1 text-sm leading-relaxed text-ink/80">
-            {group.items.length > 0 ? group.items.join(', ') : 'None listed.'}
+            {group.items.join(', ')}
           </p>
         </div>
       ))}

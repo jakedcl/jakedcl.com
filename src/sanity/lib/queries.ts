@@ -29,6 +29,7 @@ const settingsFilter = `*[_id == "${SETTINGS_ID}"][0]`
 
 export const settingsQuery = groq`
   ${settingsFilter}{
+    heroTitle,
     legalName,
     tagline,
     summary,
@@ -52,7 +53,35 @@ export const settingsQuery = groq`
     skills[]{ _key, label, items },
     experience[]{ _key, title, organization, organizationUrl, period, bullets },
     education[]{ _key, title, organization, organizationUrl, period, bullets },
-    certifications[]{ _key, title, organization, organizationUrl, period, bullets }
+    certifications[]{ _key, title, organization, organizationUrl, period, bullets },
+    projectsHeading,
+    experienceHeading,
+    educationHeading,
+    skillsHeading,
+    certificationsHeading,
+    footerText,
+    siteTitle,
+    metaDescription,
+    keywords,
+    authorName,
+    metaCategory,
+    ogTitle,
+    ogDescription,
+    ogSiteName,
+    "ogImageUrl": ogImage.asset->url,
+    "ogImageWidth": ogImage.asset->metadata.dimensions.width,
+    "ogImageHeight": ogImage.asset->metadata.dimensions.height,
+    ogImageAlt,
+    ogCardKicker,
+    ogCardStatus,
+    ogCardFooter,
+    appIconText,
+    appName,
+    appShortName,
+    appDescription,
+    notFoundTitle,
+    notFoundBody,
+    notFoundLinkLabel
   }
 `
 

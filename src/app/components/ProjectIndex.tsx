@@ -55,9 +55,7 @@ function ProjectRow({ project }: { project: Project }) {
           </p>
           {description ? (
             <p className="mt-1.5 text-sm leading-snug text-ink/75">{description}</p>
-          ) : (
-            <p className="mt-1.5 text-sm leading-snug text-ink/45">No description yet.</p>
-          )}
+          ) : null}
         </div>
       </div>
     </li>
@@ -77,13 +75,8 @@ export default async function ProjectIndex() {
     )
   }
 
-  if (projects.length === 0) {
-    return (
-      <p className="text-sm leading-relaxed text-ink/55">
-        No projects on the board — check back soon.
-      </p>
-    )
-  }
+  projects = projects.filter((project) => projectCopy(project.title).name)
+  if (projects.length === 0) return null
 
   return (
     <>

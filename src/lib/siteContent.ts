@@ -15,6 +15,33 @@ export type HomeContent = {
   experience: HomeRole[]
   education: HomeRole[]
   certifications: HomeRole[]
+  heroTitle: string
+  projectsHeading: string
+  experienceHeading: string
+  educationHeading: string
+  skillsHeading: string
+  certificationsHeading: string
+  footerText: string
+  siteTitle: string
+  metaDescription: string
+  authorName: string
+  metaCategory: string
+  ogTitle: string
+  ogDescription: string
+  ogSiteName: string
+  ogImageAlt: string
+  ogCardKicker: string
+  ogCardStatus: string
+  ogCardFooter: string
+  appIconText: string
+  appName: string
+  appShortName: string
+  appDescription: string
+  notFoundTitle: string
+  notFoundBody: string
+  notFoundLinkLabel: string
+  keywords: string[]
+  ogImage: { url: string; width?: number; height?: number } | null
 }
 
 type SanityRole = {
@@ -40,6 +67,35 @@ type SanitySettings = {
   experience?: SanityRole[] | null
   education?: SanityRole[] | null
   certifications?: SanityRole[] | null
+  heroTitle?: string | null
+  projectsHeading?: string | null
+  experienceHeading?: string | null
+  educationHeading?: string | null
+  skillsHeading?: string | null
+  certificationsHeading?: string | null
+  footerText?: string | null
+  siteTitle?: string | null
+  metaDescription?: string | null
+  authorName?: string | null
+  metaCategory?: string | null
+  ogTitle?: string | null
+  ogDescription?: string | null
+  ogSiteName?: string | null
+  ogImageAlt?: string | null
+  ogCardKicker?: string | null
+  ogCardStatus?: string | null
+  ogCardFooter?: string | null
+  appIconText?: string | null
+  appName?: string | null
+  appShortName?: string | null
+  appDescription?: string | null
+  notFoundTitle?: string | null
+  notFoundBody?: string | null
+  notFoundLinkLabel?: string | null
+  keywords?: Array<string | null> | null
+  ogImageUrl?: string | null
+  ogImageWidth?: number | null
+  ogImageHeight?: number | null
 }
 
 export async function getHomeContent(): Promise<HomeContent> {
@@ -57,9 +113,46 @@ export async function getHomeContent(): Promise<HomeContent> {
       experience: rolesFrom(settings.experience),
       education: rolesFrom(settings.education),
       certifications: rolesFrom(settings.certifications),
+      heroTitle: text(settings.heroTitle),
+      projectsHeading: text(settings.projectsHeading),
+      experienceHeading: text(settings.experienceHeading),
+      educationHeading: text(settings.educationHeading),
+      skillsHeading: text(settings.skillsHeading),
+      certificationsHeading: text(settings.certificationsHeading),
+      footerText: text(settings.footerText),
+      siteTitle: text(settings.siteTitle),
+      metaDescription: text(settings.metaDescription),
+      authorName: text(settings.authorName),
+      metaCategory: text(settings.metaCategory),
+      ogTitle: text(settings.ogTitle),
+      ogDescription: text(settings.ogDescription),
+      ogSiteName: text(settings.ogSiteName),
+      ogImageAlt: text(settings.ogImageAlt),
+      ogCardKicker: text(settings.ogCardKicker),
+      ogCardStatus: text(settings.ogCardStatus),
+      ogCardFooter: text(settings.ogCardFooter),
+      appIconText: text(settings.appIconText),
+      appName: text(settings.appName),
+      appShortName: text(settings.appShortName),
+      appDescription: text(settings.appDescription),
+      notFoundTitle: text(settings.notFoundTitle),
+      notFoundBody: text(settings.notFoundBody),
+      notFoundLinkLabel: text(settings.notFoundLinkLabel),
+      keywords: (settings.keywords ?? []).map((k) => k?.trim() ?? '').filter(Boolean),
+      ogImage: ogImageFrom(settings),
     }
   } catch {
     return emptyContent(true)
+  }
+}
+
+function ogImageFrom(settings: SanitySettings): HomeContent['ogImage'] {
+  const url = httpUrl(settings.ogImageUrl)
+  if (!url) return null
+  return {
+    url,
+    width: settings.ogImageWidth ?? undefined,
+    height: settings.ogImageHeight ?? undefined,
   }
 }
 
@@ -75,6 +168,33 @@ function emptyContent(loadError: boolean): HomeContent {
     experience: [],
     education: [],
     certifications: [],
+    heroTitle: '',
+    projectsHeading: '',
+    experienceHeading: '',
+    educationHeading: '',
+    skillsHeading: '',
+    certificationsHeading: '',
+    footerText: '',
+    siteTitle: '',
+    metaDescription: '',
+    authorName: '',
+    metaCategory: '',
+    ogTitle: '',
+    ogDescription: '',
+    ogSiteName: '',
+    ogImageAlt: '',
+    ogCardKicker: '',
+    ogCardStatus: '',
+    ogCardFooter: '',
+    appIconText: '',
+    appName: '',
+    appShortName: '',
+    appDescription: '',
+    notFoundTitle: '',
+    notFoundBody: '',
+    notFoundLinkLabel: '',
+    keywords: [],
+    ogImage: null,
   }
 }
 

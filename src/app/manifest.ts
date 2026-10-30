@@ -1,10 +1,16 @@
 import type { MetadataRoute } from "next";
 
-export default function manifest(): MetadataRoute.Manifest {
+import { getHomeContent } from "@/lib/siteContent";
+
+export const revalidate = 60;
+
+// Names and description come from Site Settings in Studio. Empty fields are left out.
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const c = await getHomeContent();
   return {
-    name: "Jake DCL Portfolio",
-    short_name: "Jake DCL",
-    description: "Web developer portfolio of Jacob Decore Lurker.",
+    ...(c.appName ? { name: c.appName } : {}),
+    ...(c.appShortName ? { short_name: c.appShortName } : {}),
+    ...(c.appDescription ? { description: c.appDescription } : {}),
     start_url: "/",
     display: "standalone",
     background_color: "#f6f3ec",

@@ -1,5 +1,9 @@
 import { ImageResponse } from "next/og";
 
+import { getHomeContent } from "@/lib/siteContent";
+
+export const revalidate = 60;
+
 export const size = {
   width: 180,
   height: 180,
@@ -7,7 +11,9 @@ export const size = {
 
 export const contentType = "image/png";
 
-export default function AppleIcon() {
+export default async function AppleIcon() {
+  // Letters come from Site Settings > App icon letters.
+  const { appIconText } = await getHomeContent();
   return new ImageResponse(
     (
       <div
@@ -25,7 +31,7 @@ export default function AppleIcon() {
           fontFamily: "Helvetica Neue, Helvetica, Arial, sans-serif",
         }}
       >
-        JD
+        {appIconText}
       </div>
     ),
     size,

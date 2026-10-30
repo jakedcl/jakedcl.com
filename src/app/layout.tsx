@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Bricolage_Grotesque, IBM_Plex_Mono, Syne } from "next/font/google";
+import { getHomeContent } from "@/lib/siteContent";
 import "./globals.css";
 
 const syne = Syne({
@@ -33,53 +34,60 @@ export const viewport: Viewport = {
   themeColor: "#f6f3ec",
 };
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://jakedcl.com"),
-  title: {
-    default: "Jake DCL | Web Developer Portfolio",
-    template: "%s | Jake DCL",
-  },
-  description: "Jake DeCore-Lurker - Focused in designing, building, and maintaining web applications and IT systems.",
-  keywords: ["Jake DCL", "Jacob Decore Lurker", "web developer", "designer", "portfolio", "creative technologist"],
-  authors: [{ name: "Jake DCL" }],
-  creator: "Jake DCL",
-  category: "technology",
-  alternates: {
-    canonical: "/",
-  },
-  icons: {
-    icon: [{ url: "/favicon.png", type: "image/png", sizes: "32x32" }],
-    apple: [{ url: "/apple-icon", type: "image/png" }],
-    shortcut: ["/favicon.png"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://jakedcl.com",
-    title: "Jake DCL | Web Developer Portfolio",
-    description: "Jacob Decore Lurker (Jake DCL) - Web Developer, Designer, and Creative Technologist.",
-    siteName: "Jake DCL Portfolio",
-    images: [
-      {
+// Every piece of copy below comes from Site Settings in Studio. Empty fields are left out.
+export async function generateMetadata(): Promise<Metadata> {
+  const c = await getHomeContent();
+  const ogImage = c.ogImage
+    ? {
+        url: c.ogImage.url,
+        ...(c.ogImage.width ? { width: c.ogImage.width } : {}),
+        ...(c.ogImage.height ? { height: c.ogImage.height } : {}),
+        ...(c.ogImageAlt ? { alt: c.ogImageAlt } : {}),
+      }
+    : {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Jake DCL web developer portfolio",
+        ...(c.ogImageAlt ? { alt: c.ogImageAlt } : {}),
+      };
+
+  return {
+    metadataBase: new URL("https://jakedcl.com"),
+    ...(c.siteTitle ? { title: c.siteTitle } : {}),
+    ...(c.metaDescription ? { description: c.metaDescription } : {}),
+    ...(c.keywords.length > 0 ? { keywords: c.keywords } : {}),
+    ...(c.authorName ? { authors: [{ name: c.authorName }], creator: c.authorName } : {}),
+    ...(c.metaCategory ? { category: c.metaCategory } : {}),
+    alternates: {
+      canonical: "/",
+    },
+    icons: {
+      icon: [{ url: "/favicon.png", type: "image/png", sizes: "32x32" }],
+      apple: [{ url: "/apple-icon", type: "image/png" }],
+      shortcut: ["/favicon.png"],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
       },
-    ],
-  },
-};
+    },
+    openGraph: {
+      type: "website",
+      locale: "en_US",
+      url: "https://jakedcl.com",
+      ...(c.ogTitle ? { title: c.ogTitle } : {}),
+      ...(c.ogDescription ? { description: c.ogDescription } : {}),
+      ...(c.ogSiteName ? { siteName: c.ogSiteName } : {}),
+      images: [ogImage],
+    },
+  };
+}
 
 export default function RootLayout({
   children,
