@@ -13,8 +13,7 @@ Sanity images are resized by `cdn.sanity.io` (`src/lib/sanityImageLoader.ts`), n
 
 - `/` is the portfolio (intro, bio, projects, resume).
 - `/resume` redirects to `/`.
-- `/resume.pdf` redirects to the resume file uploaded in Studio. It 404s until that file is set.
-- `/studio` is Sanity Studio. Authoring needs a Sanity login. Site Settings edits the homepage bio, links, resume sections, and resume PDF.
+- `/studio` is Sanity Studio. Authoring needs a Sanity login. Site Settings edits the homepage bio, links, and resume sections.
 - `/<slug>` redirects to a project's link when that project has a short-link slug in Sanity. Unknown slugs 404.
 
 `npm run lint` and `npm run build` cover the site and Studio.

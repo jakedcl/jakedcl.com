@@ -103,13 +103,6 @@ export const settingsType = defineType({
       ],
     }),
     defineField({
-      name: 'resumeFile',
-      title: 'Resume PDF',
-      type: 'file',
-      description: 'Uploaded PDF. /resume.pdf redirects here. Nothing is served until this file is set.',
-      options: {accept: 'application/pdf'},
-    }),
-    defineField({
       name: 'experience',
       title: 'Experience',
       type: 'array',

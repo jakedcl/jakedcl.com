@@ -1,7 +1,7 @@
 import type { PortableTextBlock } from 'next-sanity'
 
 import { apiVersion, dataset, projectId } from '@/sanity/env'
-import { resumeFileQuery, settingsQuery } from '@/sanity/lib/queries'
+import { settingsQuery } from '@/sanity/lib/queries'
 import type { HomeLink, HomeRole, HomeSkillGroup } from '@/types/home'
 
 export type HomeContent = {
@@ -15,7 +15,6 @@ export type HomeContent = {
   experience: HomeRole[]
   education: HomeRole[]
   certifications: HomeRole[]
-  resumeUrl: string | null
 }
 
 type SanityRole = {
@@ -33,7 +32,6 @@ type SanitySettings = {
   summary?: string | null
   bio?: PortableTextBlock[] | null
   links?: Array<{ _key?: string; label?: string | null; href?: string | null }> | null
-  resumeUrl?: string | null
   skills?: Array<{
     _key?: string
     label?: string | null
@@ -59,19 +57,9 @@ export async function getHomeContent(): Promise<HomeContent> {
       experience: rolesFrom(settings.experience),
       education: rolesFrom(settings.education),
       certifications: rolesFrom(settings.certifications),
-      resumeUrl: httpUrl(settings.resumeUrl),
     }
   } catch {
     return emptyContent(true)
-  }
-}
-
-export async function getResumePdfUrl(): Promise<string | null> {
-  try {
-    const settings = await sanityQuery<{ resumeUrl?: string | null } | null>(resumeFileQuery)
-    return httpUrl(settings?.resumeUrl)
-  } catch {
-    return null
   }
 }
 
@@ -87,7 +75,6 @@ function emptyContent(loadError: boolean): HomeContent {
     experience: [],
     education: [],
     certifications: [],
-    resumeUrl: null,
   }
 }
 

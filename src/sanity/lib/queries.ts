@@ -49,17 +49,10 @@ export const settingsQuery = groq`
       }
     },
     links[]{ _key, label, href },
-    "resumeUrl": resumeFile.asset->url,
     skills[]{ _key, label, items },
     experience[]{ _key, title, organization, organizationUrl, period, bullets },
     education[]{ _key, title, organization, organizationUrl, period, bullets },
     certifications[]{ _key, title, organization, organizationUrl, period, bullets }
-  }
-`
-
-export const resumeFileQuery = groq`
-  ${settingsFilter}{
-    "resumeUrl": resumeFile.asset->url
   }
 `
 
