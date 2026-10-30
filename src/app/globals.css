@@ -79,14 +79,13 @@ body::before {
   outline-offset: 3px;
 }
 
-/* JAKE DCL types out large, then shrinks into the header as L appears.
-   Base styles are the settled header so reduced motion is the final state.
-   The hold matches L: the 1.72s delay plus the letter's 0.01s step.
-   The shrink is transform and opacity only. */
+/* JAKE DCL types out in place on one line at its final size.
+   When L lands (1.72s delay plus its 0.01s step), the yellow rule draws in from the left.
+   Base styles are the final state so reduced motion shows it at once. */
 .intro-name {
-  --intro-hold-time: 1.73s;
-  --intro-settle-duration: 0.9s;
-  --intro-settle-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --intro-rule-delay: 1.73s;
+  --intro-rule-duration: 0.8s;
+  --intro-rule-ease: cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -101,6 +100,8 @@ body::before {
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1;
+  /* Hold the final line height while letters are still hidden. */
+  min-height: 1.2em;
 }
 
 .intro-word {
@@ -121,19 +122,6 @@ body::before {
   color: var(--ink);
 }
 
-/* No-JS fallback still drives the rule from this. Reduced motion leaves it at 1. */
-@property --intro-rule {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 1;
-}
-
-@property --intro-hold-tick {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 0;
-}
-
 .intro-name::after {
   content: "";
   position: absolute;
@@ -143,44 +131,22 @@ body::before {
   left: 0;
   height: 3px;
   background: var(--signal-yellow);
-  transform: scaleX(var(--intro-rule));
   transform-origin: left center;
-  opacity: var(--intro-rule);
   pointer-events: none;
 }
 
-@keyframes intro-settle {
+@keyframes intro-rule-in {
   from {
-    font-size: clamp(4rem, 17vw, 8.75rem);
-    letter-spacing: -0.045em;
-    line-height: 0.82;
-    padding-bottom: 0;
-    --intro-rule: 0;
+    transform: scaleX(0);
   }
   to {
-    font-size: clamp(1.75rem, 4vw, 2.25rem);
-    letter-spacing: -0.03em;
-    line-height: 1;
-    padding-bottom: 0.2em;
-    --intro-rule: 1;
+    transform: scaleX(1);
   }
 }
 
-@keyframes intro-stack {
-  from {
-    flex-basis: 100%;
-  }
-  to {
-    flex-basis: 0%;
-  }
-}
-
-@keyframes intro-hold {
-  from {
-    --intro-hold-tick: 0;
-  }
-  to {
-    --intro-hold-tick: 1;
+@media (prefers-reduced-motion: no-preference) {
+  .intro-name::after {
+    animation: intro-rule-in var(--intro-rule-duration) var(--intro-rule-ease) var(--intro-rule-delay) both;
   }
 }
 
@@ -270,79 +236,6 @@ body::before {
     hero-caret-dcl-life 2.4s linear both;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .intro-name:not(.is-settled) {
-    padding-bottom: 0;
-    font-size: clamp(4rem, 17vw, 8.75rem);
-    letter-spacing: -0.045em;
-    line-height: 0.82;
-    animation: intro-hold var(--intro-hold-time) linear both;
-  }
-
-  .intro-name:not(.is-settled) .intro-word {
-    flex-basis: 100%;
-  }
-
-  /* Covers the page under the shrinking name so the reflow does not show through. */
-  .intro-name::before {
-    content: "";
-    position: absolute;
-    z-index: 0;
-    inset: 0;
-    background: transparent;
-    transform: scaleY(var(--veil-scale, 1));
-    transform-origin: left top;
-    pointer-events: none;
-  }
-
-  .intro-name.is-settled:not(.is-done) {
-    z-index: 2;
-  }
-
-  .intro-name.is-settled:not(.is-done)::before {
-    background: var(--background);
-  }
-
-  .intro-name.is-playing::before {
-    transform: scaleY(1);
-    transition: transform var(--intro-settle-duration) var(--intro-settle-ease);
-  }
-
-  .intro-glyphs {
-    transform-origin: 0 0;
-  }
-
-  .intro-name:not(.is-playing)::after {
-    transform: translateY(var(--rule-shift, 0px)) scaleX(0);
-    opacity: 0;
-  }
-
-  .intro-name.is-playing::after {
-    transform: translateY(0px) scaleX(1);
-    opacity: 1;
-    /* Opacity snaps on so the rule reads as a solid line growing, not a fade. */
-    transition:
-      transform var(--intro-settle-duration) var(--intro-settle-ease),
-      opacity 0s linear;
-  }
-}
-
-/* Without JS the old keyframes still run. They snap, but the header does settle. */
-@media (scripting: none) and (prefers-reduced-motion: no-preference) {
-  .intro-name:not(.is-settled) {
-    animation: intro-settle var(--intro-settle-duration) var(--intro-settle-ease) var(--intro-hold-time) both;
-  }
-
-  .intro-name:not(.is-playing)::after {
-    transform: scaleX(var(--intro-rule));
-    opacity: var(--intro-rule);
-  }
-
-  .intro-word {
-    animation: intro-stack var(--intro-settle-duration) var(--intro-settle-ease) var(--intro-hold-time) both;
-  }
-}
-
 /* Desktop project hover card. Hidden on touch and below the md breakpoint. */
 .project-preview {
   display: none;
@@ -400,7 +293,8 @@ html.project-preview-off .project-row:has(:focus-visible) .project-preview {
   .intro-name,
   .intro-word,
   .intro-glyphs,
-  .intro-dcl {
+  .intro-dcl,
+  .intro-name::after {
     animation: none !important;
     transform: none !important;
     opacity: 1 !important;
