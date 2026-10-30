@@ -79,8 +79,9 @@ body::before {
   outline-offset: 3px;
 }
 
-/* JAKE DCL types out in place on one line at its final size.
-   When L lands (1.72s delay plus its 0.01s step), the yellow rule draws in from the left.
+/* The Big title types out in place on one line at its final size.
+   IntroName sets --intro-rule-delay to just after the last letter (1.73s for JAKE DCL)
+   and --intro-caret-clock (2.4s for JAKE DCL); the yellow rule then draws in from the left.
    Base styles are the final state so reduced motion shows it at once. */
 .intro-name {
   --intro-rule-delay: 1.73s;
@@ -182,7 +183,7 @@ body::before {
   }
 }
 
-/* One 2.4s clock for both carets. JAKE's cursor rests through the hitch
+/* One clock for both carets (2.4s for JAKE DCL). JAKE's cursor rests through the hitch
    before E, then hands off when D is struck. DCL's cursor stays a beat after L. */
 @keyframes hero-caret-jake-life {
   0%,
@@ -227,13 +228,13 @@ body::before {
 .hero-caret-jake {
   animation:
     hero-caret-blink 0.76s steps(1, end) infinite,
-    hero-caret-jake-life 2.4s linear both;
+    hero-caret-jake-life var(--intro-caret-clock, 2.4s) linear both;
 }
 
 .hero-caret-dcl {
   animation:
     hero-caret-blink 0.76s steps(1, end) infinite,
-    hero-caret-dcl-life 2.4s linear both;
+    hero-caret-dcl-life var(--intro-caret-clock, 2.4s) linear both;
 }
 
 /* Desktop project hover card. Hidden on touch and below the md breakpoint. */

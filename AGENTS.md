@@ -27,9 +27,9 @@ This repo follows Jake's dev framework: [jakedcl/dev-framework](https://github.c
 | Source | Powers |
 | --- | --- |
 | Sanity `project` | Projects list (`displayOrder`). Name + description come from the title blocks. Copy facts only from `docs/PROJECT_BRIEFS.md` — never invent clients, features, or URLs. |
-| Sanity `settings` (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) | Homepage name, tagline, bio (portable text), links, summary, and resume sections. There is no resume PDF; the old `resumeFile` field was removed from the schema. `galleryPhotos` stays stored and is not rendered. Do not delete it. |
+| Sanity `settings` (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) | All site copy: big title (`heroTitle`), name, tagline, bio (portable text), links, section headings, resume sections, footer, SEO/link-preview fields (`siteTitle`, `metaDescription`, `keywords`, `og*`), manifest/app icon text, and 404 text. No copy or fallbacks in code; empty fields render nothing. There is no resume PDF; the old `resumeFile` field was removed from the schema. `galleryPhotos` stays stored and is not rendered. Do not delete it. |
 
-Queries: `src/sanity/lib/queries.ts`. Seed: `scripts/seed-settings.json` (a patch `set`; do not createOrReplace).
+Queries: `src/sanity/lib/queries.ts`. Seed: `scripts/seed-settings.json` (a patch `set`; do not createOrReplace). New-field seed: `scripts/seed-studio-copy.ts` (setIfMissing on published + draft).
 
 ## Design — Signal Max (live)
 

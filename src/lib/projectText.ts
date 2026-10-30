@@ -30,7 +30,7 @@ export function projectCopy(title: PortableTextBlock[] | null | undefined): {
 
   if (headings.length === 0) {
     return {
-      name: body[0] || 'Untitled project',
+      name: body[0] ?? '',
       description: body.slice(1).join(' '),
     }
   }

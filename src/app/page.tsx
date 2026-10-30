@@ -30,10 +30,12 @@ function Section({
 }) {
   return (
     <section id={id} className="scroll-mt-8 mt-14">
-      <h2 className="font-shape mb-4 flex items-center gap-2.5 text-lg font-bold tracking-tight text-ink">
-        <span className={`h-2.5 w-2.5 shrink-0 ${accent}`} aria-hidden />
-        {title}
-      </h2>
+      {title ? (
+        <h2 className="font-shape mb-4 flex items-center gap-2.5 text-lg font-bold tracking-tight text-ink">
+          <span className={`h-2.5 w-2.5 shrink-0 ${accent}`} aria-hidden />
+          {title}
+        </h2>
+      ) : null}
       {children}
     </section>
   )
@@ -50,7 +52,7 @@ export default async function Home() {
       />
       <main className="mx-auto w-full max-w-2xl px-5 pb-16 pt-[max(1.75rem,env(safe-area-inset-top))] sm:pt-14">
         <header>
-          <IntroName />
+          <IntroName title={content.heroTitle} />
           {content.legalName ? (
             <p className="mt-5 text-sm text-ink/70">{content.legalName}</p>
           ) : null}
@@ -94,47 +96,43 @@ export default async function Home() {
           </p>
         ) : null}
 
-        <Section id="projects" title="Projects" accent={accents[0]}>
-          <Suspense
-            fallback={
-              <p className="text-sm text-ink/55" role="status">
-                Loading projects…
-              </p>
-            }
-          >
+        <Section id="projects" title={content.projectsHeading} accent={accents[0]}>
+          <Suspense fallback={null}>
             <ProjectIndex />
           </Suspense>
         </Section>
 
         {content.experience.length > 0 ? (
-          <Section id="experience" title="Experience" accent={accents[1]}>
+          <Section id="experience" title={content.experienceHeading} accent={accents[1]}>
             <RoleList roles={content.experience} />
           </Section>
         ) : null}
 
         {content.education.length > 0 ? (
-          <Section id="education" title="Education" accent={accents[2]}>
+          <Section id="education" title={content.educationHeading} accent={accents[2]}>
             <RoleList roles={content.education} />
           </Section>
         ) : null}
 
         {content.skills.length > 0 ? (
-          <Section id="skills" title="Skills" accent={accents[3]}>
+          <Section id="skills" title={content.skillsHeading} accent={accents[3]}>
             <SkillsList groups={content.skills} />
           </Section>
         ) : null}
 
         {content.certifications.length > 0 ? (
-          <Section id="certifications" title="Certifications" accent={accents[0]}>
+          <Section id="certifications" title={content.certificationsHeading} accent={accents[0]}>
             <RoleList roles={content.certifications} />
           </Section>
         ) : null}
 
-        <footer className="mt-16 pt-4">
-          <p className="font-utility text-[0.65rem] uppercase tracking-[0.16em] text-ink/40">
-            JAKEDCL.COM · NYC
-          </p>
-        </footer>
+        {content.footerText ? (
+          <footer className="mt-16 pt-4">
+            <p className="font-utility text-[0.65rem] uppercase tracking-[0.16em] text-ink/40">
+              {content.footerText}
+            </p>
+          </footer>
+        ) : null}
       </main>
     </div>
   )
