@@ -94,14 +94,6 @@ export default async function Home() {
           </p>
         ) : null}
 
-        {content.resumeUrl ? (
-          <p className="mt-3 text-[0.95rem]">
-            <a href="/resume.pdf" className={linkClass}>
-              Download resume (PDF)
-            </a>
-          </p>
-        ) : null}
-
         <Section id="projects" title="Projects" accent={accents[0]}>
           <Suspense
             fallback={
