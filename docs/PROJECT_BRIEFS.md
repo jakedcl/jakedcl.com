@@ -33,7 +33,7 @@ Multi-tenant SaaS for third-party logistics companies that run warehouse, fleet,
 - White-label: org name, logo, primary color, email from-name
 - Dashboard areas in the app: jobs, my-jobs, clients, client inventory, inventory, fleet, team, availability, activity, notifications, settings, profile
 
-**Stack:** Next.js 15 App Router, React 19, Tailwind v4, shadcn/ui, NextAuth v5, Drizzle, Neon Postgres with row-level security, Cloudflare R2, Resend, Vercel. Stripe billing is scaffolded (checkout, portal, webhook, settings) and is not the shipped customer story yet. Realtime is deferred.
+**Stack:** Next.js 16 App Router, React 19, Tailwind v4, shadcn/ui, NextAuth v5, Drizzle, Neon Postgres with row-level security, Cloudflare R2, Resend, Vercel. Stripe billing is scaffolded (checkout, portal, webhook, settings) and is not the shipped customer story yet. Realtime is deferred.
 
 **Status:** Milestones M0–M5 (MVP) are built. Hand onboarding is the v1 plan, not public signup. A school capstone, `thirdpartylogistics`, sits in the repo as legacy reference only.
 
@@ -69,9 +69,8 @@ Free, map-first tool for posted vehicle clearances around NYC, Long Island, the 
 
 ## metrotapes
 
-**Repo:** [jakedcl/metrotapes](https://github.com/jakedcl/metrotapes) (public)  
-**URL on the repo:** https://metrotapes.vercel.app  
-**Public site used elsewhere:** metrotapes.com
+**Repo:** [dcl-development/metrotapes](https://github.com/dcl-development/metrotapes) (public)  
+**Live:** [metrotapes.com](https://metrotapes.com)  
 
 An interactive subway-station scene. The station is the navigation. Photo, video, and about are camera shots inside the 3D space, not separate page layouts. A blog route is a normal page.
 
@@ -83,7 +82,7 @@ An interactive subway-station scene. The station is the navigation. Photo, video
 - Graphics quality tiers
 - Sanity-backed content (client, image URL builder, portable text, embedded studio build)
 
-**Stack:** Vite, React 18, React Router, Three.js, React Three Fiber, postprocessing, Sanity, styled-components. Studio is built into the Vercel output under `/studio`.
+**Stack:** Vite, React 19, React Router, Three.js, React Three Fiber, postprocessing, Sanity, styled-components. Studio is built into the Vercel output under `/studio`.
 
 **Portfolio angle:** The 3D piece. Custom scene, not a template gallery. Say it works on desktop and mobile only if you have checked the current build; the scene is built to run in the browser with a boot/intro.
 
@@ -91,7 +90,7 @@ An interactive subway-station scene. The station is the navigation. Photo, video
 
 ## 731photography
 
-**Repo:** [jakedcl/731photography](https://github.com/jakedcl/731photography) (private)  
+**Repo:** [jakedcl/731photography](https://github.com/jakedcl/731photography) (public)  
 **Brand:** Thomas Lurker (public) / 731photography (shop)  
 **Live:** [thomaslurker.com](https://thomaslurker.com)  
 **Also:** https://731photography.vercel.app
@@ -144,7 +143,7 @@ Stylized Manhattan skyline from the west (Jersey City). Left to right is north t
 
 ## drewdella
 
-**Repo:** [jakedcl/drewdella](https://github.com/jakedcl/drewdella) (public)  
+**Repo:** [dcl-development/drewdella](https://github.com/dcl-development/drewdella) (public)  
 **Live:** [drewdella.com](https://drewdella.com)  
 **Also:** https://drewdella.vercel.app
 
@@ -160,7 +159,7 @@ Artist site for Drew Della that is a Google results page on purpose. Tabs are th
 - A daily Vercel cron snapshots the YouTube channel into Sanity so visitors never call the YouTube API. Shorts whose title or description contain `#` are dropped. The cache keeps 12 videos
 - Mapbox for live-show venues
 
-**Stack in the repo today:** Next.js 15 App Router, React 18, MUI, Sanity, Mapbox GL, Turf, Vercel. The README’s architecture section still describes an older Vite SPA. Trust `package.json` and `app/`. Studio is at `/studio`. Sanity project `qcu6o4bq`, dataset `production`, public reads, server-only writes.
+**Stack:** Next.js 16 App Router, React 19, styled-components, Sanity, Mapbox GL, Turf, Vercel. Studio is at `/studio`. Sanity project `qcu6o4bq`, dataset `production`, public reads, server-only writes.
 
 **Portfolio angle:** Information design. One composition, CMS as the catalog, and an API used on a schedule instead of per page view.
 
@@ -168,8 +167,8 @@ Artist site for Drew Della that is a Google results page on purpose. Tabs are th
 
 ## favoritesonnyc
 
-**Repo:** [jakedcl/favoritesonnyc](https://github.com/jakedcl/favoritesonnyc) (public)  
-**URL on the repo:** https://favoritesonnyc.vercel.app
+**Repo:** [dcl-development/favoritesonnyc](https://github.com/dcl-development/favoritesonnyc) (public)  
+**Live:** [favoritesonnyc.com](https://www.favoritesonnyc.com)
 
 Website for Favorite Son Pizzeria & Wine Bar, 1210 Forest Avenue, Staten Island. Owner Danny Ippolito. New repo (created 2026-09-24).
 
@@ -209,7 +208,7 @@ A VHS-styled catalog of compact and mid-size pickup trucks. Pick a manufacturer,
 - `/timeline` for model history
 - `TruckModel3D` for a 3D model view
 
-**Stack:** Next.js 15, React 19, TypeScript, Tailwind 4, Sanity (separate `sanity/` studio), React Three Fiber, drei, Three.js. Deployed on Vercel. Last push on the repo was 2026-02-06.
+**Stack:** Next.js 16, React 19, TypeScript, Tailwind 4, Sanity (Studio embedded at `/studio`, config in `sanity/`), React Three Fiber, drei, Three.js. Deployed on Vercel.
 
 **Portfolio angle:** Theme as interface (VHS), not a coat of paint. CMS-driven catalog plus a 3D model view. The README is written like a class writeup. Describe the product, not the homework outline.
 
@@ -218,8 +217,7 @@ A VHS-styled catalog of compact and mid-size pickup trucks. Pick a manufacturer,
 ## bannquet
 
 **Repo:** [jakedcl/bannquet](https://github.com/jakedcl/bannquet) (public)  
-**URL on the repo:** https://bannquet.vercel.app  
-**Product domain named in the repo:** bannquet.com
+**Live:** [bannquet.com](https://www.bannquet.com)
 
 Mountain weather and trip reports for the Northeast.
 
@@ -227,18 +225,18 @@ Mountain weather and trip reports for the Northeast.
 
 **What it does**
 
-- Weather from the National Weather Service, summit vs valley, hourly and daily forecasts, wind, precipitation, alerts
-- A live ticker for extreme conditions across regions
-- Mount Washington Observatory data for New Hampshire
-- Trip reports: TipTap editor, compressed image uploads, optional Mapbox pin, tags (hiking, climbing, skiing, and so on)
-- Email verification before a report is public (Resend). Publish link expires in 24 hours. Edit link does not expire
-- Embedded Sanity Studio
+- Weather from the National Weather Service, summit vs valley, hourly and daily forecasts, wind, precipitation, alerts. Regions live in `config/weather-regions.json`
+- A live ticker for extreme conditions, and `/conditions` listing the spots behind it
+- Fishing pages with USGS river gauges, freshwater and saltwater boards for Staten Island and nearby rivers
+- Peak lists (Catskill 35, ADK 46, NH 48, VT and ME 4000-footers, NE 67). A summit counts when someone logs "I climbed this"
+- Trips: a light planner with notes, an I'm-in toggle, a packing list, and attached pins, routes (GPX) and photos
+- A MapLibre group map with OpenFreeMap, USGS topo and satellite layers, and 3D terrain. No paid map APIs
+- Community: chat, members directory, shared gear
+- Anyone can sign up. Jake approves new members before they can post. Sign-in is Neon Auth
 
-**Stack:** Next.js 16 App Router, React 19, TypeScript, Tailwind 3.4, Framer Motion, Mapbox GL, TipTap, Sanity, Resend, NWS API.
+**Stack:** Next.js 16 App Router, React 19, TypeScript, Tailwind 4, Framer Motion, Drizzle ORM, Neon Postgres and Neon Auth, Vercel Blob for photos, MapLibre, NWS and USGS APIs.
 
-**Related, not this repo:** [jakedcl/bannquet-io](https://github.com/jakedcl/bannquet-io) is a separate socket server described as the io server for `bannquet.com/usermap`. Do not merge that feature into this writeup unless you have read that repo.
-
-**Portfolio angle:** A dashboard with a real public API and a community publishing flow (draft, verify, edit link), not a static weather widget.
+**Portfolio angle:** A dashboard on real public APIs plus a small members-only community, not a static weather widget.
 
 ---
 
