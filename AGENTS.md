@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Jake DCL portfolio (`jakedcl.com`). Next.js 15 App Router, React 19, Tailwind v4, Sanity v4 Studio at `/studio`. One service. Package manager: `npm`.
+Jake DCL portfolio (`jakedcl.com`). Next.js 16 App Router, React 19, Tailwind v4, Sanity v6 Studio at `/studio`. One service. Package manager: `npm`.
 
 ## Dev framework
 
