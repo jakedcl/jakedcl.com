@@ -119,7 +119,7 @@ Print shop and event-booking site built as a birthday gift for photographer Thom
 
 **Repo:** [jakedcl/skyinfoline](https://github.com/jakedcl/skyinfoline) (public)  
 **URL on the repo:** https://skyinfoline.vercel.app  
-**Studio:** https://skyinfoline.sanity.studio/  
+**Studio:** https://skyinfoline.vercel.app/studio  
 **On jakedcl.com:** `/skyline` redirects here
 
 Stylized Manhattan skyline from the west (Jersey City). Left to right is north to south. Buildings are transparent PNG cutouts in Sanity, scaled by height, not a 3D city model.
