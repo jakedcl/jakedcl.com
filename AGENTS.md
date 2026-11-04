@@ -19,7 +19,7 @@ The framework repo is private. Cloud agents open it with `git clone --depth 1 ht
 ## Routes
 
 - `/` — portfolio intro (section buttons, short bio, links; section content lives on `/projects`, `/experience`, etc.)
-- `/projects`, `/experience`, `/education`, `/skills`, `/certifications`, `/about` — one section each (empty or unconfigured sections 404)
+- `/projects`, `/experience`, `/education`, `/skills`, `/about` — one section each (certifications render under Education; `/certifications` redirects to `/education`)
 - `/resume` → 308 redirect to `/`
 - `/studio` — Sanity Studio. Sidebar is the Site Settings singleton and Projects ordered by `displayOrder`.
 - `/<slug>` → 307 to that project's `link` when Sanity `project.slug.current` matches. Revalidate ~60s. Unknown or reserved slugs 404. Does not replace `/`, `/studio`, or `/resume`.

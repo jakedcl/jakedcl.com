@@ -6,6 +6,22 @@ import BioCopy from './BioCopy'
 import ProjectIndex from './ProjectIndex'
 import { RoleList, SkillsList } from './ResumeSections'
 
+function CertificationsBlock({ content }: { content: HomeContent }) {
+  if (content.certifications.length === 0) return null
+
+  return (
+    <div className={content.education.length > 0 ? 'mt-14' : undefined}>
+      {content.certificationsHeading ? (
+        <h2 className="font-shape mb-4 flex items-center gap-2.5 text-lg font-bold tracking-tight text-ink">
+          <span className="h-2.5 w-2.5 shrink-0 bg-signal-yellow" aria-hidden />
+          {content.certificationsHeading}
+        </h2>
+      ) : null}
+      <RoleList roles={content.certifications} />
+    </div>
+  )
+}
+
 export default function SectionBody({
   section,
   content,
@@ -27,13 +43,17 @@ export default function SectionBody({
       body = <RoleList roles={content.experience} />
       break
     case 'education':
-      body = <RoleList roles={content.education} />
+      body = (
+        <>
+          {content.education.length > 0 ? (
+            <RoleList roles={content.education} />
+          ) : null}
+          <CertificationsBlock content={content} />
+        </>
+      )
       break
     case 'skills':
       body = <SkillsList groups={content.skills} />
-      break
-    case 'certifications':
-      body = <RoleList roles={content.certifications} />
       break
     case 'about':
       body =

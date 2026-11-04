@@ -5,7 +5,6 @@ export const SECTION_SLUGS = [
   'experience',
   'education',
   'skills',
-  'certifications',
   'about',
 ] as const
 
@@ -16,6 +15,7 @@ export const SECTION_ROUTE_SLUGS: ReadonlySet<string> = new Set(SECTION_SLUGS)
 /** Slugs the dynamic /[slug] short-link route must not capture. */
 export const RESERVED_SHORT_LINK_SLUGS: ReadonlySet<string> = new Set([
   ...SECTION_SLUGS,
+  'certifications',
   'studio',
   'resume',
   'apple-icon',
@@ -39,8 +39,6 @@ const FIXED_SECTION_ACCENTS: Record<
   experience: ACCENT_DECORATION.blue,
   education: ACCENT_DECORATION.red,
   skills: ACCENT_DECORATION.green,
-  /** Ink — signal palette only has four hues; Projects keeps yellow. */
-  certifications: 'decoration-ink',
 }
 
 export type SectionNavItem = {
@@ -72,8 +70,6 @@ export function sectionHeading(content: HomeContent, slug: SectionSlug): string 
       return content.educationHeading
     case 'skills':
       return content.skillsHeading
-    case 'certifications':
-      return content.certificationsHeading
     case 'about':
       return content.aboutHeading
   }
@@ -86,11 +82,9 @@ function sectionVisible(content: HomeContent, slug: SectionSlug): boolean {
     case 'experience':
       return content.experience.length > 0
     case 'education':
-      return content.education.length > 0
+      return content.education.length > 0 || content.certifications.length > 0
     case 'skills':
       return content.skills.length > 0
-    case 'certifications':
-      return content.certifications.length > 0
     case 'about':
       return Boolean(content.aboutHeading) || content.aboutLong.length > 0
   }
