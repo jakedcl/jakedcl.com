@@ -1,6 +1,6 @@
 import type { PortableTextBlock } from 'next-sanity'
 
-import { parseAboutAccent, type BioAccent } from '@/lib/sections'
+import { parseAboutAccent, type AboutAccent } from '@/lib/sections'
 
 import { apiVersion, dataset, projectId } from '@/sanity/env'
 import { settingsQuery } from '@/sanity/lib/queries'
@@ -25,7 +25,7 @@ export type HomeContent = {
   certificationsHeading: string
   aboutHeading: string
   aboutLong: PortableTextBlock[]
-  aboutAccent: BioAccent | ''
+  aboutAccent: AboutAccent | ''
   footerText: string
   siteTitle: string
   metaDescription: string

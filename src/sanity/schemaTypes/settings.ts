@@ -226,10 +226,11 @@ export const settingsType = defineType({
           {title: 'Blue', value: 'blue'},
           {title: 'Red', value: 'red'},
           {title: 'Green', value: 'green'},
+          {title: 'Purple', value: 'purple'},
         ],
         layout: 'radio',
       },
-      initialValue: 'green',
+      initialValue: 'purple',
     }),
     defineField({
       name: 'footerText',

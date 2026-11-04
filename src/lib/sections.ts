@@ -22,13 +22,14 @@ export const RESERVED_SHORT_LINK_SLUGS: ReadonlySet<string> = new Set([
   'opengraph-image',
 ])
 
-export type BioAccent = 'yellow' | 'blue' | 'red' | 'green'
+export type AboutAccent = 'yellow' | 'blue' | 'red' | 'green' | 'purple'
 
-const ACCENT_DECORATION: Record<BioAccent, string> = {
+const ACCENT_DECORATION: Record<AboutAccent, string> = {
   yellow: 'decoration-signal-yellow',
   blue: 'decoration-signal-blue',
   red: 'decoration-signal-red',
   green: 'decoration-signal-green',
+  purple: 'decoration-signal-purple',
 }
 
 const FIXED_SECTION_ACCENTS: Record<
@@ -47,16 +48,24 @@ export type SectionNavItem = {
   accentDecoration: string
 }
 
-export function aboutAccentDecoration(accent: BioAccent | ''): string {
+export function aboutAccentDecoration(accent: AboutAccent | ''): string {
   if (accent && accent in ACCENT_DECORATION) {
-    return ACCENT_DECORATION[accent as BioAccent]
+    return ACCENT_DECORATION[accent as AboutAccent]
   }
-  return ACCENT_DECORATION.blue
+  return ACCENT_DECORATION.purple
 }
 
-export function parseAboutAccent(value: string | null | undefined): BioAccent | '' {
+export function parseAboutAccent(value: string | null | undefined): AboutAccent | '' {
   const v = value?.trim()
-  if (v === 'yellow' || v === 'blue' || v === 'red' || v === 'green') return v
+  if (
+    v === 'yellow' ||
+    v === 'blue' ||
+    v === 'red' ||
+    v === 'green' ||
+    v === 'purple'
+  ) {
+    return v
+  }
   return ''
 }
 
