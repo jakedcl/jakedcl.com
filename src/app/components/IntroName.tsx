@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 
-// Types the Big title from Site Settings, one letter at a time, then draws the yellow rule.
+// Types the Big title from Site Settings, one letter at a time, then draws the ink rule.
 // The rhythm was tuned on JAKE DCL: the first word goes fast-fast-hitch, a breath
 // between words, then the later words go quick. Other titles reuse the same rhythm.
 // Reduced motion shows the final state (see .intro-name in globals.css).

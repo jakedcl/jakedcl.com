@@ -81,7 +81,7 @@ body::before {
 
 /* The Big title types out in place on one line at its final size.
    IntroName sets --intro-rule-delay to just after the last letter (1.73s for JAKE DCL)
-   and --intro-caret-clock (2.4s for JAKE DCL); the yellow rule then draws in from the left.
+   and --intro-caret-clock (2.4s for JAKE DCL); the ink rule then draws in from the left.
    Base styles are the final state so reduced motion shows it at once. */
 .intro-name {
   --intro-rule-delay: 1.73s;
@@ -135,7 +135,7 @@ body::before {
   bottom: 0;
   left: 0;
   height: 3px;
-  background: var(--signal-yellow);
+  background: var(--ink);
   transform-origin: left center;
   pointer-events: none;
 }

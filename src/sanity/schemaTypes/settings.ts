@@ -98,7 +98,7 @@ export const settingsType = defineType({
       title: 'Big title',
       type: 'string',
       description:
-        'The big typed-out title at the top of the homepage, e.g. JAKE DCL. Each word types out in turn, then the yellow line draws under it.',
+        'The big typed-out title at the top of the homepage, e.g. JAKE DCL. Each word types out in turn, then the line draws under it.',
     }),
     defineField({
       name: 'legalName',
