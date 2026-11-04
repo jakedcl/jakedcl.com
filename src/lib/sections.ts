@@ -39,7 +39,8 @@ const FIXED_SECTION_ACCENTS: Record<
   experience: ACCENT_DECORATION.blue,
   education: ACCENT_DECORATION.red,
   skills: ACCENT_DECORATION.green,
-  certifications: ACCENT_DECORATION.yellow,
+  /** Ink — signal palette only has four hues; Projects keeps yellow. */
+  certifications: 'decoration-ink',
 }
 
 export type SectionNavItem = {
