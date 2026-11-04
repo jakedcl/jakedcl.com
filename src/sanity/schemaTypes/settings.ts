@@ -36,6 +36,42 @@ function headingField(name: string, title: string, section: string) {
   })
 }
 
+function portableBioField(name: string, title: string, description: string) {
+  return defineField({
+    name,
+    title,
+    type: 'array',
+    description,
+    of: [
+      defineArrayMember({
+        type: 'block',
+        styles: [{title: 'Normal', value: 'normal'}],
+        lists: [],
+        marks: {
+          decorators: [
+            {title: 'Bold', value: 'strong'},
+            {title: 'Italic', value: 'em'},
+          ],
+          annotations: [
+            defineArrayMember({
+              name: 'link',
+              type: 'object',
+              title: 'Link',
+              fields: [
+                defineField({
+                  name: 'href',
+                  title: 'URL',
+                  type: 'url',
+                }),
+              ],
+            }),
+          ],
+        },
+      }),
+    ],
+  })
+}
+
 const roleList = (name: string, title: string, description: string) =>
   defineField({name, title, type: 'array', description, of: [resumeRole()]})
 
@@ -62,7 +98,7 @@ export const settingsType = defineType({
       title: 'Big title',
       type: 'string',
       description:
-        'The big typed-out title at the top of the homepage, e.g. JAKE DCL. Each word types out in turn, then the yellow line draws under it.',
+        'The big typed-out title at the top of the homepage, e.g. JAKE DCL. Each word types out in turn, then the line draws under it.',
     }),
     defineField({
       name: 'legalName',
@@ -78,9 +114,10 @@ export const settingsType = defineType({
     }),
     defineField({
       name: 'bio',
-      title: 'Bio',
+      title: 'Short bio (homepage)',
       type: 'array',
-      description: 'Your bio. Each paragraph shows as its own paragraph on the homepage.',
+      description:
+        'Short bio on the homepage, under the section buttons. Each paragraph shows as its own paragraph.',
       of: [
         defineArrayMember({
           type: 'block',
@@ -165,6 +202,36 @@ export const settingsType = defineType({
     }),
     headingField('certificationsHeading', 'Certifications heading', 'Certifications'),
     roleList('certifications', 'Certifications', 'The section is hidden when this is empty.'),
+    defineField({
+      name: 'aboutHeading',
+      title: 'About heading',
+      type: 'string',
+      initialValue: 'About',
+      description:
+        'Nav label and typed title on /about. Leave empty to hide the About link until you are ready.',
+    }),
+    portableBioField(
+      'aboutLong',
+      'Long about (About page)',
+      'Full about copy on the About page (/about). The nav link label comes from About heading.',
+    ),
+    defineField({
+      name: 'aboutAccent',
+      title: 'About button color',
+      type: 'string',
+      description: 'Underline color for the About button in the section row.',
+      options: {
+        list: [
+          {title: 'Yellow', value: 'yellow'},
+          {title: 'Blue', value: 'blue'},
+          {title: 'Red', value: 'red'},
+          {title: 'Green', value: 'green'},
+          {title: 'Purple', value: 'purple'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'purple',
+    }),
     defineField({
       name: 'footerText',
       title: 'Footer',

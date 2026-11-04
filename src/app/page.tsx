@@ -1,48 +1,17 @@
-import { Suspense, type ReactNode } from 'react'
 import { getHomeContent, type HomeContent } from '@/lib/siteContent'
+import { sectionNavItems } from '@/lib/sections'
 import BioCopy from './components/BioCopy'
 import IntroName from './components/IntroName'
-import ProjectIndex from './components/ProjectIndex'
-import { RoleList, SkillsList } from './components/ResumeSections'
+import SectionNav from './components/SectionNav'
 
 export const revalidate = 60
 
 const linkClass =
   'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
 
-const accents = [
-  'bg-signal-yellow',
-  'bg-signal-blue',
-  'bg-signal-red',
-  'bg-signal-green',
-] as const
-
-function Section({
-  id,
-  title,
-  accent,
-  children,
-}: {
-  id: string
-  title: string
-  accent: string
-  children: ReactNode
-}) {
-  return (
-    <section id={id} className="scroll-mt-8 mt-14">
-      {title ? (
-        <h2 className="font-shape mb-4 flex items-center gap-2.5 text-lg font-bold tracking-tight text-ink">
-          <span className={`h-2.5 w-2.5 shrink-0 ${accent}`} aria-hidden />
-          {title}
-        </h2>
-      ) : null}
-      {children}
-    </section>
-  )
-}
-
 export default async function Home() {
   const content = await getHomeContent()
+  const navItems = sectionNavItems(content)
 
   return (
     <div className="min-h-screen bg-background text-ink">
@@ -53,6 +22,9 @@ export default async function Home() {
       <main className="mx-auto w-full max-w-2xl px-5 pb-16 pt-[max(1.75rem,env(safe-area-inset-top))] sm:pt-14">
         <header>
           <IntroName title={content.heroTitle} />
+          <div className="mt-5">
+            <SectionNav items={navItems} />
+          </div>
           {content.legalName ? (
             <p className="mt-5 text-sm text-ink/70">{content.legalName}</p>
           ) : null}
@@ -94,36 +66,6 @@ export default async function Home() {
               )
             })}
           </p>
-        ) : null}
-
-        <Section id="projects" title={content.projectsHeading} accent={accents[0]}>
-          <Suspense fallback={null}>
-            <ProjectIndex />
-          </Suspense>
-        </Section>
-
-        {content.experience.length > 0 ? (
-          <Section id="experience" title={content.experienceHeading} accent={accents[1]}>
-            <RoleList roles={content.experience} />
-          </Section>
-        ) : null}
-
-        {content.education.length > 0 ? (
-          <Section id="education" title={content.educationHeading} accent={accents[2]}>
-            <RoleList roles={content.education} />
-          </Section>
-        ) : null}
-
-        {content.skills.length > 0 ? (
-          <Section id="skills" title={content.skillsHeading} accent={accents[3]}>
-            <SkillsList groups={content.skills} />
-          </Section>
-        ) : null}
-
-        {content.certifications.length > 0 ? (
-          <Section id="certifications" title={content.certificationsHeading} accent={accents[0]}>
-            <RoleList roles={content.certifications} />
-          </Section>
         ) : null}
 
         {content.footerText ? (

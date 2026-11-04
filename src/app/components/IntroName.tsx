@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 
-// Types the Big title from Site Settings, one letter at a time, then draws the yellow rule.
+// Types the Big title from Site Settings, one letter at a time, then draws the ink rule.
 // The rhythm was tuned on JAKE DCL: the first word goes fast-fast-hitch, a breath
 // between words, then the later words go quick. Other titles reuse the same rhythm.
 // Reduced motion shows the final state (see .intro-name in globals.css).
@@ -28,7 +28,13 @@ function round(value: number) {
   return Math.round(value * 100) / 100
 }
 
-export default function IntroName({ title }: { title: string }) {
+export default function IntroName({
+  title,
+  compact = false,
+}: {
+  title: string
+  compact?: boolean
+}) {
   const words = title.split(/\s+/).filter(Boolean)
   if (words.length === 0) return null
 
@@ -41,7 +47,11 @@ export default function IntroName({ title }: { title: string }) {
   } as CSSProperties
 
   return (
-    <h1 aria-label={words.join(' ')} className="intro-name" style={style}>
+    <h1
+      aria-label={words.join(' ')}
+      className={compact ? 'intro-name intro-name--compact' : 'intro-name'}
+      style={style}
+    >
       {words.map((word, w) => {
         const caret =
           w === 0 ? 'hero-caret-jake' : w === words.length - 1 ? 'hero-caret-dcl' : null

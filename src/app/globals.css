@@ -11,6 +11,7 @@
   --signal-blue: #0066ff;
   --signal-red: #e10600;
   --signal-green: #00a651;
+  --signal-purple: #7c3aed;
   --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --paper-noise-fine: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.45' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -24,6 +25,7 @@
   --color-signal-blue: var(--signal-blue);
   --color-signal-red: var(--signal-red);
   --color-signal-green: var(--signal-green);
+  --color-signal-purple: var(--signal-purple);
   --color-accent-blue: var(--signal-blue);
   --color-accent-red: var(--signal-red);
   --color-accent-yellow: var(--signal-yellow);
@@ -81,7 +83,7 @@ body::before {
 
 /* The Big title types out in place on one line at its final size.
    IntroName sets --intro-rule-delay to just after the last letter (1.73s for JAKE DCL)
-   and --intro-caret-clock (2.4s for JAKE DCL); the yellow rule then draws in from the left.
+   and --intro-caret-clock (2.4s for JAKE DCL); the ink rule then draws in from the left.
    Base styles are the final state so reduced motion shows it at once. */
 .intro-name {
   --intro-rule-delay: 1.73s;
@@ -103,6 +105,10 @@ body::before {
   line-height: 1;
   /* Hold the final line height while letters are still hidden. */
   min-height: 1.2em;
+}
+
+.intro-name--compact {
+  font-size: clamp(1.45rem, 3.35vw, 2.25rem);
 }
 
 .intro-word {
@@ -131,7 +137,7 @@ body::before {
   bottom: 0;
   left: 0;
   height: 3px;
-  background: var(--signal-yellow);
+  background: var(--ink);
   transform-origin: left center;
   pointer-events: none;
 }

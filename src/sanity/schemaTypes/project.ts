@@ -1,5 +1,16 @@
 import {defineField, defineType} from 'sanity'
 
+const SECTION_SLUGS = new Set([
+  'projects',
+  'experience',
+  'education',
+  'skills',
+  'certifications',
+  'about',
+  'studio',
+  'resume',
+])
+
 export const projectType = defineType({
   name: 'project',
   title: 'Project',
@@ -79,6 +90,15 @@ export const projectType = defineType({
       type: 'slug',
       description: 'Optional. jakedcl.com/this redirects to Project Link.',
       options: { maxLength: 96 },
+      validation: (rule) =>
+        rule.custom((value) => {
+          const current = value?.current?.trim()
+          if (!current) return true
+          if (SECTION_SLUGS.has(current)) {
+            return `“${current}” is reserved for a site section or route.`
+          }
+          return true
+        }),
     }),
     defineField({
       name: 'displayOrder',
