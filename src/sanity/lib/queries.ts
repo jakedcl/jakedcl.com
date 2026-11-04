@@ -59,8 +59,8 @@ export const settingsQuery = groq`
     educationHeading,
     skillsHeading,
     certificationsHeading,
-    bioHeading,
-    bioLong[]{
+    aboutHeading,
+    aboutLong[]{
       _key,
       _type,
       style,
@@ -76,7 +76,7 @@ export const settingsQuery = groq`
         href
       }
     },
-    bioAccent,
+    aboutAccent,
     footerText,
     siteTitle,
     metaDescription,

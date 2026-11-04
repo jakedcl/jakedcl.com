@@ -5,9 +5,9 @@
   "educationHeading": "Education",
   "skillsHeading": "Skills",
   "certificationsHeading": "Certifications",
-  "bioHeading": "Bio",
-  "bioAccent": "blue",
-  "bioLong": [
+  "aboutHeading": "About",
+  "aboutAccent": "green",
+  "aboutLong": [
     {
       "_key": "bio-1",
       "_type": "block",

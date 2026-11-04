@@ -19,7 +19,7 @@ The framework repo is private. Cloud agents open it with `git clone --depth 1 ht
 ## Routes
 
 - `/` — portfolio intro (section buttons, short bio, links; section content lives on `/projects`, `/experience`, etc.)
-- `/projects`, `/experience`, `/education`, `/skills`, `/certifications`, `/bio` — one section each (empty or unconfigured sections 404)
+- `/projects`, `/experience`, `/education`, `/skills`, `/certifications`, `/about` — one section each (empty or unconfigured sections 404)
 - `/resume` → 308 redirect to `/`
 - `/studio` — Sanity Studio. Sidebar is the Site Settings singleton and Projects ordered by `displayOrder`.
 - `/<slug>` → 307 to that project's `link` when Sanity `project.slug.current` matches. Revalidate ~60s. Unknown or reserved slugs 404. Does not replace `/`, `/studio`, or `/resume`.
@@ -30,7 +30,7 @@ The framework repo is private. Cloud agents open it with `git clone --depth 1 ht
 | Source | Powers |
 | --- | --- |
 | Sanity `project` | Projects list (`displayOrder`). Name + description come from the title blocks. Copy facts only from `docs/PROJECT_BRIEFS.md` — never invent clients, features, or URLs. |
-| Sanity `settings` (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) | All site copy: big title (`heroTitle`), name, tagline, short `bio`, links, section headings, long `bioLong` + `bioHeading` + `bioAccent`, resume sections, footer, SEO/link-preview fields (`siteTitle`, `metaDescription`, `keywords`, `og*`), manifest/app icon text, and 404 text. No copy or fallbacks in code; empty fields render nothing. There is no resume PDF; the old `resumeFile` field was removed from the schema. `galleryPhotos` stays stored and is not rendered. Do not delete it. |
+| Sanity `settings` (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) | All site copy: big title (`heroTitle`), name, tagline, short `bio`, links, section headings, long `aboutLong` + `aboutHeading` + `aboutAccent`, resume sections, footer, SEO/link-preview fields (`siteTitle`, `metaDescription`, `keywords`, `og*`), manifest/app icon text, and 404 text. No copy or fallbacks in code; empty fields render nothing. There is no resume PDF; the old `resumeFile` field was removed from the schema. `galleryPhotos` stays stored and is not rendered. Do not delete it. |
 
 Queries: `src/sanity/lib/queries.ts`. Seed: `scripts/seed-settings.json` (a patch `set`; do not createOrReplace). New-field seed: `scripts/seed-studio-copy.ts` (setIfMissing on published + draft).
 

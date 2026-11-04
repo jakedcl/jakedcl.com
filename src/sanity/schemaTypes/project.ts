@@ -6,7 +6,7 @@ const SECTION_SLUGS = new Set([
   'education',
   'skills',
   'certifications',
-  'bio',
+  'about',
   'studio',
   'resume',
 ])

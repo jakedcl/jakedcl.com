@@ -35,11 +35,11 @@ export default function SectionBody({
     case 'certifications':
       body = <RoleList roles={content.certifications} />
       break
-    case 'bio':
+    case 'about':
       body =
-        content.bioLong.length > 0 ? (
+        content.aboutLong.length > 0 ? (
           <div className="space-y-4 text-[0.95rem] leading-relaxed text-ink/90 md:text-base">
-            <BioCopy blocks={content.bioLong} />
+            <BioCopy blocks={content.aboutLong} />
           </div>
         ) : null
       break

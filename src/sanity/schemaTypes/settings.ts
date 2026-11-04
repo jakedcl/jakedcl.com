@@ -202,17 +202,24 @@ export const settingsType = defineType({
     }),
     headingField('certificationsHeading', 'Certifications heading', 'Certifications'),
     roleList('certifications', 'Certifications', 'The section is hidden when this is empty.'),
-    headingField('bioHeading', 'Bio heading', 'Bio'),
+    defineField({
+      name: 'aboutHeading',
+      title: 'About heading',
+      type: 'string',
+      initialValue: 'About',
+      description:
+        'Nav label and typed title on /about. Leave empty to hide the About link until you are ready.',
+    }),
     portableBioField(
-      'bioLong',
-      'Long bio (Bio page)',
-      'Full bio on the Bio section page. The section is hidden when the heading is empty.',
+      'aboutLong',
+      'Long about (About page)',
+      'Full about copy on the About page (/about). The nav link label comes from About heading.',
     ),
     defineField({
-      name: 'bioAccent',
-      title: 'Bio button color',
+      name: 'aboutAccent',
+      title: 'About button color',
       type: 'string',
-      description: 'Underline color for the Bio button in the section row.',
+      description: 'Underline color for the About button in the section row.',
       options: {
         list: [
           {title: 'Yellow', value: 'yellow'},
@@ -222,7 +229,7 @@ export const settingsType = defineType({
         ],
         layout: 'radio',
       },
-      initialValue: 'blue',
+      initialValue: 'green',
     }),
     defineField({
       name: 'footerText',

@@ -6,7 +6,7 @@ export const SECTION_SLUGS = [
   'education',
   'skills',
   'certifications',
-  'bio',
+  'about',
 ] as const
 
 export type SectionSlug = (typeof SECTION_SLUGS)[number]
@@ -32,7 +32,7 @@ const ACCENT_DECORATION: Record<BioAccent, string> = {
 }
 
 const FIXED_SECTION_ACCENTS: Record<
-  Exclude<SectionSlug, 'bio'>,
+  Exclude<SectionSlug, 'about'>,
   string
 > = {
   projects: ACCENT_DECORATION.yellow,
@@ -49,14 +49,14 @@ export type SectionNavItem = {
   accentDecoration: string
 }
 
-export function bioAccentDecoration(accent: BioAccent | ''): string {
+export function aboutAccentDecoration(accent: BioAccent | ''): string {
   if (accent && accent in ACCENT_DECORATION) {
     return ACCENT_DECORATION[accent as BioAccent]
   }
   return ACCENT_DECORATION.blue
 }
 
-export function parseBioAccent(value: string | null | undefined): BioAccent | '' {
+export function parseAboutAccent(value: string | null | undefined): BioAccent | '' {
   const v = value?.trim()
   if (v === 'yellow' || v === 'blue' || v === 'red' || v === 'green') return v
   return ''
@@ -74,8 +74,8 @@ export function sectionHeading(content: HomeContent, slug: SectionSlug): string 
       return content.skillsHeading
     case 'certifications':
       return content.certificationsHeading
-    case 'bio':
-      return content.bioHeading
+    case 'about':
+      return content.aboutHeading
   }
 }
 
@@ -91,8 +91,8 @@ function sectionVisible(content: HomeContent, slug: SectionSlug): boolean {
       return content.skills.length > 0
     case 'certifications':
       return content.certifications.length > 0
-    case 'bio':
-      return Boolean(content.bioHeading)
+    case 'about':
+      return Boolean(content.aboutHeading) || content.aboutLong.length > 0
   }
 }
 
@@ -103,8 +103,8 @@ export function sectionNavItems(content: HomeContent): SectionNavItem[] {
     const label = sectionHeading(content, slug)
     if (!label) continue
     const accentDecoration =
-      slug === 'bio'
-        ? bioAccentDecoration(content.bioAccent)
+      slug === 'about'
+        ? aboutAccentDecoration(content.aboutAccent)
         : FIXED_SECTION_ACCENTS[slug]
     items.push({ slug, label, accentDecoration })
   }
