@@ -36,6 +36,42 @@ function headingField(name: string, title: string, section: string) {
   })
 }
 
+function portableBioField(name: string, title: string, description: string) {
+  return defineField({
+    name,
+    title,
+    type: 'array',
+    description,
+    of: [
+      defineArrayMember({
+        type: 'block',
+        styles: [{title: 'Normal', value: 'normal'}],
+        lists: [],
+        marks: {
+          decorators: [
+            {title: 'Bold', value: 'strong'},
+            {title: 'Italic', value: 'em'},
+          ],
+          annotations: [
+            defineArrayMember({
+              name: 'link',
+              type: 'object',
+              title: 'Link',
+              fields: [
+                defineField({
+                  name: 'href',
+                  title: 'URL',
+                  type: 'url',
+                }),
+              ],
+            }),
+          ],
+        },
+      }),
+    ],
+  })
+}
+
 const roleList = (name: string, title: string, description: string) =>
   defineField({name, title, type: 'array', description, of: [resumeRole()]})
 
@@ -78,9 +114,10 @@ export const settingsType = defineType({
     }),
     defineField({
       name: 'bio',
-      title: 'Bio',
+      title: 'Short bio (homepage)',
       type: 'array',
-      description: 'Your bio. Each paragraph shows as its own paragraph on the homepage.',
+      description:
+        'Short bio on the homepage, under the section buttons. Each paragraph shows as its own paragraph.',
       of: [
         defineArrayMember({
           type: 'block',
@@ -165,6 +202,28 @@ export const settingsType = defineType({
     }),
     headingField('certificationsHeading', 'Certifications heading', 'Certifications'),
     roleList('certifications', 'Certifications', 'The section is hidden when this is empty.'),
+    headingField('bioHeading', 'Bio heading', 'Bio'),
+    portableBioField(
+      'bioLong',
+      'Long bio (Bio page)',
+      'Full bio on the Bio section page. The section is hidden when the heading is empty.',
+    ),
+    defineField({
+      name: 'bioAccent',
+      title: 'Bio button color',
+      type: 'string',
+      description: 'Underline color for the Bio button in the section row.',
+      options: {
+        list: [
+          {title: 'Yellow', value: 'yellow'},
+          {title: 'Blue', value: 'blue'},
+          {title: 'Red', value: 'red'},
+          {title: 'Green', value: 'green'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'blue',
+    }),
     defineField({
       name: 'footerText',
       title: 'Footer',

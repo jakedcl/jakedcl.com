@@ -105,6 +105,10 @@ body::before {
   min-height: 1.2em;
 }
 
+.intro-name--compact {
+  font-size: clamp(1.45rem, 3.35vw, 2.25rem);
+}
+
 .intro-word {
   display: inline-flex;
   position: relative;

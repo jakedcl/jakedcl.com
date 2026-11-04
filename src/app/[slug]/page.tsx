@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 
+import { RESERVED_SHORT_LINK_SLUGS } from '@/lib/sections'
 import { apiVersion, dataset, projectId } from '@/sanity/env'
 import { projectLinkBySlugQuery } from '@/sanity/lib/queries'
 
@@ -8,19 +9,13 @@ export const revalidate = 60
 /** Single path segment. Dots would catch files such as resume.pdf. */
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
-/**
- * Real routes this segment must not replace. Static files and more specific
- * app routes already win; this is a second check if a document uses one.
- */
-const RESERVED = new Set(['studio', 'resume', 'apple-icon', 'opengraph-image'])
-
 export default async function ProjectShortLink({
   params,
 }: {
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  if (!SLUG.test(slug) || RESERVED.has(slug)) notFound()
+  if (!SLUG.test(slug) || RESERVED_SHORT_LINK_SLUGS.has(slug)) notFound()
 
   const destination = await projectLink(slug)
   if (!destination) notFound()

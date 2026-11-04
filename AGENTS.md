@@ -18,7 +18,8 @@ The framework repo is private. Cloud agents open it with `git clone --depth 1 ht
 
 ## Routes
 
-- `/` — one-page portfolio (intro, bio, projects, resume sections)
+- `/` — portfolio intro (section buttons, short bio, links; section content lives on `/projects`, `/experience`, etc.)
+- `/projects`, `/experience`, `/education`, `/skills`, `/certifications`, `/bio` — one section each (empty or unconfigured sections 404)
 - `/resume` → 308 redirect to `/`
 - `/studio` — Sanity Studio. Sidebar is the Site Settings singleton and Projects ordered by `displayOrder`.
 - `/<slug>` → 307 to that project's `link` when Sanity `project.slug.current` matches. Revalidate ~60s. Unknown or reserved slugs 404. Does not replace `/`, `/studio`, or `/resume`.
@@ -29,7 +30,7 @@ The framework repo is private. Cloud agents open it with `git clone --depth 1 ht
 | Source | Powers |
 | --- | --- |
 | Sanity `project` | Projects list (`displayOrder`). Name + description come from the title blocks. Copy facts only from `docs/PROJECT_BRIEFS.md` — never invent clients, features, or URLs. |
-| Sanity `settings` (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) | All site copy: big title (`heroTitle`), name, tagline, bio (portable text), links, section headings, resume sections, footer, SEO/link-preview fields (`siteTitle`, `metaDescription`, `keywords`, `og*`), manifest/app icon text, and 404 text. No copy or fallbacks in code; empty fields render nothing. There is no resume PDF; the old `resumeFile` field was removed from the schema. `galleryPhotos` stays stored and is not rendered. Do not delete it. |
+| Sanity `settings` (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) | All site copy: big title (`heroTitle`), name, tagline, short `bio`, links, section headings, long `bioLong` + `bioHeading` + `bioAccent`, resume sections, footer, SEO/link-preview fields (`siteTitle`, `metaDescription`, `keywords`, `og*`), manifest/app icon text, and 404 text. No copy or fallbacks in code; empty fields render nothing. There is no resume PDF; the old `resumeFile` field was removed from the schema. `galleryPhotos` stays stored and is not rendered. Do not delete it. |
 
 Queries: `src/sanity/lib/queries.ts`. Seed: `scripts/seed-settings.json` (a patch `set`; do not createOrReplace). New-field seed: `scripts/seed-studio-copy.ts` (setIfMissing on published + draft).
 
@@ -52,3 +53,13 @@ Fonts: Bricolage Grotesque (display and shape), IBM Plex Mono (utility), Helveti
 - Preserve Signal Max. No new component library, auth, or database unless the task needs it.
 - Prefer CSS + existing patterns over adding motion libraries.
 - Keep this file short. Long briefs stay in `docs/` and are read only when the task needs them.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

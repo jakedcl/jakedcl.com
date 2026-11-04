@@ -59,6 +59,24 @@ export const settingsQuery = groq`
     educationHeading,
     skillsHeading,
     certificationsHeading,
+    bioHeading,
+    bioLong[]{
+      _key,
+      _type,
+      style,
+      children[]{
+        _key,
+        _type,
+        marks,
+        text
+      },
+      markDefs[]{
+        _key,
+        _type,
+        href
+      }
+    },
+    bioAccent,
     footerText,
     siteTitle,
     metaDescription,

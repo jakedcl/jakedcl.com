@@ -1,5 +1,7 @@
 import type { PortableTextBlock } from 'next-sanity'
 
+import { parseBioAccent, type BioAccent } from '@/lib/sections'
+
 import { apiVersion, dataset, projectId } from '@/sanity/env'
 import { settingsQuery } from '@/sanity/lib/queries'
 import type { HomeLink, HomeRole, HomeSkillGroup } from '@/types/home'
@@ -21,6 +23,9 @@ export type HomeContent = {
   educationHeading: string
   skillsHeading: string
   certificationsHeading: string
+  bioHeading: string
+  bioLong: PortableTextBlock[]
+  bioAccent: BioAccent | ''
   footerText: string
   siteTitle: string
   metaDescription: string
@@ -73,6 +78,9 @@ type SanitySettings = {
   educationHeading?: string | null
   skillsHeading?: string | null
   certificationsHeading?: string | null
+  bioHeading?: string | null
+  bioLong?: PortableTextBlock[] | null
+  bioAccent?: string | null
   footerText?: string | null
   siteTitle?: string | null
   metaDescription?: string | null
@@ -119,6 +127,9 @@ export async function getHomeContent(): Promise<HomeContent> {
       educationHeading: text(settings.educationHeading),
       skillsHeading: text(settings.skillsHeading),
       certificationsHeading: text(settings.certificationsHeading),
+      bioHeading: text(settings.bioHeading),
+      bioLong: bioFrom(settings.bioLong),
+      bioAccent: parseBioAccent(settings.bioAccent),
       footerText: text(settings.footerText),
       siteTitle: text(settings.siteTitle),
       metaDescription: text(settings.metaDescription),
@@ -174,6 +185,9 @@ function emptyContent(loadError: boolean): HomeContent {
     educationHeading: '',
     skillsHeading: '',
     certificationsHeading: '',
+    bioHeading: '',
+    bioLong: [],
+    bioAccent: '',
     footerText: '',
     siteTitle: '',
     metaDescription: '',
