@@ -239,18 +239,18 @@ export const settingsType = defineType({
       name: 'aboutAccent',
       title: 'About button color',
       type: 'string',
-      description: 'Underline color for the About button in the section row.',
+      description:
+        'Legacy field. Nav underlines use fixed theme colors (About is always green on the site).',
       options: {
         list: [
           {title: 'Yellow', value: 'yellow'},
           {title: 'Blue', value: 'blue'},
           {title: 'Red', value: 'red'},
           {title: 'Green', value: 'green'},
-          {title: 'Purple', value: 'purple'},
         ],
         layout: 'radio',
       },
-      initialValue: 'purple',
+      initialValue: 'green',
     }),
     defineField({
       name: 'footerText',

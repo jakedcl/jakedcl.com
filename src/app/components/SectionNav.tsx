@@ -16,7 +16,6 @@ const accentBullet: Record<string, string> = {
   'decoration-signal-blue': 'before:bg-signal-blue',
   'decoration-signal-red': 'before:bg-signal-red',
   'decoration-signal-green': 'before:bg-signal-green',
-  'decoration-signal-purple': 'before:bg-signal-purple',
 }
 
 const NAV_GAP_PX = 16
@@ -25,7 +24,7 @@ const NAV_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
 function linkClass(item: SectionNavItem, dropped: boolean) {
   if (dropped) {
-    const bullet = accentBullet[item.accentDecoration] ?? 'before:bg-signal-purple'
+    const bullet = accentBullet[item.accentDecoration] ?? 'before:bg-signal-green'
     return `${droppedLinkBase} before:content-[""] ${bullet}`
   }
   return `${rowLinkBase} ${item.accentDecoration}`
