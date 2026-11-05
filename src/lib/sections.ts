@@ -16,6 +16,7 @@ export const RESERVED_SHORT_LINK_SLUGS: ReadonlySet<string> = new Set([
   ...SECTION_SLUGS,
   'education',
   'certifications',
+  'showcase',
   'studio',
   'resume',
   'apple-icon',

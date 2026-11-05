@@ -172,6 +172,140 @@ export const settingsType = defineType({
       ],
     }),
     headingField('projectsHeading', 'Projects heading', 'Projects'),
+    defineField({
+      name: 'featuredProject',
+      title: 'Featured case study project',
+      type: 'reference',
+      to: [{type: 'project'}],
+      description:
+        'Homepage feature and /showcase case study. Leave empty to hide both.',
+    }),
+    defineField({
+      name: 'featureLabel',
+      title: 'Homepage feature label',
+      type: 'string',
+      description: 'Small label above the project name on the homepage, e.g. Featured.',
+    }),
+    defineField({
+      name: 'featureSummary',
+      title: 'Homepage feature sentence',
+      type: 'text',
+      rows: 2,
+      description: 'One strong line on the homepage feature, above the link to /showcase.',
+    }),
+    defineField({
+      name: 'featureImage',
+      title: 'Homepage feature image',
+      type: 'image',
+      options: {hotspot: true},
+      fields: [defineField({name: 'alt', title: 'Alt text', type: 'string'})],
+    }),
+    defineField({
+      name: 'caseStudyEyebrow',
+      title: 'Case study eyebrow',
+      type: 'string',
+      description: 'Small line at the top of /showcase.',
+    }),
+    defineField({
+      name: 'caseStudyIntro',
+      title: 'Case study intro',
+      type: 'text',
+      rows: 5,
+      description: 'Opening paragraph on /showcase.',
+    }),
+    defineField({
+      name: 'caseStudyGallery',
+      title: 'Case study screenshots',
+      type: 'array',
+      description: 'Product stills for the gallery on /showcase.',
+      of: [
+        defineArrayMember({
+          type: 'image',
+          options: {hotspot: true},
+          fields: [
+            defineField({name: 'alt', title: 'Alt text', type: 'string'}),
+            defineField({name: 'caption', title: 'Caption', type: 'string'}),
+          ],
+        }),
+      ],
+    }),
+    defineField({
+      name: 'caseStudyFacts',
+      title: 'Case study facts',
+      type: 'array',
+      description: 'Short labeled facts; detail text reveals on click.',
+      of: [
+        defineArrayMember({
+          name: 'caseStudyFact',
+          type: 'object',
+          fields: [
+            defineField({name: 'label', title: 'Label', type: 'string'}),
+            defineField({name: 'teaser', title: 'Short line', type: 'string'}),
+            defineField({
+              name: 'detail',
+              title: 'Detail',
+              type: 'text',
+              rows: 3,
+            }),
+          ],
+          preview: {select: {title: 'label', subtitle: 'teaser'}},
+        }),
+      ],
+    }),
+    defineField({
+      name: 'caseStudySteps',
+      title: 'Case study workflow steps',
+      type: 'array',
+      description: 'Stepped walkthrough on /showcase (e.g. lock → assign → load-out).',
+      of: [
+        defineArrayMember({
+          name: 'caseStudyStep',
+          type: 'object',
+          fields: [
+            defineField({name: 'title', title: 'Step title', type: 'string'}),
+            defineField({name: 'body', title: 'Step body', type: 'text', rows: 3}),
+          ],
+          preview: {select: {title: 'title'}},
+        }),
+      ],
+    }),
+    defineField({
+      name: 'caseStudyStack',
+      title: 'Case study stack note',
+      type: 'text',
+      rows: 3,
+      description: 'Plain-language architecture paragraph on /showcase.',
+    }),
+    defineField({
+      name: 'caseStudyProcess',
+      title: 'Case study process note',
+      type: 'text',
+      rows: 3,
+      description: 'How the work was directed and reviewed (brief, not the headline).',
+    }),
+    defineField({
+      name: 'caseStudyProductUrl',
+      title: 'Case study product URL',
+      type: 'url',
+      description: 'Primary outbound link (e.g. marketing site).',
+    }),
+    defineField({
+      name: 'caseStudyRepoUrl',
+      title: 'Case study repository URL',
+      type: 'url',
+    }),
+    defineField({
+      name: 'caseStudyProductLinkLabel',
+      title: 'Case study product link label',
+      type: 'string',
+      description: 'Link text for the product URL on /showcase.',
+    }),
+    defineField({
+      name: 'caseStudyRepoLinkLabel',
+      title: 'Case study repository link label',
+      type: 'string',
+      description: 'Link text for the repository URL on /showcase.',
+    }),
     headingField('experienceHeading', 'Experience heading', 'Experience'),
     roleList(
       'experience',

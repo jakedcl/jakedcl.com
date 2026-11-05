@@ -50,6 +50,36 @@ export const settingsQuery = groq`
       }
     },
     links[]{ _key, label, href },
+    featuredProject->{
+      title
+    },
+    featureLabel,
+    featureSummary,
+    featureImage{
+      alt,
+      asset->{
+        url,
+        metadata { dimensions }
+      }
+    },
+    caseStudyEyebrow,
+    caseStudyIntro,
+    caseStudyGallery[]{
+      alt,
+      caption,
+      asset->{
+        url,
+        metadata { dimensions }
+      }
+    },
+    caseStudyFacts[]{ _key, label, teaser, detail },
+    caseStudySteps[]{ _key, title, body },
+    caseStudyStack,
+    caseStudyProcess,
+    caseStudyProductUrl,
+    caseStudyRepoUrl,
+    caseStudyProductLinkLabel,
+    caseStudyRepoLinkLabel,
     skills[]{ _key, label, items },
     experience[]{ _key, title, organization, organizationUrl, period, bullets },
     education[]{ _key, title, organization, organizationUrl, period, bullets },

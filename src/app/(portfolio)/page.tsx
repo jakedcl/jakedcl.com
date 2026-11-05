@@ -1,5 +1,7 @@
 import { getHomeContent, type HomeContent } from '@/lib/siteContent'
+import { getHomeFeatureSlice } from '@/lib/caseStudyContent'
 import BioCopy from '../components/BioCopy'
+import FeaturedCaseStudy from '../components/FeaturedCaseStudy'
 
 export const revalidate = 60
 
@@ -8,6 +10,7 @@ const linkClass =
 
 export default async function Home() {
   const content = await getHomeContent()
+  const feature = await getHomeFeatureSlice()
 
   return (
     <>
@@ -33,6 +36,8 @@ export default async function Home() {
           <BioCopy blocks={content.bio} />
         </div>
       ) : null}
+
+      {feature ? <FeaturedCaseStudy feature={feature} /> : null}
 
       {content.links.length > 0 ? (
         <p className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[0.95rem]">

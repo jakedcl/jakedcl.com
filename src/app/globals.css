@@ -357,9 +357,59 @@ html.project-preview-off .project-row:has(:focus-visible) .project-preview {
   display: none;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .case-gallery-image,
+  .case-step-panel {
+    transition: opacity 0.22s ease-out;
+  }
+}
+
+.case-gallery-control {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 70%, transparent);
+  padding: 0.35rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  background: var(--cream);
+}
+
+.case-gallery-control:hover {
+  color: var(--signal-blue);
+  border-color: color-mix(in srgb, var(--signal-blue) 40%, transparent);
+}
+
+.case-step-tab {
+  min-width: 7rem;
+  flex: 1 1 7rem;
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  background: var(--cream);
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.case-step-tab--active {
+  border-color: var(--signal-blue);
+  background: color-mix(in srgb, var(--signal-blue) 8%, var(--cream));
+}
+
+.case-fact-trigger:hover {
+  background: color-mix(in srgb, var(--cream) 80%, white);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .case-step-tab,
+  .case-gallery-image,
+  .case-step-panel {
+    transition: none;
   }
 
   .hero-letter,
