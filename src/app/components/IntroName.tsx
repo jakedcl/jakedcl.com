@@ -31,9 +31,12 @@ function round(value: number) {
 export default function IntroName({
   title,
   compact = false,
+  ready = false,
 }: {
   title: string
   compact?: boolean
+  /** Final typed state with underline drawn — no typewriter replay. */
+  ready?: boolean
 }) {
   const words = title.split(/\s+/).filter(Boolean)
   if (words.length === 0) return null
@@ -49,7 +52,12 @@ export default function IntroName({
   return (
     <h1
       aria-label={words.join(' ')}
-      className={compact ? 'intro-name intro-name--compact' : 'intro-name'}
+      className={[
+        compact ? 'intro-name intro-name--compact' : 'intro-name',
+        ready ? 'intro-name--ready' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       style={style}
     >
       {words.map((word, w) => {

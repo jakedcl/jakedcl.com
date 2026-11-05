@@ -157,6 +157,37 @@ body::before {
   }
 }
 
+.intro-name--ready .hero-letter {
+  animation: none;
+  max-width: 1.5em;
+  opacity: 1;
+}
+
+.intro-name--ready::after {
+  animation: none;
+  transform: scaleX(1);
+}
+
+.intro-name--ready .hero-caret {
+  animation: none;
+  visibility: hidden;
+}
+
+@keyframes portfolio-page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .portfolio-page-body {
+    animation: portfolio-page-in 0.22s ease-out both;
+  }
+}
+
 @keyframes hero-letter-in {
   from {
     max-width: 0;

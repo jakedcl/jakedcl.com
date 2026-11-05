@@ -14,7 +14,7 @@ export async function SectionPage({ section }: { section: SectionSlug }) {
   if (!title) notFound()
 
   return (
-    <SectionPageShell content={content} section={section} title={title}>
+    <SectionPageShell content={content}>
       <SectionBody section={section} content={content} />
     </SectionPageShell>
   )
