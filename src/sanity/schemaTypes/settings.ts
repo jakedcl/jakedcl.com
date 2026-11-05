@@ -173,9 +173,21 @@ export const settingsType = defineType({
     }),
     headingField('projectsHeading', 'Projects heading', 'Projects'),
     headingField('experienceHeading', 'Experience heading', 'Experience'),
-    roleList('experience', 'Experience', 'Jobs, newest first. The section is hidden when this is empty.'),
-    headingField('educationHeading', 'Education heading', 'Education'),
-    roleList('education', 'Education', 'Schools and degrees. The section is hidden when this is empty.'),
+    roleList(
+      'experience',
+      'Experience',
+      'Jobs and freelance roles on the Experience page (/experience), newest first.',
+    ),
+    headingField(
+      'certificationsHeading',
+      'Certifications heading',
+      'Certifications',
+    ),
+    roleList(
+      'certifications',
+      'Certifications',
+      'Shown at the bottom of the Experience page (/experience), below jobs. Leave empty to hide that block.',
+    ),
     headingField('skillsHeading', 'Skills heading', 'Skills'),
     defineField({
       name: 'skills',
@@ -200,20 +212,28 @@ export const settingsType = defineType({
         }),
       ],
     }),
-    headingField('certificationsHeading', 'Certifications heading', 'Certifications'),
-    roleList('certifications', 'Certifications', 'The section is hidden when this is empty.'),
     defineField({
       name: 'aboutHeading',
       title: 'About heading',
       type: 'string',
       initialValue: 'About',
       description:
-        'Nav label and typed title on /about. Leave empty to hide the About link until you are ready.',
+        'Nav label on /about. Leave empty to hide the About link until you are ready.',
     }),
     portableBioField(
       'aboutLong',
       'Long about (About page)',
-      'Full about copy on the About page (/about). The nav link label comes from About heading.',
+      'Full about copy at the top of the About page (/about).',
+    ),
+    headingField(
+      'educationHeading',
+      'Education heading',
+      'education on About',
+    ),
+    roleList(
+      'education',
+      'Education',
+      'Schools and degrees on the About page (/about), below long about copy. Leave empty to hide that block.',
     ),
     defineField({
       name: 'aboutAccent',

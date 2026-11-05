@@ -3,7 +3,6 @@ import type { HomeContent } from '@/lib/siteContent'
 export const SECTION_SLUGS = [
   'projects',
   'experience',
-  'education',
   'skills',
   'about',
 ] as const
@@ -15,6 +14,7 @@ export const SECTION_ROUTE_SLUGS: ReadonlySet<string> = new Set(SECTION_SLUGS)
 /** Slugs the dynamic /[slug] short-link route must not capture. */
 export const RESERVED_SHORT_LINK_SLUGS: ReadonlySet<string> = new Set([
   ...SECTION_SLUGS,
+  'education',
   'certifications',
   'studio',
   'resume',
@@ -38,7 +38,6 @@ const FIXED_SECTION_ACCENTS: Record<
 > = {
   projects: ACCENT_DECORATION.yellow,
   experience: ACCENT_DECORATION.blue,
-  education: ACCENT_DECORATION.red,
   skills: ACCENT_DECORATION.green,
 }
 
@@ -75,8 +74,6 @@ export function sectionHeading(content: HomeContent, slug: SectionSlug): string 
       return content.projectsHeading
     case 'experience':
       return content.experienceHeading
-    case 'education':
-      return content.educationHeading
     case 'skills':
       return content.skillsHeading
     case 'about':
@@ -89,13 +86,17 @@ function sectionVisible(content: HomeContent, slug: SectionSlug): boolean {
     case 'projects':
       return Boolean(content.projectsHeading)
     case 'experience':
-      return content.experience.length > 0
-    case 'education':
-      return content.education.length > 0 || content.certifications.length > 0
+      return (
+        content.experience.length > 0 || content.certifications.length > 0
+      )
     case 'skills':
       return content.skills.length > 0
     case 'about':
-      return Boolean(content.aboutHeading) || content.aboutLong.length > 0
+      return (
+        Boolean(content.aboutHeading) ||
+        content.aboutLong.length > 0 ||
+        content.education.length > 0
+      )
   }
 }
 
