@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useSelectedLayoutSegment } from 'next/navigation'
 import { useEffect, useReducer, type ReactNode } from 'react'
 
 import {
@@ -18,35 +18,36 @@ const introLinkClass =
 type IntroState = {
   ready: boolean
   homeKey: number
-  lastPath: string
+  lastSegment: string | null
 }
 
-type IntroAction = { type: 'route'; pathname: string }
+type IntroAction = { type: 'route'; segment: string | null }
 
-function initIntro(pathname: string): IntroState {
+/** Home is `(portfolio)/page.tsx` — the only route with a null segment in this layout. */
+function initIntro(segment: string | null): IntroState {
   return {
-    ready: pathname !== '/',
+    ready: segment !== null,
     homeKey: 0,
-    lastPath: pathname,
+    lastSegment: segment,
   }
 }
 
 function introReducer(state: IntroState, action: IntroAction): IntroState {
-  if (action.type !== 'route' || action.pathname === state.lastPath) {
+  if (action.type !== 'route' || action.segment === state.lastSegment) {
     return state
   }
-  if (action.pathname === '/') {
-    const replay = state.lastPath !== '/'
+  if (action.segment === null) {
+    const replay = state.lastSegment !== null
     return {
       ready: false,
       homeKey: replay ? state.homeKey + 1 : state.homeKey,
-      lastPath: action.pathname,
+      lastSegment: null,
     }
   }
   return {
     ready: true,
     homeKey: state.homeKey,
-    lastPath: action.pathname,
+    lastSegment: action.segment,
   }
 }
 
@@ -59,20 +60,20 @@ export default function PortfolioChrome({
   navItems: SectionNavItem[]
   children: ReactNode
 }) {
-  const pathname = usePathname()
-  const isHome = pathname === '/'
-  const sectionSegment = pathname.slice(1)
-  const active = isSectionSlug(sectionSegment) ? sectionSegment : undefined
+  const segment = useSelectedLayoutSegment()
+  const isHome = segment === null
+  const active =
+    segment && isSectionSlug(segment) ? segment : undefined
 
   const [introState, dispatchIntro] = useReducer(
     introReducer,
-    pathname,
+    segment,
     initIntro,
   )
 
   useEffect(() => {
-    dispatchIntro({ type: 'route', pathname })
-  }, [pathname])
+    dispatchIntro({ type: 'route', segment })
+  }, [segment])
 
   const compact = introTitleCompact(heroTitle)
   const intro = (
