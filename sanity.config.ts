@@ -10,6 +10,7 @@ import {structureTool} from 'sanity/structure'
 
 // Go to https://www.sanity.io/docs/api-versioning to learn how API versioning works
 import {apiVersion, dataset, projectId} from './src/sanity/env'
+import {SettingsStudioLayout} from './src/sanity/components/SettingsStudioLayout'
 import {schema} from './src/sanity/schemaTypes'
 import {structure} from './src/sanity/structure'
 
@@ -18,6 +19,9 @@ export default defineConfig({
   projectId,
   dataset,
   document: {
+    components: {
+      unstable_layout: SettingsStudioLayout,
+    },
     actions: (prev, context) => {
       if (context.schemaType !== 'settings') return prev
       return prev.filter(
