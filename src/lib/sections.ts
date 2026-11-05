@@ -3,7 +3,6 @@ import type { HomeContent } from '@/lib/siteContent'
 export const SECTION_SLUGS = [
   'projects',
   'experience',
-  'education',
   'skills',
   'about',
 ] as const
@@ -15,31 +14,29 @@ export const SECTION_ROUTE_SLUGS: ReadonlySet<string> = new Set(SECTION_SLUGS)
 /** Slugs the dynamic /[slug] short-link route must not capture. */
 export const RESERVED_SHORT_LINK_SLUGS: ReadonlySet<string> = new Set([
   ...SECTION_SLUGS,
+  'education',
   'certifications',
+  'showcase',
   'studio',
   'resume',
   'apple-icon',
   'opengraph-image',
 ])
 
-export type AboutAccent = 'yellow' | 'blue' | 'red' | 'green' | 'purple'
+export type AboutAccent = 'yellow' | 'blue' | 'red' | 'green'
 
 const ACCENT_DECORATION: Record<AboutAccent, string> = {
   yellow: 'decoration-signal-yellow',
   blue: 'decoration-signal-blue',
   red: 'decoration-signal-red',
   green: 'decoration-signal-green',
-  purple: 'decoration-signal-purple',
 }
 
-const FIXED_SECTION_ACCENTS: Record<
-  Exclude<SectionSlug, 'about'>,
-  string
-> = {
+const NAV_SECTION_ACCENTS: Record<SectionSlug, string> = {
   projects: ACCENT_DECORATION.yellow,
   experience: ACCENT_DECORATION.blue,
-  education: ACCENT_DECORATION.red,
-  skills: ACCENT_DECORATION.green,
+  skills: ACCENT_DECORATION.red,
+  about: ACCENT_DECORATION.green,
 }
 
 export type SectionNavItem = {
@@ -52,7 +49,7 @@ export function aboutAccentDecoration(accent: AboutAccent | ''): string {
   if (accent && accent in ACCENT_DECORATION) {
     return ACCENT_DECORATION[accent as AboutAccent]
   }
-  return ACCENT_DECORATION.purple
+  return ACCENT_DECORATION.green
 }
 
 export function parseAboutAccent(value: string | null | undefined): AboutAccent | '' {
@@ -61,11 +58,11 @@ export function parseAboutAccent(value: string | null | undefined): AboutAccent 
     v === 'yellow' ||
     v === 'blue' ||
     v === 'red' ||
-    v === 'green' ||
-    v === 'purple'
+    v === 'green'
   ) {
     return v
   }
+  if (v === 'purple') return 'green'
   return ''
 }
 
@@ -75,8 +72,6 @@ export function sectionHeading(content: HomeContent, slug: SectionSlug): string 
       return content.projectsHeading
     case 'experience':
       return content.experienceHeading
-    case 'education':
-      return content.educationHeading
     case 'skills':
       return content.skillsHeading
     case 'about':
@@ -89,13 +84,17 @@ function sectionVisible(content: HomeContent, slug: SectionSlug): boolean {
     case 'projects':
       return Boolean(content.projectsHeading)
     case 'experience':
-      return content.experience.length > 0
-    case 'education':
-      return content.education.length > 0 || content.certifications.length > 0
+      return (
+        content.experience.length > 0 || content.certifications.length > 0
+      )
     case 'skills':
       return content.skills.length > 0
     case 'about':
-      return Boolean(content.aboutHeading) || content.aboutLong.length > 0
+      return (
+        Boolean(content.aboutHeading) ||
+        content.aboutLong.length > 0 ||
+        content.education.length > 0
+      )
   }
 }
 
@@ -105,11 +104,11 @@ export function sectionNavItems(content: HomeContent): SectionNavItem[] {
     if (!sectionVisible(content, slug)) continue
     const label = sectionHeading(content, slug)
     if (!label) continue
-    const accentDecoration =
-      slug === 'about'
-        ? aboutAccentDecoration(content.aboutAccent)
-        : FIXED_SECTION_ACCENTS[slug]
-    items.push({ slug, label, accentDecoration })
+    items.push({
+      slug,
+      label,
+      accentDecoration: NAV_SECTION_ACCENTS[slug],
+    })
   }
   return items
 }

@@ -10,7 +10,7 @@ function CertificationsBlock({ content }: { content: HomeContent }) {
   if (content.certifications.length === 0) return null
 
   return (
-    <div className={content.education.length > 0 ? 'mt-14' : undefined}>
+    <div className={content.experience.length > 0 ? 'mt-14' : undefined}>
       {content.certificationsHeading ? (
         <h2 className="font-shape mb-4 flex items-center gap-2.5 text-lg font-bold tracking-tight text-ink">
           <span className="h-2.5 w-2.5 shrink-0 bg-signal-yellow" aria-hidden />
@@ -18,6 +18,22 @@ function CertificationsBlock({ content }: { content: HomeContent }) {
         </h2>
       ) : null}
       <RoleList roles={content.certifications} />
+    </div>
+  )
+}
+
+function EducationBlock({ content }: { content: HomeContent }) {
+  if (content.education.length === 0) return null
+
+  return (
+    <div className={content.aboutLong.length > 0 ? 'mt-14' : undefined}>
+      {content.educationHeading ? (
+        <h2 className="font-shape mb-4 flex items-center gap-2.5 text-lg font-bold tracking-tight text-ink">
+          <span className="h-2.5 w-2.5 shrink-0 bg-signal-red" aria-hidden />
+          {content.educationHeading}
+        </h2>
+      ) : null}
+      <RoleList roles={content.education} />
     </div>
   )
 }
@@ -40,13 +56,10 @@ export default function SectionBody({
       )
       break
     case 'experience':
-      body = <RoleList roles={content.experience} />
-      break
-    case 'education':
       body = (
         <>
-          {content.education.length > 0 ? (
-            <RoleList roles={content.education} />
+          {content.experience.length > 0 ? (
+            <RoleList roles={content.experience} />
           ) : null}
           <CertificationsBlock content={content} />
         </>
@@ -56,12 +69,16 @@ export default function SectionBody({
       body = <SkillsList groups={content.skills} />
       break
     case 'about':
-      body =
-        content.aboutLong.length > 0 ? (
-          <div className="space-y-4 text-[0.95rem] leading-relaxed text-ink/90 md:text-base">
-            <BioCopy blocks={content.aboutLong} />
-          </div>
-        ) : null
+      body = (
+        <>
+          {content.aboutLong.length > 0 ? (
+            <div className="space-y-4 text-[0.95rem] leading-relaxed text-ink/90 md:text-base">
+              <BioCopy blocks={content.aboutLong} />
+            </div>
+          ) : null}
+          <EducationBlock content={content} />
+        </>
+      )
       break
   }
 

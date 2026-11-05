@@ -6,8 +6,13 @@ const nextConfig: NextConfig = {
       { source: '/admin', destination: '/studio', permanent: false },
       { source: '/admin/:path*', destination: '/studio/:path*', permanent: false },
       {
+        source: '/education',
+        destination: '/about',
+        permanent: false,
+      },
+      {
         source: '/certifications',
-        destination: '/education',
+        destination: '/experience',
         permanent: false,
       },
       {

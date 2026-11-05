@@ -172,10 +172,156 @@ export const settingsType = defineType({
       ],
     }),
     headingField('projectsHeading', 'Projects heading', 'Projects'),
+    defineField({
+      name: 'featuredProject',
+      title: 'Featured case study project',
+      type: 'reference',
+      to: [{type: 'project'}],
+      description:
+        'Homepage feature and /showcase case study. Leave empty to hide both.',
+    }),
+    defineField({
+      name: 'featureLabel',
+      title: 'Homepage feature label',
+      type: 'string',
+      description: 'Small label above the project name on the homepage, e.g. Featured.',
+    }),
+    defineField({
+      name: 'featureSummary',
+      title: 'Homepage feature sentence',
+      type: 'text',
+      rows: 2,
+      description: 'One strong line on the homepage feature, above the link to /showcase.',
+    }),
+    defineField({
+      name: 'featureImage',
+      title: 'Homepage feature image',
+      type: 'image',
+      options: {hotspot: true},
+      fields: [defineField({name: 'alt', title: 'Alt text', type: 'string'})],
+    }),
+    defineField({
+      name: 'caseStudyEyebrow',
+      title: 'Case study eyebrow',
+      type: 'string',
+      description: 'Small line at the top of /showcase.',
+    }),
+    defineField({
+      name: 'caseStudyIntro',
+      title: 'Case study intro',
+      type: 'text',
+      rows: 5,
+      description: 'Opening paragraph on /showcase.',
+    }),
+    defineField({
+      name: 'caseStudyGallery',
+      title: 'Case study screenshots',
+      type: 'array',
+      description: 'Product stills for the gallery on /showcase.',
+      of: [
+        defineArrayMember({
+          type: 'image',
+          options: {hotspot: true},
+          fields: [
+            defineField({name: 'alt', title: 'Alt text', type: 'string'}),
+            defineField({name: 'caption', title: 'Caption', type: 'string'}),
+          ],
+        }),
+      ],
+    }),
+    defineField({
+      name: 'caseStudyFacts',
+      title: 'Case study facts',
+      type: 'array',
+      description: 'Short labeled facts; detail text reveals on click.',
+      of: [
+        defineArrayMember({
+          name: 'caseStudyFact',
+          type: 'object',
+          fields: [
+            defineField({name: 'label', title: 'Label', type: 'string'}),
+            defineField({name: 'teaser', title: 'Short line', type: 'string'}),
+            defineField({
+              name: 'detail',
+              title: 'Detail',
+              type: 'text',
+              rows: 3,
+            }),
+          ],
+          preview: {select: {title: 'label', subtitle: 'teaser'}},
+        }),
+      ],
+    }),
+    defineField({
+      name: 'caseStudySteps',
+      title: 'Case study workflow steps',
+      type: 'array',
+      description: 'Stepped walkthrough on /showcase (e.g. lock → assign → load-out).',
+      of: [
+        defineArrayMember({
+          name: 'caseStudyStep',
+          type: 'object',
+          fields: [
+            defineField({name: 'title', title: 'Step title', type: 'string'}),
+            defineField({name: 'body', title: 'Step body', type: 'text', rows: 3}),
+          ],
+          preview: {select: {title: 'title'}},
+        }),
+      ],
+    }),
+    defineField({
+      name: 'caseStudyStack',
+      title: 'Case study stack note',
+      type: 'text',
+      rows: 3,
+      description: 'Plain-language architecture paragraph on /showcase.',
+    }),
+    defineField({
+      name: 'caseStudyProcess',
+      title: 'Case study process note',
+      type: 'text',
+      rows: 3,
+      description: 'How the work was directed and reviewed (brief, not the headline).',
+    }),
+    defineField({
+      name: 'caseStudyProductUrl',
+      title: 'Case study product URL',
+      type: 'url',
+      description: 'Primary outbound link (e.g. marketing site).',
+    }),
+    defineField({
+      name: 'caseStudyRepoUrl',
+      title: 'Case study repository URL',
+      type: 'url',
+    }),
+    defineField({
+      name: 'caseStudyProductLinkLabel',
+      title: 'Case study product link label',
+      type: 'string',
+      description: 'Link text for the product URL on /showcase.',
+    }),
+    defineField({
+      name: 'caseStudyRepoLinkLabel',
+      title: 'Case study repository link label',
+      type: 'string',
+      description: 'Link text for the repository URL on /showcase.',
+    }),
     headingField('experienceHeading', 'Experience heading', 'Experience'),
-    roleList('experience', 'Experience', 'Jobs, newest first. The section is hidden when this is empty.'),
-    headingField('educationHeading', 'Education heading', 'Education'),
-    roleList('education', 'Education', 'Schools and degrees. The section is hidden when this is empty.'),
+    roleList(
+      'experience',
+      'Experience',
+      'Jobs and freelance roles on the Experience page (/experience), newest first.',
+    ),
+    headingField(
+      'certificationsHeading',
+      'Certifications heading',
+      'Certifications',
+    ),
+    roleList(
+      'certifications',
+      'Certifications',
+      'Shown at the bottom of the Experience page (/experience), below jobs. Leave empty to hide that block.',
+    ),
     headingField('skillsHeading', 'Skills heading', 'Skills'),
     defineField({
       name: 'skills',
@@ -200,37 +346,45 @@ export const settingsType = defineType({
         }),
       ],
     }),
-    headingField('certificationsHeading', 'Certifications heading', 'Certifications'),
-    roleList('certifications', 'Certifications', 'The section is hidden when this is empty.'),
     defineField({
       name: 'aboutHeading',
       title: 'About heading',
       type: 'string',
       initialValue: 'About',
       description:
-        'Nav label and typed title on /about. Leave empty to hide the About link until you are ready.',
+        'Nav label on /about. Leave empty to hide the About link until you are ready.',
     }),
     portableBioField(
       'aboutLong',
       'Long about (About page)',
-      'Full about copy on the About page (/about). The nav link label comes from About heading.',
+      'Full about copy at the top of the About page (/about).',
+    ),
+    headingField(
+      'educationHeading',
+      'Education heading',
+      'education on About',
+    ),
+    roleList(
+      'education',
+      'Education',
+      'Schools and degrees on the About page (/about), below long about copy. Leave empty to hide that block.',
     ),
     defineField({
       name: 'aboutAccent',
       title: 'About button color',
       type: 'string',
-      description: 'Underline color for the About button in the section row.',
+      description:
+        'Legacy field. Nav underlines use fixed theme colors (About is always green on the site).',
       options: {
         list: [
           {title: 'Yellow', value: 'yellow'},
           {title: 'Blue', value: 'blue'},
           {title: 'Red', value: 'red'},
           {title: 'Green', value: 'green'},
-          {title: 'Purple', value: 'purple'},
         ],
         layout: 'radio',
       },
-      initialValue: 'purple',
+      initialValue: 'green',
     }),
     defineField({
       name: 'footerText',
