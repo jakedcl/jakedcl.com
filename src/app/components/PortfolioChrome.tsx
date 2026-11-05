@@ -13,7 +13,7 @@ import IntroName from './IntroName'
 import SectionNav from './SectionNav'
 
 const introLinkClass =
-  'intro-name-link inline-block max-w-full rounded-sm outline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal-blue'
+  'intro-name-link block w-full rounded-sm outline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal-blue'
 
 type IntroState = {
   ready: boolean
