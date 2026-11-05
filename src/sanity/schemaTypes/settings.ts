@@ -1,4 +1,22 @@
-import {defineArrayMember, defineField, defineType} from 'sanity'
+import {
+  ALL_FIELDS_GROUP,
+  defineArrayMember,
+  defineField,
+  defineType,
+  type FieldDefinition,
+} from 'sanity'
+
+import {
+  SETTINGS_FIELD_GROUPS,
+  type SettingsFieldGroup,
+} from '../settingsFieldGroups'
+
+function settingsField(
+  group: SettingsFieldGroup,
+  field: FieldDefinition,
+) {
+  return defineField({...field, group})
+}
 
 function resumeRole() {
   return defineArrayMember({
@@ -27,21 +45,33 @@ function resumeRole() {
   })
 }
 
-function headingField(name: string, title: string, section: string) {
+function headingField(
+  name: string,
+  title: string,
+  section: string,
+  group: SettingsFieldGroup,
+) {
   return defineField({
     name,
     title,
     type: 'string',
     description: `The heading above the ${section} section. Leave empty to hide the heading.`,
+    group,
   })
 }
 
-function portableBioField(name: string, title: string, description: string) {
+function portableBioField(
+  name: string,
+  title: string,
+  description: string,
+  group: SettingsFieldGroup,
+) {
   return defineField({
     name,
     title,
     type: 'array',
     description,
+    group,
     of: [
       defineArrayMember({
         type: 'block',
@@ -72,13 +102,35 @@ function portableBioField(name: string, title: string, description: string) {
   })
 }
 
-const roleList = (name: string, title: string, description: string) =>
-  defineField({name, title, type: 'array', description, of: [resumeRole()]})
+const roleList = (
+  name: string,
+  title: string,
+  description: string,
+  group: SettingsFieldGroup,
+) =>
+  defineField({name, title, type: 'array', description, of: [resumeRole()], group})
 
 export const settingsType = defineType({
   name: 'settings',
   title: 'Site Settings',
   type: 'document',
+  groups: [
+    {
+      name: SETTINGS_FIELD_GROUPS.homepage,
+      title: 'Homepage',
+      default: true,
+    },
+    {name: SETTINGS_FIELD_GROUPS.caseStudy, title: 'Case study'},
+    {name: SETTINGS_FIELD_GROUPS.projectsPage, title: 'Projects page'},
+    {name: SETTINGS_FIELD_GROUPS.experience, title: 'Experience'},
+    {name: SETTINGS_FIELD_GROUPS.skills, title: 'Skills'},
+    {name: SETTINGS_FIELD_GROUPS.about, title: 'About'},
+    {
+      name: SETTINGS_FIELD_GROUPS.searchSharing,
+      title: 'Search & sharing',
+    },
+    {...ALL_FIELDS_GROUP, hidden: true},
+  ],
   fieldsets: [
     {
       name: 'seo',
@@ -93,26 +145,26 @@ export const settingsType = defineType({
     },
   ],
   fields: [
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.homepage, {
       name: 'heroTitle',
       title: 'Big title',
       type: 'string',
       description:
         'The big typed-out title at the top of the homepage, e.g. JAKE DCL. Each word types out in turn, then the line draws under it.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.homepage, {
       name: 'legalName',
       title: 'Name',
       type: 'string',
       description: 'Shown under the big title. Also used as your name for Google.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.homepage, {
       name: 'tagline',
       title: 'Tagline',
       type: 'string',
       description: 'The small line under your name.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.homepage, {
       name: 'bio',
       title: 'Short bio (homepage)',
       type: 'array',
@@ -146,7 +198,7 @@ export const settingsType = defineType({
         }),
       ],
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.homepage, {
       name: 'links',
       title: 'Links',
       type: 'array',
@@ -171,8 +223,13 @@ export const settingsType = defineType({
         }),
       ],
     }),
-    headingField('projectsHeading', 'Projects heading', 'Projects'),
-    defineField({
+    headingField(
+      'projectsHeading',
+      'Projects heading',
+      'Projects',
+      SETTINGS_FIELD_GROUPS.projectsPage,
+    ),
+    settingsField(SETTINGS_FIELD_GROUPS.homepage, {
       name: 'featuredProject',
       title: 'Featured case study project',
       type: 'reference',
@@ -180,40 +237,40 @@ export const settingsType = defineType({
       description:
         'Homepage feature and /showcase case study. Leave empty to hide both.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.homepage, {
       name: 'featureLabel',
       title: 'Homepage feature label',
       type: 'string',
       description: 'Small label above the project name on the homepage, e.g. Featured.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.homepage, {
       name: 'featureSummary',
       title: 'Homepage feature sentence',
       type: 'text',
       rows: 2,
       description: 'One strong line on the homepage feature, above the link to /showcase.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.homepage, {
       name: 'featureImage',
       title: 'Homepage feature image',
       type: 'image',
       options: {hotspot: true},
       fields: [defineField({name: 'alt', title: 'Alt text', type: 'string'})],
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.caseStudy, {
       name: 'caseStudyEyebrow',
       title: 'Case study eyebrow',
       type: 'string',
       description: 'Small line at the top of /showcase.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.caseStudy, {
       name: 'caseStudyIntro',
       title: 'Case study intro',
       type: 'text',
       rows: 5,
       description: 'Opening paragraph on /showcase.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.caseStudy, {
       name: 'caseStudyGallery',
       title: 'Case study screenshots',
       type: 'array',
@@ -229,7 +286,7 @@ export const settingsType = defineType({
         }),
       ],
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.caseStudy, {
       name: 'caseStudyFacts',
       title: 'Case study facts',
       type: 'array',
@@ -252,7 +309,7 @@ export const settingsType = defineType({
         }),
       ],
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.caseStudy, {
       name: 'caseStudySteps',
       title: 'Case study workflow steps',
       type: 'array',
@@ -269,61 +326,74 @@ export const settingsType = defineType({
         }),
       ],
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.caseStudy, {
       name: 'caseStudyStack',
       title: 'Case study stack note',
       type: 'text',
       rows: 3,
       description: 'Plain-language architecture paragraph on /showcase.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.caseStudy, {
       name: 'caseStudyProcess',
       title: 'Case study process note',
       type: 'text',
       rows: 3,
       description: 'How the work was directed and reviewed (brief, not the headline).',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.caseStudy, {
       name: 'caseStudyProductUrl',
       title: 'Case study product URL',
       type: 'url',
       description: 'Primary outbound link (e.g. marketing site).',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.caseStudy, {
       name: 'caseStudyRepoUrl',
       title: 'Case study repository URL',
       type: 'url',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.caseStudy, {
       name: 'caseStudyProductLinkLabel',
       title: 'Case study product link label',
       type: 'string',
       description: 'Link text for the product URL on /showcase.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.caseStudy, {
       name: 'caseStudyRepoLinkLabel',
       title: 'Case study repository link label',
       type: 'string',
       description: 'Link text for the repository URL on /showcase.',
     }),
-    headingField('experienceHeading', 'Experience heading', 'Experience'),
+    headingField(
+      'experienceHeading',
+      'Experience heading',
+      'Experience',
+      SETTINGS_FIELD_GROUPS.experience,
+    ),
     roleList(
       'experience',
       'Experience',
       'Jobs and freelance roles on the Experience page (/experience), newest first.',
+      SETTINGS_FIELD_GROUPS.experience,
     ),
     headingField(
       'certificationsHeading',
       'Certifications heading',
       'Certifications',
+      SETTINGS_FIELD_GROUPS.experience,
     ),
     roleList(
       'certifications',
       'Certifications',
       'Shown at the bottom of the Experience page (/experience), below jobs. Leave empty to hide that block.',
+      SETTINGS_FIELD_GROUPS.experience,
     ),
-    headingField('skillsHeading', 'Skills heading', 'Skills'),
-    defineField({
+    headingField(
+      'skillsHeading',
+      'Skills heading',
+      'Skills',
+      SETTINGS_FIELD_GROUPS.skills,
+    ),
+    settingsField(SETTINGS_FIELD_GROUPS.skills, {
       name: 'skills',
       title: 'Skills',
       type: 'array',
@@ -346,7 +416,7 @@ export const settingsType = defineType({
         }),
       ],
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.about, {
       name: 'aboutHeading',
       title: 'About heading',
       type: 'string',
@@ -358,21 +428,25 @@ export const settingsType = defineType({
       'aboutLong',
       'Long about (About page)',
       'Full about copy at the top of the About page (/about).',
+      SETTINGS_FIELD_GROUPS.about,
     ),
     headingField(
       'educationHeading',
       'Education heading',
       'education on About',
+      SETTINGS_FIELD_GROUPS.about,
     ),
     roleList(
       'education',
       'Education',
       'Schools and degrees on the About page (/about), below long about copy. Leave empty to hide that block.',
+      SETTINGS_FIELD_GROUPS.about,
     ),
     defineField({
       name: 'aboutAccent',
       title: 'About button color',
       type: 'string',
+      hidden: () => true,
       description:
         'Legacy field. Nav underlines use fixed theme colors (About is always green on the site).',
       options: {
@@ -386,7 +460,7 @@ export const settingsType = defineType({
       },
       initialValue: 'green',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.homepage, {
       name: 'footerText',
       title: 'Footer',
       type: 'string',
@@ -394,14 +468,14 @@ export const settingsType = defineType({
     }),
 
     // Search and social sharing
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'siteTitle',
       title: 'Page title',
       type: 'string',
       fieldset: 'seo',
       description: 'The browser tab title and the blue link title on Google.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'metaDescription',
       title: 'Google description',
       type: 'text',
@@ -409,7 +483,7 @@ export const settingsType = defineType({
       fieldset: 'seo',
       description: 'The short blurb Google shows under the page title.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'summary',
       title: 'Profile summary for Google',
       type: 'text',
@@ -418,7 +492,7 @@ export const settingsType = defineType({
       description:
         'A one-line description of you, given to Google as your profile description (structured data). Not shown on the page.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'keywords',
       title: 'Search keywords',
       type: 'array',
@@ -427,28 +501,28 @@ export const settingsType = defineType({
       fieldset: 'seo',
       description: 'Words and names people might search for. Search engines give these little weight.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'authorName',
       title: 'Author',
       type: 'string',
       fieldset: 'seo',
       description: 'The site author and creator named in the page metadata.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'metaCategory',
       title: 'Site category',
       type: 'string',
       fieldset: 'seo',
       description: 'One word for what the site is about, e.g. technology.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'ogTitle',
       title: 'Link preview title',
       type: 'string',
       fieldset: 'seo',
       description: 'The bold title when someone shares jakedcl.com in iMessage, Slack, LinkedIn, X, etc.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'ogDescription',
       title: 'Link preview description',
       type: 'text',
@@ -456,14 +530,14 @@ export const settingsType = defineType({
       fieldset: 'seo',
       description: 'The line under the title in a shared link preview.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'ogSiteName',
       title: 'Link preview site name',
       type: 'string',
       fieldset: 'seo',
       description: 'The site name some apps show above a shared link.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'ogImage',
       title: 'Link preview image (optional upload)',
       type: 'image',
@@ -471,28 +545,28 @@ export const settingsType = defineType({
       description:
         'Upload a 1200 x 630 image to use it as the link preview picture. Leave empty to use the generated card built from the four card lines below and the big title.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'ogImageAlt',
       title: 'Link preview image description',
       type: 'string',
       fieldset: 'seo',
       description: 'Describes the preview picture for screen readers.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'ogCardKicker',
       title: 'Generated card: top line',
       type: 'string',
       fieldset: 'seo',
       description: 'Small grey capitals at the top of the generated preview card.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'ogCardStatus',
       title: 'Generated card: green word',
       type: 'string',
       fieldset: 'seo',
       description: 'The green word at the end of the top line, e.g. AVAILABLE. Leave empty to drop it.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'ogCardFooter',
       title: 'Generated card: bottom line',
       type: 'string',
@@ -501,49 +575,49 @@ export const settingsType = defineType({
     }),
 
     // App icon, install, 404
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'appIconText',
       title: 'App icon letters',
       type: 'string',
       fieldset: 'appAndErrors',
       description: 'The letters on the icon when the site is saved to a phone home screen, e.g. JD.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'appName',
       title: 'App name',
       type: 'string',
       fieldset: 'appAndErrors',
       description: 'Full name when the site is installed as an app.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'appShortName',
       title: 'App short name',
       type: 'string',
       fieldset: 'appAndErrors',
       description: 'The name under the home-screen icon.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'appDescription',
       title: 'App description',
       type: 'string',
       fieldset: 'appAndErrors',
       description: 'Description when the site is installed as an app.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'notFoundTitle',
       title: '404 page heading',
       type: 'string',
       fieldset: 'appAndErrors',
       description: 'Heading on the page shown for an address that does not exist.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'notFoundBody',
       title: '404 page text',
       type: 'string',
       fieldset: 'appAndErrors',
       description: 'The sentence under the 404 heading.',
     }),
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'notFoundLinkLabel',
       title: '404 page link',
       type: 'string',
@@ -551,9 +625,9 @@ export const settingsType = defineType({
       description: 'The link back to the homepage on the 404 page.',
     }),
 
-    defineField({
+    settingsField(SETTINGS_FIELD_GROUPS.searchSharing, {
       name: 'galleryPhotos',
-      title: 'Gallery Photos',
+      title: 'Gallery photos (not used on site)',
       type: 'array',
       of: [
         {
@@ -574,7 +648,7 @@ export const settingsType = defineType({
         },
       ],
       description:
-        'Kept in the dataset. The homepage filmstrip is gone, so these photos are not shown on the site.',
+        'Stored only — the homepage filmstrip is gone, so these photos are not shown on the site. Leave as-is unless you are cleaning up assets.',
     }),
   ],
   preview: {

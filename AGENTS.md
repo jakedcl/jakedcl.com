@@ -22,7 +22,7 @@ The framework repo is private. Cloud agents open it with `git clone --depth 1 ht
 - `/projects`, `/experience`, `/skills`, `/about` — one section each (education on About; certifications at the bottom of Experience; `/education` → `/about`, `/certifications` → `/experience`)
 - `/showcase` — featured case study (reserved; not a project short link)
 - `/resume` → 308 redirect to `/`
-- `/studio` — Sanity Studio. Sidebar is the Site Settings singleton and Projects ordered by `displayOrder`.
+- `/studio` — Sanity Studio. Sidebar: Homepage, Case study, Projects (heading + list), Experience, Skills, About, Search & sharing — each edits part of the Site Settings singleton (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`).
 - `/<slug>` → 307 to that project's `link` when Sanity `project.slug.current` matches. Revalidate ~60s. Unknown or reserved slugs 404. Does not replace `/`, `/studio`, or `/resume`.
 - `/skyline` is that short link once the skyinfoline project slug is `skyline`. Until then it 404s.
 
