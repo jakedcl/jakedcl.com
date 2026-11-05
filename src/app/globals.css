@@ -188,6 +188,43 @@ body::before {
   }
 }
 
+.section-nav {
+  position: relative;
+}
+
+.section-nav-track--drop {
+  padding-bottom: 2.25rem;
+}
+
+.section-nav-link {
+  position: relative;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.section-nav-link--dropped {
+  position: absolute;
+  top: 100%;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  font-size: 1.0625rem;
+  line-height: 1.2;
+}
+
+.section-nav-link--dropped::before {
+  width: 0.45em;
+  height: 0.45em;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .section-nav-link--dropped {
+    transition: font-size 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
 @keyframes hero-letter-in {
   from {
     max-width: 0;
