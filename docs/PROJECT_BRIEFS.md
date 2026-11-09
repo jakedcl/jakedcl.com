@@ -157,9 +157,9 @@ Artist site for Drew Della that is a Google results page on purpose. Tabs are th
 - Site search ranks title matches over body matches across pages, Sanity docs, and stored videos. On mobile, the first tap opens results without the keyboard
 - Sanity holds releases, lyrics, blog posts, one image gallery, social links, map venues, and a cron-owned YouTube cache
 - A daily Vercel cron snapshots the YouTube channel into Sanity so visitors never call the YouTube API. Shorts whose title or description contain `#` are dropped. The cache keeps 12 videos
-- Mapbox for live-show venues
+- A map of live-show venues using MapLibre GL and OpenFreeMap tiles
 
-**Stack:** Next.js 16 App Router, React 19, styled-components, Sanity, Mapbox GL, Turf, Vercel. Studio is at `/studio`. Sanity project `qcu6o4bq`, dataset `production`, public reads, server-only writes.
+**Stack:** Next.js 16 App Router, React 19, plain CSS, Sanity, MapLibre GL, Turf, Vercel. Studio is at `/studio`. Sanity project `qcu6o4bq`, dataset `production`, public reads, server-only writes.
 
 **Portfolio angle:** Information design. One composition, CMS as the catalog, and an API used on a schedule instead of per page view.
 
