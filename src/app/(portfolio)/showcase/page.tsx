@@ -7,41 +7,23 @@ import {
   CaseStudyLinks,
   CaseStudySteps,
 } from '@/app/components/CaseStudyInteractive'
-import { getCaseStudyPageBundle } from '@/lib/caseStudyContent'
-import { SHOWCASE_PATH } from '@/lib/showcase'
+import LoadError, { CASE_STUDY_LOAD_ERROR } from '@/app/components/LoadError'
+import { getCaseStudy, getSite } from '@/lib/content'
+import { pageMetadata } from '@/lib/metadata'
+import { SHOWCASE_PATH } from '@/lib/routes'
 
 export const revalidate = 60
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { caseStudy, siteTitle } = await getCaseStudyPageBundle()
-  if (!caseStudy.visible) return {}
-  const title =
-    caseStudy.name && siteTitle
-      ? `${caseStudy.name} case study · ${siteTitle}`
-      : caseStudy.name || siteTitle || undefined
-
-  return {
-    ...(title ? { title } : {}),
-    ...(caseStudy.intro ? { description: caseStudy.intro.slice(0, 160) } : {}),
-    alternates: { canonical: SHOWCASE_PATH },
-    openGraph: {
-      type: 'article',
-      url: `https://jakedcl.com${SHOWCASE_PATH}`,
-      ...(caseStudy.name ? { title: `${caseStudy.name} case study` } : {}),
-    },
-  }
+  const [site, caseStudy] = await Promise.all([getSite(), getCaseStudy()])
+  if (!caseStudy.name) return {}
+  return pageMetadata(site, caseStudy.seo, SHOWCASE_PATH, 'article')
 }
 
 export default async function ShowcasePage() {
-  const { caseStudy } = await getCaseStudyPageBundle()
-  if (caseStudy.loadError) {
-    return (
-      <p role="alert" className="mt-8 text-sm leading-relaxed text-ink/70">
-        The case study could not load. Refresh to try again.
-      </p>
-    )
-  }
-  if (!caseStudy.visible) notFound()
+  const [site, caseStudy] = await Promise.all([getSite(), getCaseStudy()])
+  if (caseStudy.loadError) return <LoadError>{CASE_STUDY_LOAD_ERROR}</LoadError>
+  if (!caseStudy.name) notFound()
 
   return (
     <article className="case-study mt-14">
@@ -60,17 +42,32 @@ export default async function ShowcasePage() {
       ) : null}
 
       <div className="mt-8">
-        <CaseStudyGallery images={caseStudy.gallery} />
+        <CaseStudyGallery
+          images={caseStudy.screenshots}
+          ariaLabel={caseStudy.galleryAriaLabel}
+          previousLabel={caseStudy.previousLabel}
+          nextLabel={caseStudy.nextLabel}
+        />
       </div>
 
-      <CaseStudyFacts facts={caseStudy.facts} />
-      <CaseStudySteps steps={caseStudy.steps} />
+      <CaseStudyFacts
+        facts={caseStudy.facts}
+        heading={caseStudy.factsHeading}
+        ariaLabel={caseStudy.factsAriaLabel}
+      />
+      <CaseStudySteps
+        steps={caseStudy.steps}
+        heading={caseStudy.stepsHeading}
+        ariaLabel={caseStudy.stepsAriaLabel}
+      />
 
       {caseStudy.stackNote ? (
         <section className="mt-14">
-          <h2 className="font-shape mb-3 text-lg font-bold tracking-tight text-ink">
-            Under the hood
-          </h2>
+          {caseStudy.stackHeading ? (
+            <h2 className="font-shape mb-3 text-lg font-bold tracking-tight text-ink">
+              {caseStudy.stackHeading}
+            </h2>
+          ) : null}
           <p className="max-w-[38rem] text-[0.95rem] leading-relaxed text-ink/85">
             {caseStudy.stackNote}
           </p>
@@ -79,9 +76,11 @@ export default async function ShowcasePage() {
 
       {caseStudy.processNote ? (
         <section className="mt-10 border-l-2 border-signal-yellow pl-4">
-          <h2 className="font-utility text-[0.65rem] uppercase tracking-[0.16em] text-ink/50">
-            How this shipped
-          </h2>
+          {caseStudy.processHeading ? (
+            <h2 className="font-utility text-[0.65rem] uppercase tracking-[0.16em] text-ink/50">
+              {caseStudy.processHeading}
+            </h2>
+          ) : null}
           <p className="mt-2 max-w-[38rem] text-sm leading-relaxed text-ink/80">
             {caseStudy.processNote}
           </p>
@@ -89,10 +88,8 @@ export default async function ShowcasePage() {
       ) : null}
 
       <CaseStudyLinks
-        productUrl={caseStudy.productUrl}
-        repoUrl={caseStudy.repoUrl}
-        productLinkLabel={caseStudy.productLinkLabel}
-        repoLinkLabel={caseStudy.repoLinkLabel}
+        links={[caseStudy.productLink, caseStudy.repoLink]}
+        newTabNote={site.newTabNote}
       />
     </article>
   )

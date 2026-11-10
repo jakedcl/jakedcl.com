@@ -13,39 +13,52 @@ The framework repo is private. Cloud agents open it with `git clone --depth 1 ht
 - `npm run dev` → `http://localhost:3000` (site + `/studio`)
 - Also: `npm run build` | `start` | `lint`
 - No `.env` needed for the public site. Fallbacks in `src/sanity/env.ts`: `projectId` `we7xgg1a`, `dataset` `production`. Needs outbound `*.sanity.io` / `cdn.sanity.io`.
-- Home: `revalidate = 60`. Sanity CDN off in dev. Homepage copy comes only from the Site Settings document. Empty fields are not shown.
+- Pages read published content with `revalidate = 60` (`src/sanity/lib/fetch.ts`), so Studio edits show up within about a minute, no redeploy.
 - `/studio` needs a Sanity login to author. Public pages do not.
+- After changing schema files, run `npx sanity schema deploy` so Sanity tools/agents see the same schema.
 
 ## Routes
 
-- `/` — portfolio intro (section buttons, short bio, links; section content lives on `/projects`, `/experience`, etc.)
-- `/projects`, `/experience`, `/skills`, `/about` — one section each (education on About; certifications at the bottom of Experience; `/education` → `/about`, `/certifications` → `/experience`)
-- `/showcase` — featured case study (reserved; not a project short link)
-- `/resume` → 308 redirect to `/`
-- `/studio` — Sanity Studio. Sidebar: Homepage, Case study, Projects (heading + list), Experience, Skills, About, Search & sharing — each edits part of the Site Settings singleton (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`).
-- `/<slug>` → 307 to that project's `link` when Sanity `project.slug.current` matches. Revalidate ~60s. Unknown or reserved slugs 404. Does not replace `/`, `/studio`, or `/resume`.
-- `/skyline` is that short link once the skyinfoline project slug is `skyline`. Until then it 404s.
+- `/` — intro (big title, name, tagline, bio, featured case study, links)
+- `/projects`, `/experience`, `/skills`, `/about` — one section each. A section is hidden (menu + page 404) when its page name is empty in Studio.
+- `/showcase` — the case study (Studio > Case study). 404 if no project is picked.
+- `/studio` — Sanity Studio.
+- Anything else goes to `src/app/[...path]/page.tsx`: first the rules in Studio > Redirects (exact path, or `/old/*` → `/new/*`), then a project short link (`project.slug`) → the project link, else 404. Redirects cannot take over a real page path (`RESERVED_FIRST_SEGMENTS` in `src/lib/routes.ts`; Studio blocks them). There are no redirects in `next.config.ts`.
 
 ## Content (do not mix sources)
 
-| Source | Powers |
-| --- | --- |
-| Sanity `project` | Projects list (`displayOrder`). Name + description come from the title blocks. Copy facts only from `docs/PROJECT_BRIEFS.md` — never invent clients, features, or URLs. |
-| Sanity `settings` (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) | All site copy: big title (`heroTitle`), name, tagline, short `bio`, links, section headings, long `aboutLong` + `aboutHeading` + `aboutAccent`, resume sections, footer, SEO/link-preview fields (`siteTitle`, `metaDescription`, `keywords`, `og*`), manifest/app icon text, and 404 text. No copy or fallbacks in code; empty fields render nothing. There is no resume PDF; the old `resumeFile` field was removed from the schema. `galleryPhotos` stays stored and is not rendered. Do not delete it. |
+Jake edits only in Studio. **No copy, SEO text, URLs, or redirects in code, and no fallbacks: an empty field renders nothing.** One singleton document per Studio item (fixed `_id` = type name):
 
-Queries: `src/sanity/lib/queries.ts`. Seed: `scripts/seed-settings.json` (a patch `set`; do not createOrReplace). New-field seed: `scripts/seed-studio-copy.ts` (setIfMissing on published + draft).
+| Studio item | Document | Powers |
+| --- | --- | --- |
+| Site-wide | `siteGlobals` | Big title, name, tagline, footer, screen-reader texts, 404 page |
+| Homepage | `homePage` | Bio, links, featured case study block, home SEO |
+| Projects | `projectsPage` + `project` docs | Page name/SEO; projects (name, description, link, short link, photos). Order = drag-and-drop (`orderRank`, @sanity/orderable-document-list). Project facts only from `docs/PROJECT_BRIEFS.md`. |
+| Experience / Skills / About | `experiencePage` / `skillsPage` / `aboutPage` | Page name (menu label + tab title), content, SEO |
+| Case study | `caseStudyPage` | Featured project, all `/showcase` copy and labels, SEO |
+| Search & sharing | `seoSettings` | Site address/name, keywords, author, share image, generated card text, favicon, app icon/manifest text, indexing + hidden paths |
+| Redirects | `redirects` | Redirect rules (from, to, permanent) |
+
+The old `settings` doc (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) is kept read-only and hidden from Studio; nothing reads it. Do not delete it. Project `title`/`displayOrder` are legacy hidden fields.
+
+Queries: `src/sanity/lib/queries.ts`. Normalizing: `src/lib/content.ts`.
+
+### Allowed to stay in code (keep this list current)
+
+Menu colors and order (`src/lib/sections.ts`), fonts/layout/animation/design colors, the “could not load” texts (`LoadError.tsx`, `error.tsx`, shown when Sanity is down), Sanity connection config (`env.ts`), plus technical constants: `lang="en"`, og locale `en_US`, manifest colors/start_url/display, googleBot directives, JSON-LD `@type: Person`, separators (` - `, `, `), gallery counter/step numbers/+ −, image size defaults, OG card + phone icon layout, the reserved route list.
 
 ## Design — Signal Max (live)
 
 Cream paper stage (`#f6f3ec` / `--background`), ink, signal yellow/blue/red/green, paper grain. Text-first page. Tokens in `src/app/globals.css`.
 
-Fonts: Bricolage Grotesque (display and shape), IBM Plex Mono (utility), Helvetica (body) — wired in `src/app/layout.tsx`.
+Fonts (`src/app/layout.tsx`): Syne (display — never remove), Bricolage Grotesque (shape), IBM Plex Mono (utility), Helvetica (body).
 
 ## Code map
 
-- Page: `src/app/page.tsx`
-- UI: `src/app/components/` — `IntroName`, `ProjectIndex`, `ResumeSections`
-- Sanity: `src/sanity/schemaTypes/`, `lib/`, `env.ts`, `structure.ts`
+- Pages: `src/app/(portfolio)/` (home, sections, showcase), metadata routes in `src/app/`
+- UI: `src/app/components/`
+- Content + SEO: `src/lib/content.ts`, `src/lib/metadata.ts`
+- Sanity: `src/sanity/schemaTypes/`, `structure.ts`, `singletons.ts`, `lib/`, `env.ts`
 
 ## How to work here
 

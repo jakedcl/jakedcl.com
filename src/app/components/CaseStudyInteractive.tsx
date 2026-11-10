@@ -4,15 +4,27 @@ import { useId, useState } from 'react'
 
 import type {
   CaseStudyFact,
-  CaseStudyImage,
   CaseStudyStep,
-} from '@/lib/caseStudyContent'
+  Image,
+  LabeledLink,
+} from '@/lib/content'
+import NewTabNote from './NewTabNote'
 import SanityImage from './SanityImage'
 
 const linkClass =
   'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
 
-export function CaseStudyGallery({ images }: { images: CaseStudyImage[] }) {
+export function CaseStudyGallery({
+  images,
+  ariaLabel,
+  previousLabel,
+  nextLabel,
+}: {
+  images: Image[]
+  ariaLabel: string
+  previousLabel: string
+  nextLabel: string
+}) {
   const [index, setIndex] = useState(0)
   if (images.length === 0) return null
 
@@ -21,12 +33,12 @@ export function CaseStudyGallery({ images }: { images: CaseStudyImage[] }) {
   const height = current.height ?? 900
 
   return (
-    <section className="case-gallery" aria-label="Product screenshots">
+    <section className="case-gallery" {...(ariaLabel ? { 'aria-label': ariaLabel } : {})}>
       <div className="case-gallery-frame overflow-hidden border border-ink/12 bg-cream">
         <SanityImage
           key={current.url}
           src={current.url}
-          alt={current.alt || current.caption || 'Product screenshot'}
+          alt={current.alt}
           width={width}
           height={height}
           sizes="(max-width: 42rem) 100vw, 42rem"
@@ -45,7 +57,7 @@ export function CaseStudyGallery({ images }: { images: CaseStudyImage[] }) {
             className="case-gallery-control"
             onClick={() => setIndex((i) => (i === 0 ? images.length - 1 : i - 1))}
           >
-            Previous
+            {previousLabel}
           </button>
           <span className="font-utility text-[0.65rem] tracking-[0.12em] text-ink/45">
             {index + 1} / {images.length}
@@ -55,7 +67,7 @@ export function CaseStudyGallery({ images }: { images: CaseStudyImage[] }) {
             className="case-gallery-control"
             onClick={() => setIndex((i) => (i + 1) % images.length)}
           >
-            Next
+            {nextLabel}
           </button>
         </div>
       ) : null}
@@ -63,16 +75,24 @@ export function CaseStudyGallery({ images }: { images: CaseStudyImage[] }) {
   )
 }
 
-export function CaseStudyFacts({ facts }: { facts: CaseStudyFact[] }) {
+export function CaseStudyFacts({
+  facts,
+  heading,
+  ariaLabel,
+}: {
+  facts: CaseStudyFact[]
+  heading: string
+  ariaLabel: string
+}) {
   const baseId = useId()
   const [openKey, setOpenKey] = useState<string | null>(null)
   if (facts.length === 0) return null
 
   return (
-    <section className="mt-14" aria-label="Product facts">
-      <h2 className="font-shape mb-4 text-lg font-bold tracking-tight text-ink">
-        What it is
-      </h2>
+    <section className="mt-14" {...(ariaLabel ? { 'aria-label': ariaLabel } : {})}>
+      {heading ? (
+        <h2 className="font-shape mb-4 text-lg font-bold tracking-tight text-ink">{heading}</h2>
+      ) : null}
       <ul className="space-y-2">
         {facts.map((fact, i) => {
           const key = fact._key ?? `${baseId}-${i}`
@@ -110,17 +130,25 @@ export function CaseStudyFacts({ facts }: { facts: CaseStudyFact[] }) {
   )
 }
 
-export function CaseStudySteps({ steps }: { steps: CaseStudyStep[] }) {
+export function CaseStudySteps({
+  steps,
+  heading,
+  ariaLabel,
+}: {
+  steps: CaseStudyStep[]
+  heading: string
+  ariaLabel: string
+}) {
   const [active, setActive] = useState(0)
   if (steps.length === 0) return null
 
   const step = steps[active] ?? steps[0]
 
   return (
-    <section className="mt-14" aria-label="Job workflow">
-      <h2 className="font-shape mb-4 text-lg font-bold tracking-tight text-ink">
-        How a job moves
-      </h2>
+    <section className="mt-14" {...(ariaLabel ? { 'aria-label': ariaLabel } : {})}>
+      {heading ? (
+        <h2 className="font-shape mb-4 text-lg font-bold tracking-tight text-ink">{heading}</h2>
+      ) : null}
       <div className="case-steps flex flex-wrap gap-2" role="tablist">
         {steps.map((item, i) => (
           <button
@@ -153,42 +181,29 @@ export function CaseStudySteps({ steps }: { steps: CaseStudyStep[] }) {
 }
 
 export function CaseStudyLinks({
-  productUrl,
-  repoUrl,
-  productLinkLabel,
-  repoLinkLabel,
+  links,
+  newTabNote,
 }: {
-  productUrl: string
-  repoUrl: string
-  productLinkLabel: string
-  repoLinkLabel: string
+  links: Array<LabeledLink | null>
+  newTabNote: string
 }) {
-  if (!productUrl && !repoUrl) return null
+  const shown = links.filter((link): link is LabeledLink => link !== null)
+  if (shown.length === 0) return null
 
   return (
     <p className="mt-14 flex flex-wrap gap-x-4 gap-y-2 text-sm">
-      {productUrl && productLinkLabel ? (
+      {shown.map((link) => (
         <a
-          href={productUrl}
+          key={link.url}
+          href={link.url}
           className={linkClass}
           target="_blank"
           rel="noopener noreferrer"
         >
-          {productLinkLabel}
-          <span className="sr-only"> (opens in a new tab)</span>
+          {link.label}
+          <NewTabNote note={newTabNote} />
         </a>
-      ) : null}
-      {repoUrl && repoLinkLabel ? (
-        <a
-          href={repoUrl}
-          className={linkClass}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {repoLinkLabel}
-          <span className="sr-only"> (opens in a new tab)</span>
-        </a>
-      ) : null}
+      ))}
     </p>
   )
 }

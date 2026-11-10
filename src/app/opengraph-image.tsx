@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-import { getHomeContent } from "@/lib/siteContent";
+import { getSite } from "@/lib/content";
 
 export const revalidate = 60;
 
@@ -11,11 +11,11 @@ export const size = {
 
 export const contentType = "image/png";
 
-// Card text comes from Site Settings (Big title and the "Generated card" fields).
+// Card text comes from Studio: Site-wide > Big title, and Search & sharing > Generated preview card.
 // The first word of the title is ink, the rest are yellow.
 export default async function OpenGraphImage() {
-  const c = await getHomeContent();
-  const words = c.heroTitle.split(/\s+/).filter(Boolean);
+  const c = await getSite();
+  const words = c.bigTitle.split(/\s+/).filter(Boolean);
   const wordStyle = {
     fontSize: 140,
     fontWeight: 800,
@@ -48,10 +48,10 @@ export default async function OpenGraphImage() {
           }}
         >
           <span>
-            {c.ogCardKicker}
-            {c.ogCardKicker && c.ogCardStatus ? " " : null}
-            {c.ogCardStatus ? (
-              <span style={{ color: "#00a651" }}>{c.ogCardStatus}</span>
+            {c.cardTopLine}
+            {c.cardTopLine && c.cardGreenWord ? " " : null}
+            {c.cardGreenWord ? (
+              <span style={{ color: "#00a651" }}>{c.cardGreenWord}</span>
             ) : null}
           </span>
         </div>
@@ -66,7 +66,7 @@ export default async function OpenGraphImage() {
           ))}
         </div>
         <div style={{ fontSize: 28, color: "#0a0a0a", opacity: 0.55 }}>
-          {c.ogCardFooter}
+          {c.cardBottomLine}
         </div>
       </div>
     ),

@@ -1,31 +1,27 @@
 import type { MetadataRoute } from "next";
 
-import { getHomeContent } from "@/lib/siteContent";
+import { getSite } from "@/lib/content";
+import { faviconUrl } from "@/lib/favicon";
 
 export const revalidate = 60;
 
-// Names and description come from Site Settings in Studio. Empty fields are left out.
+// Names, description, and icon come from Studio > Search & sharing. Empty fields are left out.
+// start_url, display, and colors are fixed app/design settings.
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
-  const c = await getHomeContent();
+  const site = await getSite();
   return {
-    ...(c.appName ? { name: c.appName } : {}),
-    ...(c.appShortName ? { short_name: c.appShortName } : {}),
-    ...(c.appDescription ? { description: c.appDescription } : {}),
+    ...(site.appName ? { name: site.appName } : {}),
+    ...(site.appShortName ? { short_name: site.appShortName } : {}),
+    ...(site.appDescription ? { description: site.appDescription } : {}),
     start_url: "/",
     display: "standalone",
     background_color: "#f6f3ec",
     theme_color: "#f6f3ec",
     icons: [
-      {
-        src: "/favicon.png",
-        sizes: "32x32",
-        type: "image/png",
-      },
-      {
-        src: "/apple-icon",
-        sizes: "180x180",
-        type: "image/png",
-      },
+      ...(site.faviconUrl
+        ? [{ src: faviconUrl(site.faviconUrl), sizes: "32x32", type: "image/png" }]
+        : []),
+      { src: "/apple-icon", sizes: "180x180", type: "image/png" },
     ],
   };
 }

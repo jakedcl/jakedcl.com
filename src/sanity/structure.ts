@@ -1,90 +1,42 @@
+import {ProjectsIcon} from '@sanity/icons/Projects'
+import {orderableDocumentListDeskItem} from '@sanity/orderable-document-list'
 import type {StructureResolver} from 'sanity/structure'
 
-import {settingsFieldGroupPage} from './structure/settingsPages'
-
-export const structure: StructureResolver = (S) =>
+/**
+ * Studio sidebar: one item per site page, in the same order as the site menu.
+ * Each item opens its own document, so every page shows only its own fields.
+ */
+export const structure: StructureResolver = (S, context) =>
   S.list()
-    .title('Content')
+    .title('jakedcl.com')
     .items([
-      S.listItem()
-        .title('Homepage')
-        .id('homepage')
-        .child(
-          settingsFieldGroupPage(
-            S,
-            'settings-page-homepage',
-            'Homepage',
-          ),
-        ),
-      S.listItem()
-        .title('Case study')
-        .id('case-study')
-        .child(
-          settingsFieldGroupPage(
-            S,
-            'settings-page-case-study',
-            'Case study',
-          ),
-        ),
+      S.listItem().singleton('siteGlobals'),
+      S.divider(),
+      S.listItem().singleton('homePage'),
       S.listItem()
         .title('Projects')
         .id('projects')
+        .icon(ProjectsIcon)
         .child(
           S.list()
             .title('Projects')
             .items([
-              S.listItem()
-                .title('Page heading')
-                .id('projects-heading')
-                .child(
-                  settingsFieldGroupPage(
-                    S,
-                    'settings-page-projects-heading',
-                    'Projects page heading',
-                  ),
-                ),
-              S.listItem()
-                .title('All projects')
-                .schemaType('project')
-                .child(
-                  S.documentTypeList('project')
-                    .title('Projects')
-                    .defaultOrdering([
-                      {field: 'displayOrder', direction: 'asc'},
-                    ]),
-                ),
+              S.listItem().singleton('projectsPage'),
+              orderableDocumentListDeskItem({
+                type: 'project',
+                id: 'all-projects',
+                title: 'All projects (drag to reorder)',
+                icon: ProjectsIcon,
+                S,
+                context,
+              }),
             ]),
         ),
-      S.listItem()
-        .title('Experience')
-        .id('experience')
-        .child(
-          settingsFieldGroupPage(
-            S,
-            'settings-page-experience',
-            'Experience',
-          ),
-        ),
-      S.listItem()
-        .title('Skills')
-        .id('skills')
-        .child(
-          settingsFieldGroupPage(S, 'settings-page-skills', 'Skills'),
-        ),
-      S.listItem()
-        .title('About')
-        .id('about')
-        .child(
-          settingsFieldGroupPage(S, 'settings-page-about', 'About'),
-        ),
-      S.listItem()
-        .title('Search & sharing')
-        .id('search-sharing')
-        .child(
-          settingsFieldGroupPage(
-            S,
-            'settings-page-search-sharing',
-            'Search & sharing',
-          ),
-        ),
+      S.listItem().singleton('experiencePage'),
+      S.listItem().singleton('skillsPage'),
+      S.listItem().singleton('aboutPage'),
+      S.listItem().singleton('caseStudyPage'),
+      S.divider(),
+      S.listItem().singleton('seoSettings'),
+      S.listItem().singleton('redirects'),
     ])

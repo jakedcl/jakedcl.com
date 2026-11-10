@@ -1,10 +1,9 @@
 /**
-* This configuration file lets you run `$ sanity [command]` in this folder
-* Go to https://www.sanity.io/docs/cli to learn more.
-**/
-import { defineCliConfig } from 'sanity/cli'
+ * Config for `npx sanity <command>` in this folder (schema deploy, exec, typegen).
+ * Uses the same connection settings as the site.
+ */
+import {defineCliConfig} from 'sanity/cli'
 
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
-const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET
+import {dataset, projectId} from './src/sanity/env'
 
-export default defineCliConfig({ api: { projectId, dataset } })
+export default defineCliConfig({api: {projectId, dataset}})

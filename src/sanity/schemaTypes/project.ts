@@ -1,125 +1,97 @@
-import {defineField, defineType} from 'sanity'
+import {orderRankField, orderRankOrdering} from '@sanity/orderable-document-list'
+import {defineArrayMember, defineField, defineType} from 'sanity'
 
-const SECTION_SLUGS = new Set([
-  'projects',
-  'experience',
-  'education',
-  'skills',
-  'certifications',
-  'showcase',
-  'about',
-  'studio',
-  'resume',
-])
+import {RESERVED_FIRST_SEGMENTS, SHORT_LINK_PATTERN} from '../../lib/routes'
 
 export const projectType = defineType({
   name: 'project',
   title: 'Project',
   type: 'document',
+  orderings: [orderRankOrdering],
   fields: [
     defineField({
-      name: 'title',
-      title: 'Title',
-      type: 'array',
-      of: [
-        {
-          type: 'block',
-          styles: [
-            {title: 'Normal', value: 'normal'},
-            {title: 'H1', value: 'h1'},
-            {title: 'H2', value: 'h2'},
-            {title: 'H3', value: 'h3'},
-            {title: 'Quote', value: 'blockquote'},
-          ],
-          marks: {
-            decorators: [
-              {title: 'Bold', value: 'strong'},
-              {title: 'Italic', value: 'em'},
-              {title: 'Code', value: 'code'},
-            ],
-            annotations: [
-              {
-                title: 'URL',
-                name: 'link',
-                type: 'object',
-                fields: [
-                  {
-                    title: 'URL',
-                    name: 'href',
-                    type: 'url',
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      ],
+      name: 'name',
+      title: 'Name',
+      type: 'string',
+      description: 'Shown in the Projects list and as the case study heading.',
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'photos',
-      title: 'Photos',
-      type: 'array',
-      of: [
-        {
-          type: 'image',
-          options: {hotspot: true},
-          fields: [
-            {
-              name: 'alt',
-              type: 'string',
-              title: 'Alternative text',
-            },
-            {
-              name: 'caption',
-              type: 'string',
-              title: 'Caption',
-            },
-          ],
-        },
-      ],
+      name: 'description',
+      title: 'Description',
+      type: 'text',
+      rows: 3,
+      description: 'Shown after the name in the list and in the hover preview.',
     }),
     defineField({
       name: 'link',
-      title: 'Project Link',
+      title: 'Project link',
       type: 'url',
-      description: 'Link to the live project or more details',
+      description: 'The live site. The name in the list links here, and so does the short link.',
+      validation: (rule) => rule.uri({scheme: ['http', 'https']}),
     }),
     defineField({
       name: 'slug',
       title: 'Short link',
       type: 'slug',
-      description: 'Optional. jakedcl.com/this redirects to Project Link.',
-      options: { maxLength: 96 },
+      description: 'Optional. jakedcl.com/<this> sends people to the project link. Lowercase letters, numbers, and dashes.',
+      options: {source: 'name', maxLength: 96},
       validation: (rule) =>
-        rule.custom((value) => {
+        rule.custom((value, context) => {
           const current = value?.current?.trim()
           if (!current) return true
-          if (SECTION_SLUGS.has(current)) {
-            return `“${current}” is reserved for a site section or route.`
-          }
+          if (!SHORT_LINK_PATTERN.test(current)) return 'Use lowercase letters, numbers, and dashes only.'
+          if (RESERVED_FIRST_SEGMENTS.has(current)) return `/${current} is a real page on the site.`
+          const doc = context.document as {link?: string} | undefined
+          if (!doc?.link) return 'Add a project link for the short link to go to.'
           return true
         }),
     }),
     defineField({
+      name: 'photos',
+      title: 'Screenshots',
+      type: 'array',
+      description: 'The first one shows in the hover preview on the Projects page.',
+      of: [
+        defineArrayMember({
+          type: 'image',
+          options: {hotspot: true},
+          fields: [
+            defineField({name: 'alt', type: 'string', title: 'Image description (alt text)'}),
+            defineField({name: 'caption', type: 'string', title: 'Caption'}),
+          ],
+        }),
+      ],
+    }),
+    orderRankField({type: 'project'}),
+    defineField({
+      name: 'title',
+      title: 'Old title (replaced by Name and Description)',
+      type: 'array',
+      of: [{type: 'block'}],
+      readOnly: true,
+      hidden: true,
+      deprecated: {reason: 'Split into Name and Description.'},
+    }),
+    defineField({
       name: 'displayOrder',
-      title: 'Display Order',
+      title: 'Old display order (replaced by drag-and-drop)',
       type: 'number',
-      description: 'Lower numbers appear first (1, 2, 3...)',
-      initialValue: 0,
+      readOnly: true,
+      hidden: true,
+      deprecated: {reason: 'Drag projects in All projects to reorder.'},
     }),
   ],
   preview: {
-    select: {
-      title: 'title',
-      media: 'photos.0',
-    },
-    prepare(selection) {
-      const {title, media} = selection
-      return {
-        title: title?.[0]?.children?.[0]?.text || 'Untitled Project',
-        media,
+    select: {title: 'name', link: 'link', media: 'photos.0'},
+    prepare: ({title, link, media}) => {
+      let subtitle: string | undefined
+      try {
+        subtitle = link ? new URL(link).host : undefined
+      } catch {
+        subtitle = link
       }
+      return {title: title || 'Untitled project', subtitle, media}
     },
   },
 })

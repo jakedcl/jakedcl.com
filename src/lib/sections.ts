@@ -1,42 +1,12 @@
-import type { HomeContent } from '@/lib/siteContent'
+import type {NavLabels} from '@/lib/content'
+import {SECTION_SLUGS, type SectionSlug} from '@/lib/routes'
 
-export const SECTION_SLUGS = [
-  'projects',
-  'experience',
-  'skills',
-  'about',
-] as const
-
-export type SectionSlug = (typeof SECTION_SLUGS)[number]
-
-export const SECTION_ROUTE_SLUGS: ReadonlySet<string> = new Set(SECTION_SLUGS)
-
-/** Slugs the dynamic /[slug] short-link route must not capture. */
-export const RESERVED_SHORT_LINK_SLUGS: ReadonlySet<string> = new Set([
-  ...SECTION_SLUGS,
-  'education',
-  'certifications',
-  'showcase',
-  'studio',
-  'resume',
-  'apple-icon',
-  'opengraph-image',
-])
-
-export type AboutAccent = 'yellow' | 'blue' | 'red' | 'green'
-
-const ACCENT_DECORATION: Record<AboutAccent, string> = {
-  yellow: 'decoration-signal-yellow',
-  blue: 'decoration-signal-blue',
-  red: 'decoration-signal-red',
-  green: 'decoration-signal-green',
-}
-
+/** Menu colors and order are fixed design (code); the labels come from each page in Studio. */
 const NAV_SECTION_ACCENTS: Record<SectionSlug, string> = {
-  projects: ACCENT_DECORATION.yellow,
-  experience: ACCENT_DECORATION.blue,
-  skills: ACCENT_DECORATION.red,
-  about: ACCENT_DECORATION.green,
+  projects: 'decoration-signal-yellow',
+  experience: 'decoration-signal-blue',
+  skills: 'decoration-signal-red',
+  about: 'decoration-signal-green',
 }
 
 export type SectionNavItem = {
@@ -45,76 +15,13 @@ export type SectionNavItem = {
   accentDecoration: string
 }
 
-export function aboutAccentDecoration(accent: AboutAccent | ''): string {
-  if (accent && accent in ACCENT_DECORATION) {
-    return ACCENT_DECORATION[accent as AboutAccent]
-  }
-  return ACCENT_DECORATION.green
-}
-
-export function parseAboutAccent(value: string | null | undefined): AboutAccent | '' {
-  const v = value?.trim()
-  if (
-    v === 'yellow' ||
-    v === 'blue' ||
-    v === 'red' ||
-    v === 'green'
-  ) {
-    return v
-  }
-  if (v === 'purple') return 'green'
-  return ''
-}
-
-export function sectionHeading(content: HomeContent, slug: SectionSlug): string {
-  switch (slug) {
-    case 'projects':
-      return content.projectsHeading
-    case 'experience':
-      return content.experienceHeading
-    case 'skills':
-      return content.skillsHeading
-    case 'about':
-      return content.aboutHeading
-  }
-}
-
-function sectionVisible(content: HomeContent, slug: SectionSlug): boolean {
-  switch (slug) {
-    case 'projects':
-      return Boolean(content.projectsHeading)
-    case 'experience':
-      return (
-        content.experience.length > 0 || content.certifications.length > 0
-      )
-    case 'skills':
-      return content.skills.length > 0
-    case 'about':
-      return (
-        Boolean(content.aboutHeading) ||
-        content.aboutLong.length > 0 ||
-        content.education.length > 0
-      )
-  }
-}
-
-export function sectionNavItems(content: HomeContent): SectionNavItem[] {
-  const items: SectionNavItem[] = []
-  for (const slug of SECTION_SLUGS) {
-    if (!sectionVisible(content, slug)) continue
-    const label = sectionHeading(content, slug)
-    if (!label) continue
-    items.push({
-      slug,
-      label,
-      accentDecoration: NAV_SECTION_ACCENTS[slug],
-    })
-  }
-  return items
-}
-
-export function isSectionSlug(value: string): value is SectionSlug {
-  return SECTION_ROUTE_SLUGS.has(value)
+/** A page is in the menu (and exists) only when its Page name is filled in. */
+export function sectionNavItems(nav: NavLabels): SectionNavItem[] {
+  return SECTION_SLUGS.filter((slug) => nav[slug]).map((slug) => ({
+    slug,
+    label: nav[slug],
+    accentDecoration: NAV_SECTION_ACCENTS[slug],
+  }))
 }
 
 /** Slightly smaller hero type for long one-line section titles on narrow screens. */
