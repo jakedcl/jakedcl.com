@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-import { getHomeContent } from "@/lib/siteContent";
+import { getSite } from "@/lib/content";
 
 export const revalidate = 60;
 
@@ -12,8 +12,8 @@ export const size = {
 export const contentType = "image/png";
 
 export default async function AppleIcon() {
-  // Letters come from Site Settings > App icon letters.
-  const { appIconText } = await getHomeContent();
+  // Letters come from Studio > Search & sharing > Phone icon letters.
+  const { appIconLetters } = await getSite();
   return new ImageResponse(
     (
       <div
@@ -31,7 +31,7 @@ export default async function AppleIcon() {
           fontFamily: "Helvetica Neue, Helvetica, Arial, sans-serif",
         }}
       >
-        {appIconText}
+        {appIconLetters}
       </div>
     ),
     size,

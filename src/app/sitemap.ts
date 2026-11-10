@@ -1,25 +1,20 @@
 import type { MetadataRoute } from 'next'
 
-import { getHomeContent } from '@/lib/siteContent'
+import { getSite } from '@/lib/content'
+import { SHOWCASE_PATH } from '@/lib/routes'
 import { sectionNavItems } from '@/lib/sections'
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://jakedcl.com'
-  const content = await getHomeContent()
-  const sections = sectionNavItems(content)
+export const revalidate = 60
 
-  return [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-    ...sections.map((section) => ({
-      url: `${baseUrl}/${section.slug}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    })),
+// Every page that currently exists, under the Site address from Studio > Search & sharing.
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const site = await getSite()
+  if (!site.siteUrl) return []
+  const paths = [
+    '',
+    ...sectionNavItems(site.nav).map((item) => `/${item.slug}`),
+    ...(site.caseStudyName ? [SHOWCASE_PATH] : []),
   ]
+  const lastModified = new Date()
+  return paths.map((path) => ({ url: `${site.siteUrl}${path}`, lastModified }))
 }

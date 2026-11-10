@@ -1,15 +1,24 @@
 import type { MetadataRoute } from "next";
 
-export default function robots(): MetadataRoute.Robots {
+import { getSite } from "@/lib/content";
+
+export const revalidate = 60;
+
+// From Studio > Search & sharing > Google.
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const site = await getSite();
   return {
     rules: [
-      {
-        userAgent: "*",
-        allow: "/",
-        disallow: "/studio",
-      },
+      site.allowIndexing
+        ? {
+            userAgent: "*",
+            allow: "/",
+            ...(site.hiddenPaths.length > 0 ? { disallow: site.hiddenPaths } : {}),
+          }
+        : { userAgent: "*", disallow: "/" },
     ],
-    sitemap: "https://jakedcl.com/sitemap.xml",
-    host: "https://jakedcl.com",
+    ...(site.siteUrl
+      ? { sitemap: `${site.siteUrl}/sitemap.xml`, host: site.siteUrl }
+      : {}),
   };
 }

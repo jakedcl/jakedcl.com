@@ -4,11 +4,8 @@ import Link from 'next/link'
 import { useSelectedLayoutSegment } from 'next/navigation'
 import { useEffect, useReducer, type ReactNode } from 'react'
 
-import {
-  introTitleCompact,
-  isSectionSlug,
-  type SectionNavItem,
-} from '@/lib/sections'
+import { isSectionSlug } from '@/lib/routes'
+import { introTitleCompact, type SectionNavItem } from '@/lib/sections'
 import IntroName from './IntroName'
 import SectionNav from './SectionNav'
 
@@ -54,10 +51,12 @@ function introReducer(state: IntroState, action: IntroAction): IntroState {
 export default function PortfolioChrome({
   heroTitle,
   navItems,
+  navAriaLabel,
   children,
 }: {
   heroTitle: string
   navItems: SectionNavItem[]
+  navAriaLabel: string
   children: ReactNode
 }) {
   const segment = useSelectedLayoutSegment()
@@ -96,7 +95,7 @@ export default function PortfolioChrome({
           </Link>
         )}
         <div className="mt-5">
-          <SectionNav items={navItems} active={active} />
+          <SectionNav items={navItems} active={active} ariaLabel={navAriaLabel} />
         </div>
       </header>
       {children}

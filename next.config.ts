@@ -1,27 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async redirects() {
-    return [
-      { source: '/admin', destination: '/studio', permanent: false },
-      { source: '/admin/:path*', destination: '/studio/:path*', permanent: false },
-      {
-        source: '/education',
-        destination: '/about',
-        permanent: false,
-      },
-      {
-        source: '/certifications',
-        destination: '/experience',
-        permanent: false,
-      },
-      {
-        source: '/resume',
-        destination: '/',
-        permanent: true,
-      },
-    ]
-  },
+  // Redirects and short links live in Studio (see src/app/[...path]/page.tsx).
   images: {
     remotePatterns: [
       {

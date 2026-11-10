@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { useLayoutEffect, useRef } from 'react'
 
-import type { SectionNavItem, SectionSlug } from '@/lib/sections'
+import type { SectionSlug } from '@/lib/routes'
+import type { SectionNavItem } from '@/lib/sections'
 
 const rowLinkBase =
   'section-nav-link font-shape text-sm font-bold tracking-tight text-ink underline underline-offset-[4px] decoration-2 transition-colors hover:text-signal-blue'
@@ -24,8 +25,7 @@ const NAV_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
 function linkClass(item: SectionNavItem, dropped: boolean) {
   if (dropped) {
-    const bullet = accentBullet[item.accentDecoration] ?? 'before:bg-signal-green'
-    return `${droppedLinkBase} before:content-[""] ${bullet}`
+    return `${droppedLinkBase} before:content-[""] ${accentBullet[item.accentDecoration]}`
   }
   return `${rowLinkBase} ${item.accentDecoration}`
 }
@@ -33,9 +33,11 @@ function linkClass(item: SectionNavItem, dropped: boolean) {
 export default function SectionNav({
   items,
   active,
+  ariaLabel,
 }: {
   items: SectionNavItem[]
   active?: SectionSlug
+  ariaLabel: string
 }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const prevRects = useRef<Map<string, DOMRect>>(new Map())
@@ -88,7 +90,7 @@ export default function SectionNav({
   const hasDrop = active !== undefined
 
   return (
-    <nav aria-label="Site sections" className="section-nav">
+    <nav {...(ariaLabel ? { 'aria-label': ariaLabel } : {})} className="section-nav">
       <div
         ref={trackRef}
         className={
