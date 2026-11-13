@@ -18,6 +18,7 @@ export default defineConfig({
   title: 'jakedcl.com',
   projectId,
   dataset,
+  releases: {enabled: false},
   document: {
     singletons: SINGLETONS,
     actions: (prev, context) => {
