@@ -19,6 +19,8 @@ export default defineConfig({
   projectId,
   dataset,
   releases: {enabled: false},
+  scheduledDrafts: {enabled: false},
+  tasks: {enabled: false},
   document: {
     singletons: SINGLETONS,
     actions: (prev, context) => {
