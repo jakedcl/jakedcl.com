@@ -63,7 +63,7 @@ export const redirectsType = defineType({
   name: 'redirects',
   title: 'Redirects',
   type: 'document',
-  description: 'Send an old or short address to another page or site. Changes apply within about a minute, no redeploy needed. Project short links (jakedcl.com/skyline) are set on each project instead. A redirect here wins if both use the same address.',
+  description: 'Send an old or short address to another page or site. Changes apply within about a minute, no redeploy needed.',
   fields: [
     defineField({
       name: 'rules',

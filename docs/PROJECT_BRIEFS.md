@@ -44,7 +44,7 @@ Multi-tenant SaaS for third-party logistics companies that run warehouse, fleet,
 ## headsuptrucker
 
 **Repo:** [jakedcl/headsuptrucker](https://github.com/jakedcl/headsuptrucker) (private)  
-**URL on the repo:** https://headsuptrucker.vercel.app
+**Live:** https://headsuptrucker.dcldev.com
 
 Free, map-first tool for posted vehicle clearances around NYC, Long Island, the Hudson Valley, southwest Connecticut, and NYC-facing New Jersey. You enter a vehicle height. Red markers are at or below it. Orange markers are 1–12 inches above it. No account, payment, or routing service.
 
@@ -118,9 +118,8 @@ Print shop and event-booking site built as a birthday gift for photographer Thom
 ## skyinfoline
 
 **Repo:** [jakedcl/skyinfoline](https://github.com/jakedcl/skyinfoline) (public)  
-**URL on the repo:** https://skyinfoline.vercel.app  
-**Studio:** https://skyinfoline.vercel.app/studio  
-**On jakedcl.com:** `/skyline` redirects here
+**Live:** https://skyinfoline.dcldev.com  
+**Studio:** https://skyinfoline.dcldev.com/studio
 
 Stylized Manhattan skyline from the west (Jersey City). Left to right is north to south. Buildings are transparent PNG cutouts in Sanity, scaled by height, not a 3D city model.
 
