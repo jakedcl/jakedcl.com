@@ -1,8 +1,6 @@
 import {orderRankField, orderRankOrdering} from '@sanity/orderable-document-list'
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
-import {RESERVED_FIRST_SEGMENTS, SHORT_LINK_PATTERN} from '../../lib/routes'
-
 export const projectType = defineType({
   name: 'project',
   title: 'Project',
@@ -27,25 +25,8 @@ export const projectType = defineType({
       name: 'link',
       title: 'Project link',
       type: 'url',
-      description: 'The live site. The name in the list links here, and so does the short link.',
+      description: 'The live site. The name in the list links here.',
       validation: (rule) => rule.uri({scheme: ['http', 'https']}),
-    }),
-    defineField({
-      name: 'slug',
-      title: 'Short link',
-      type: 'slug',
-      description: 'Optional. jakedcl.com/<this> sends people to the project link. Lowercase letters, numbers, and dashes.',
-      options: {source: 'name', maxLength: 96},
-      validation: (rule) =>
-        rule.custom((value, context) => {
-          const current = value?.current?.trim()
-          if (!current) return true
-          if (!SHORT_LINK_PATTERN.test(current)) return 'Use lowercase letters, numbers, and dashes only.'
-          if (RESERVED_FIRST_SEGMENTS.has(current)) return `/${current} is a real page on the site.`
-          const doc = context.document as {link?: string} | undefined
-          if (!doc?.link) return 'Add a project link for the short link to go to.'
-          return true
-        }),
     }),
     defineField({
       name: 'photos',

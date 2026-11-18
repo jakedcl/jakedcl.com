@@ -106,8 +106,7 @@ export const caseStudyQuery = groq`*[_id == "caseStudyPage"][0]{
   ${seo}
 }`
 
-/** Redirects from Studio, plus the project whose short link matches the first path segment. */
+/** Redirects from Studio > Redirects. */
 export const pathLookupQuery = groq`{
-  "rules": *[_id == "redirects"][0].rules[]{ from, to, permanent },
-  "projectLink": *[_type == "project" && slug.current == $slug][0].link
+  "rules": *[_id == "redirects"][0].rules[]{ from, to, permanent }
 }`

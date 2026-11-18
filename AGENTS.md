@@ -17,7 +17,7 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 16 App Router, React 19, Tailwind v4
 - `/projects`, `/experience`, `/skills`, `/about` — one section each. A section is hidden (menu + page 404) when its page name is empty in Studio.
 - `/showcase` — the case study (Studio > Case study). 404 if no project is picked.
 - `/studio` — Sanity Studio.
-- Anything else goes to `src/app/[...path]/page.tsx`: first the rules in Studio > Redirects (exact path, or `/old/*` → `/new/*`), then a project short link (`project.slug`) → the project link, else 404. Redirects cannot take over a real page path (`RESERVED_FIRST_SEGMENTS` in `src/lib/routes.ts`; Studio blocks them). There are no redirects in `next.config.ts`.
+- Anything else goes to `src/app/[...path]/page.tsx`: the rules in Studio > Redirects (exact path, or `/old/*` → `/new/*`), else 404. Redirects cannot take over a real page path (`RESERVED_FIRST_SEGMENTS` in `src/lib/routes.ts`; Studio blocks them). There are no redirects in `next.config.ts`.
 
 ## Content (do not mix sources)
 
@@ -27,7 +27,7 @@ Jake edits only in Studio. **No copy, SEO text, URLs, or redirects in code, and 
 | --- | --- | --- |
 | Site-wide | `siteGlobals` | Big title, name, tagline, footer, screen-reader texts, 404 page |
 | Homepage | `homePage` | Bio, links, featured case study block, home SEO |
-| Projects | `projectsPage` + `project` docs | Page name/SEO; projects (name, description, link, short link, photos). Order = drag-and-drop (`orderRank`, @sanity/orderable-document-list). Project facts only from `docs/PROJECT_BRIEFS.md`. |
+| Projects | `projectsPage` + `project` docs | Page name/SEO; projects (name, description, link, photos). Order = drag-and-drop (`orderRank`, @sanity/orderable-document-list). Project facts only from `docs/PROJECT_BRIEFS.md`. |
 | Experience / Skills / About | `experiencePage` / `skillsPage` / `aboutPage` | Page name (menu label + tab title), content, SEO |
 | Case study | `caseStudyPage` | Featured project, all `/showcase` copy and labels, SEO |
 | Search & sharing | `seoSettings` | Site address/name, keywords, author, share image, generated card text, favicon, app icon/manifest text, indexing + hidden paths |

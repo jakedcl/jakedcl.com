@@ -541,18 +541,15 @@ export async function getCaseStudy(): Promise<CaseStudy> {
 
 export type PathLookup = {
   rules: Array<{from: string; to: string; permanent: boolean}>
-  projectLink: string
 }
 
-export async function getPathLookup(slug: string): Promise<PathLookup> {
+export async function getPathLookup(): Promise<PathLookup> {
   const raw = await sanityFetch<{
     rules?: Array<{from?: string | null; to?: string | null; permanent?: boolean | null}> | null
-    projectLink?: string | null
-  }>(pathLookupQuery, {slug})
+  }>(pathLookupQuery)
   return {
     rules: (raw.rules ?? [])
       .map((r) => ({from: text(r.from), to: text(r.to), permanent: r.permanent === true}))
       .filter((r) => r.from && r.to),
-    projectLink: httpUrl(raw.projectLink),
   }
 }

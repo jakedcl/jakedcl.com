@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Redirects and short links live in Studio (see src/app/[...path]/page.tsx).
+  // Redirects live in Studio (see src/app/[...path]/page.tsx).
   images: {
     remotePatterns: [
       {
