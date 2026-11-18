@@ -167,10 +167,23 @@ export const experiencePageType = defineType({
       of: [defineArrayMember({type: 'experienceRole'})],
     }),
     defineField({
+      name: 'educationHeading',
+      title: 'Education heading',
+      type: 'string',
+      description: 'Heading above your schools and degrees.',
+    }),
+    defineField({
+      name: 'education',
+      title: 'Education',
+      type: 'array',
+      description: 'Shown below your jobs, above certifications. Leave empty to hide that block.',
+      of: [defineArrayMember({type: 'educationEntry'})],
+    }),
+    defineField({
       name: 'certificationsHeading',
       title: 'Certifications heading',
       type: 'string',
-      description: 'Heading above the certifications at the bottom of the page.',
+      description: 'Heading above the certifications at the bottom of the page, below Education.',
     }),
     defineField({
       name: 'certifications',
@@ -211,19 +224,6 @@ export const aboutPageType = defineType({
   fields: [
     pageName('About'),
     richTextField('body', 'About you', 'The full about text at the top of the page.'),
-    defineField({
-      name: 'educationHeading',
-      title: 'Education heading',
-      type: 'string',
-      description: 'Heading above your schools and degrees.',
-    }),
-    defineField({
-      name: 'education',
-      title: 'Education',
-      type: 'array',
-      description: 'Below the about text. Leave empty to hide that block.',
-      of: [defineArrayMember({type: 'educationEntry'})],
-    }),
     seo,
   ],
   preview: {prepare: () => ({title: 'About'})},
