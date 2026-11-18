@@ -35,7 +35,6 @@ export const structure: StructureResolver = (S, context) =>
       S.listItem().singleton('experiencePage'),
       S.listItem().singleton('skillsPage'),
       S.listItem().singleton('aboutPage'),
-      S.listItem().singleton('caseStudyPage'),
       S.divider(),
       S.listItem().singleton('seoSettings'),
       S.listItem().singleton('redirects'),

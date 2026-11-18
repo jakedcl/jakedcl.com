@@ -27,7 +27,7 @@ export default async function ProjectsPage() {
 
   return (
     <SectionPageShell loadError={site.loadError} footer={site.footer}>
-      <ProjectIndex projects={page.projects} newTabNote={site.newTabNote} />
+      <ProjectIndex projects={page.projects} />
     </SectionPageShell>
   )
 }

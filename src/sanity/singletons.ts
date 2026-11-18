@@ -17,7 +17,7 @@ export const SINGLETONS = [
   defineSingleton({documentId: 'experiencePage', schemaType: 'experiencePage', title: 'Experience', icon: CaseIcon}),
   defineSingleton({documentId: 'skillsPage', schemaType: 'skillsPage', title: 'Skills', icon: BulbOutlineIcon}),
   defineSingleton({documentId: 'aboutPage', schemaType: 'aboutPage', title: 'About', icon: UserIcon}),
-  defineSingleton({documentId: 'caseStudyPage', schemaType: 'caseStudyPage', title: 'Case study (/showcase)', icon: StarIcon}),
+  defineSingleton({documentId: 'caseStudyPage', schemaType: 'caseStudyPage', title: 'Case study (archive)', icon: StarIcon}),
   defineSingleton({documentId: 'seoSettings', schemaType: 'seoSettings', title: 'Search & sharing', icon: SearchIcon}),
   defineSingleton({documentId: 'redirects', schemaType: 'redirects', title: 'Redirects', icon: LinkIcon}),
 ]

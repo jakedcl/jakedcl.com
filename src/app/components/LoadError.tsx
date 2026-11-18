@@ -12,4 +12,3 @@ export default function LoadError({ children }: { children: string }) {
 
 export const PAGE_LOAD_ERROR = 'The page copy could not load. Refresh to try again.'
 export const PROJECTS_LOAD_ERROR = 'Projects could not load. Refresh the page to try again.'
-export const CASE_STUDY_LOAD_ERROR = 'The case study could not load. Refresh to try again.'

@@ -89,8 +89,8 @@ export const homePageType = defineType({
   fieldsets: [
     {
       name: 'feature',
-      title: 'Featured case study',
-      description: 'The block that links to the case study. Pick the project on the Case study page.',
+      title: 'Featured projects',
+      description: 'Turn on “Featured on homepage” on any project (Projects > All projects) to show it here. Several featured projects take turns.',
     },
   ],
   fields: [
@@ -103,41 +103,18 @@ export const homePageType = defineType({
       of: [defineArrayMember({type: 'siteLink'})],
     }),
     defineField({
-      name: 'showFeature',
-      title: 'Show the featured case study on the homepage',
-      type: 'boolean',
-      fieldset: 'feature',
-      initialValue: true,
-    }),
-    defineField({
       name: 'featureLabel',
       title: 'Small label',
       type: 'string',
       fieldset: 'feature',
-      description: 'Small capitals above the project name, e.g. Featured.',
+      description: 'Small capitals above the featured project name, e.g. Featured.',
     }),
-    defineField({
-      name: 'featureSentence',
-      title: 'One-line pitch',
-      type: 'text',
-      rows: 2,
-      fieldset: 'feature',
-      description: 'Required for the block to show.',
-      validation: (rule) =>
-        rule.custom((value, context) => {
-          const doc = context.document as {showFeature?: boolean} | undefined
-          if (doc?.showFeature && !value?.trim()) return 'The featured block is hidden until this is filled in.'
-          return true
-        }).warning(),
-    }),
-    {...imageWithAltField('featureImage', 'Image', 'Optional. Shows beside the pitch and links to the case study.'), fieldset: 'feature'},
-    defineField({
-      name: 'featureLinkLabel',
-      title: 'Link text',
-      type: 'string',
-      fieldset: 'feature',
-      description: 'The link to the case study, e.g. Case study.',
-    }),
+    // Old single case-study feature, replaced by per-project “Featured on homepage”.
+    // Hidden and read-only; the data is cleared after the project pages go live.
+    defineField({name: 'showFeature', title: 'Old: show the featured case study', type: 'boolean', hidden: true, readOnly: true, deprecated: {reason: 'Use Featured on homepage on each project.'}}),
+    defineField({name: 'featureSentence', title: 'Old: one-line pitch', type: 'text', hidden: true, readOnly: true, deprecated: {reason: 'Use Homepage pitch on each project.'}}),
+    {...imageWithAltField('featureImage', 'Old: image', 'Replaced by the project screenshots.'), hidden: true, readOnly: true, deprecated: {reason: 'Moved into the Logiparty screenshots.'}},
+    defineField({name: 'featureLinkLabel', title: 'Old: link text', type: 'string', hidden: true, readOnly: true, deprecated: {reason: 'The case study button was removed.'}}),
     seo,
   ],
   preview: {prepare: () => ({title: 'Homepage'})},
@@ -147,8 +124,51 @@ export const projectsPageType = defineType({
   name: 'projectsPage',
   title: 'Projects page',
   type: 'document',
-  description: 'jakedcl.com/projects. The projects themselves are under All projects.',
-  fields: [pageName('Projects'), seo],
+  description: 'jakedcl.com/projects and the shared text on every project page. The projects themselves are under All projects.',
+  fieldsets: [
+    {name: 'projectPage', title: 'Project pages', description: 'Text used on every project\'s own page (jakedcl.com/projects/…).'},
+    {
+      name: 'photoViewer',
+      title: 'Screenshot viewer',
+      description: 'The full-screen view that opens when someone clicks a screenshot on a project page.',
+      options: {collapsible: true, collapsed: true},
+    },
+  ],
+  fields: [
+    pageName('Projects'),
+    defineField({
+      name: 'backLinkLabel',
+      title: 'Back link',
+      type: 'string',
+      fieldset: 'projectPage',
+      description: 'The link at the top of a project page that returns to the list, e.g. All projects.',
+    }),
+    defineField({
+      name: 'visitLinkLabel',
+      title: 'Visit link',
+      type: 'string',
+      fieldset: 'projectPage',
+      description: 'The link to the live project, shown before its web address, e.g. Visit site.',
+    }),
+    defineField({
+      name: 'galleryAriaLabel',
+      title: 'Screen-reader name for the screenshots',
+      type: 'string',
+      fieldset: 'projectPage',
+      description: 'Not visible. What screen readers call the screenshots section, e.g. Screenshots.',
+    }),
+    defineField({
+      name: 'openPhotoLabel',
+      title: 'Screen-reader text on each screenshot',
+      type: 'string',
+      fieldset: 'photoViewer',
+      description: 'Not visible. Read before a screenshot\'s description to say it opens larger, e.g. View larger.',
+    }),
+    defineField({name: 'previousPhotoLabel', title: 'Previous button', type: 'string', fieldset: 'photoViewer'}),
+    defineField({name: 'nextPhotoLabel', title: 'Next button', type: 'string', fieldset: 'photoViewer'}),
+    defineField({name: 'closePhotoLabel', title: 'Close button', type: 'string', fieldset: 'photoViewer'}),
+    seo,
+  ],
   preview: {prepare: () => ({title: 'Projects page'})},
 })
 
@@ -231,9 +251,11 @@ export const aboutPageType = defineType({
 
 export const caseStudyPageType = defineType({
   name: 'caseStudyPage',
-  title: 'Case study',
+  title: 'Case study (archive)',
   type: 'document',
-  description: 'Everything on jakedcl.com/showcase. Empty headings are left out; their sections still show.',
+  readOnly: true,
+  __experimental_omnisearch_visibility: false,
+  description: 'Archive of the old /showcase page. Its content moved into the Logiparty project page; nothing on the site reads this anymore.',
   fieldsets: [
     {name: 'gallery', title: 'Screenshots'},
     {name: 'facts', title: 'Facts'},

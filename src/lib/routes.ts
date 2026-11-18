@@ -6,11 +6,8 @@ export const SECTION_SLUGS = ['projects', 'experience', 'skills', 'about'] as co
 
 export type SectionSlug = (typeof SECTION_SLUGS)[number]
 
-export const SHOWCASE_PATH = '/showcase'
-
 export const RESERVED_FIRST_SEGMENTS: ReadonlySet<string> = new Set([
   ...SECTION_SLUGS,
-  'showcase',
   'studio',
   'apple-icon',
   'opengraph-image',
