@@ -168,12 +168,19 @@ export const experienceRoleType = defineType({
     }),
     defineField({name: 'period', title: 'Dates', type: 'string', description: 'For example 10/2024–09/2025 or 2025–Present.'}),
     bullets,
+    defineField({
+      name: 'hideBehindSeeMore',
+      title: 'Hide behind See More',
+      type: 'boolean',
+      description: 'On: this job is folded away until a visitor clicks the See More button on /experience. Off: always shown.',
+      initialValue: false,
+    }),
   ],
   preview: {
-    select: {title: 'title', organization: 'organization', period: 'period'},
-    prepare: ({title, organization, period}) => ({
+    select: {title: 'title', organization: 'organization', period: 'period', hidden: 'hideBehindSeeMore'},
+    prepare: ({title, organization, period, hidden}) => ({
       title,
-      subtitle: [organization, period].filter(Boolean).join(' · '),
+      subtitle: [organization, period, hidden ? 'behind See More' : ''].filter(Boolean).join(' · '),
     }),
   },
 })

@@ -167,6 +167,18 @@ export const experiencePageType = defineType({
       of: [defineArrayMember({type: 'experienceRole'})],
     }),
     defineField({
+      name: 'seeMoreLabel',
+      title: 'See More button',
+      type: 'string',
+      description: 'Text on the centered button under your shown jobs that opens the jobs marked "Hide behind See More". Leave empty to show every job with no button.',
+    }),
+    defineField({
+      name: 'seeLessLabel',
+      title: 'See Less button',
+      type: 'string',
+      description: 'Text on the same button once the jobs are open, to fold them away again. Leave empty to keep them open with no button.',
+    }),
+    defineField({
       name: 'educationHeading',
       title: 'Education heading',
       type: 'string',
