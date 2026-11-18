@@ -13,9 +13,9 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 16 App Router, React 19, Tailwind v4
 
 ## Routes
 
-- `/` — intro (big title, name, tagline, bio, featured case study, links)
+- `/` — intro (big title, name, tagline, bio, featured projects rotator, links)
 - `/projects`, `/experience`, `/skills`, `/about` — one section each. A section is hidden (menu + page 404) when its page name is empty in Studio.
-- `/showcase` — the case study (Studio > Case study). 404 if no project is picked.
+- `/projects/[slug]` — one page per project (slug = the project's Page address in Studio). 404 for an unknown slug or when the Projects page name is empty.
 - `/studio` — Sanity Studio.
 - Anything else goes to `src/app/[...path]/page.tsx`: the rules in Studio > Redirects (exact path, or `/old/*` → `/new/*`), else 404. Redirects cannot take over a real page path (`RESERVED_FIRST_SEGMENTS` in `src/lib/routes.ts`; Studio blocks them). There are no redirects in `next.config.ts`.
 
@@ -26,20 +26,19 @@ Jake edits only in Studio. **No copy, SEO text, URLs, or redirects in code, and 
 | Studio item | Document | Powers |
 | --- | --- | --- |
 | Site-wide | `siteGlobals` | Big title, name, tagline, footer, screen-reader texts, 404 page |
-| Homepage | `homePage` | Bio, links, featured case study block, home SEO |
-| Projects | `projectsPage` + `project` docs | Page name/SEO; projects (name, description, link, photos). Order = drag-and-drop (`orderRank`, @sanity/orderable-document-list). Project facts only from `docs/PROJECT_BRIEFS.md`. |
+| Homepage | `homePage` | Bio, links, featured block label, home SEO. Featured projects = projects with `featured` on, in list order |
+| Projects | `projectsPage` + `project` docs | Page name/SEO and shared project-page labels (back link, visit link, screenshot viewer); projects (name, slug, short description, link, featured + optional homepage pitch, photos, rich-text `details`, per-project SEO). Order = drag-and-drop (`orderRank`, @sanity/orderable-document-list). Project facts only from `docs/PROJECT_BRIEFS.md`. |
 | Experience / Skills / About | `experiencePage` / `skillsPage` / `aboutPage` | Page name (menu label + tab title), content, SEO |
-| Case study | `caseStudyPage` | Featured project, all `/showcase` copy and labels, SEO |
 | Search & sharing | `seoSettings` | Site address/name, keywords, author, share image, generated card text, favicon, app icon/manifest text, indexing + hidden paths |
 | Redirects | `redirects` | Redirect rules (from, to, permanent) |
 
-The old `settings` doc (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) is kept read-only and hidden from Studio; nothing reads it. Do not delete it. Project `title`/`displayOrder` are legacy hidden fields.
+The old `settings` doc (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) is kept read-only and hidden from Studio; nothing reads it. Do not delete it. Project `title`/`displayOrder` are legacy hidden fields. `caseStudyPage` (old /showcase) is a read-only archive, out of the Studio menu; its content lives in the Logiparty project. Homepage `showFeature`/`featureSentence`/`featureImage`/`featureLinkLabel` are hidden legacy fields.
 
 Queries: `src/sanity/lib/queries.ts`. Normalizing: `src/lib/content.ts`.
 
 ### Allowed to stay in code (keep this list current)
 
-Menu colors and order (`src/lib/sections.ts`), fonts/layout/animation/design colors, the “could not load” texts (`LoadError.tsx`, `error.tsx`, shown when Sanity is down), Sanity connection config (`env.ts`), plus technical constants: `lang="en"`, og locale `en_US`, manifest colors/start_url/display, googleBot directives, JSON-LD `@type: Person`, separators (` - `, `, `), gallery counter/step numbers/+ −, image size defaults, OG card + phone icon layout, the reserved route list.
+Menu colors and order (`src/lib/sections.ts`), fonts/layout/animation/design colors, the “could not load” texts (`LoadError.tsx`, `error.tsx`, shown when Sanity is down), Sanity connection config (`env.ts`), plus technical constants: `lang="en"`, og locale `en_US`, manifest colors/start_url/display, googleBot directives, JSON-LD `@type: Person`, separators (` - `, `, `), gallery counter (1 / 3), decorative arrows (← ↗), the 3-second screenshot rotation timing, image size defaults, OG card + phone icon layout, the reserved route list.
 
 ## Design — Signal Max (live)
 
@@ -49,7 +48,7 @@ Fonts (`src/app/layout.tsx`): Syne (display — never remove), Bricolage Grotesq
 
 ## Code map
 
-- Pages: `src/app/(portfolio)/` (home, sections, showcase), metadata routes in `src/app/`
+- Pages: `src/app/(portfolio)/` (home, sections, project pages), metadata routes in `src/app/`
 - UI: `src/app/components/`
 - Content + SEO: `src/lib/content.ts`, `src/lib/metadata.ts`
 - Sanity: `src/sanity/schemaTypes/`, `structure.ts`, `singletons.ts`, `lib/`, `env.ts`
