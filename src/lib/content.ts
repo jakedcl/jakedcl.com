@@ -337,6 +337,8 @@ export type ExperiencePage = {
   pageName: string
   seo: Seo
   roles: Role[]
+  educationHeading: string
+  education: Role[]
   certificationsHeading: string
   certifications: Certification[]
 }
@@ -347,6 +349,8 @@ export async function getExperiencePage(): Promise<ExperiencePage> {
       pageName?: string | null
       seo?: Raw<Seo> | null
       roles?: Parameters<typeof rolesFrom>[0]
+      educationHeading?: string | null
+      education?: Parameters<typeof rolesFrom>[0]
       certificationsHeading?: string | null
       certifications?: Array<Raw<{_key: string; name: string; issuer: string; date: string; credentialLinkText: string; credentialUrl: string}>> | null
     } | null>(experiencePageQuery)
@@ -368,11 +372,13 @@ export async function getExperiencePage(): Promise<ExperiencePage> {
       pageName: text(raw?.pageName),
       seo: seoFrom(raw?.seo),
       roles: rolesFrom(raw?.roles),
+      educationHeading: text(raw?.educationHeading),
+      education: rolesFrom(raw?.education),
       certificationsHeading: text(raw?.certificationsHeading),
       certifications,
     }
   } catch {
-    return {loadError: true, pageName: '', seo: EMPTY_SEO, roles: [], certificationsHeading: '', certifications: []}
+    return {loadError: true, pageName: '', seo: EMPTY_SEO, roles: [], educationHeading: '', education: [], certificationsHeading: '', certifications: []}
   }
 }
 
@@ -402,8 +408,6 @@ export type AboutPage = {
   pageName: string
   seo: Seo
   body: PortableTextBlock[]
-  educationHeading: string
-  education: Role[]
 }
 
 export async function getAboutPage(): Promise<AboutPage> {
@@ -412,19 +416,15 @@ export async function getAboutPage(): Promise<AboutPage> {
       pageName?: string | null
       seo?: Raw<Seo> | null
       body?: PortableTextBlock[] | null
-      educationHeading?: string | null
-      education?: Parameters<typeof rolesFrom>[0]
     } | null>(aboutPageQuery)
     return {
       loadError: false,
       pageName: text(raw?.pageName),
       seo: seoFrom(raw?.seo),
       body: richTextFrom(raw?.body),
-      educationHeading: text(raw?.educationHeading),
-      education: rolesFrom(raw?.education),
     }
   } catch {
-    return {loadError: true, pageName: '', seo: EMPTY_SEO, body: [], educationHeading: '', education: []}
+    return {loadError: true, pageName: '', seo: EMPTY_SEO, body: []}
   }
 }
 
