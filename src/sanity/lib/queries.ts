@@ -64,6 +64,8 @@ export const projectsPageQuery = groq`{
 export const experiencePageQuery = groq`*[_id == "experiencePage"][0]{
   pageName,
   roles[]{ _key, title, organization, organizationUrl, period, bullets },
+  educationHeading,
+  education[]{ _key, title, organization, organizationUrl, period, bullets },
   certificationsHeading,
   certifications[]{ _key, name, issuer, date, credentialLinkText, credentialUrl },
   ${seo}
@@ -78,8 +80,6 @@ export const skillsPageQuery = groq`*[_id == "skillsPage"][0]{
 export const aboutPageQuery = groq`*[_id == "aboutPage"][0]{
   pageName,
   body${richText},
-  educationHeading,
-  education[]{ _key, title, organization, organizationUrl, period, bullets },
   ${seo}
 }`
 

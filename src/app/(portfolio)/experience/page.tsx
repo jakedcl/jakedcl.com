@@ -21,8 +21,14 @@ export default async function ExperiencePage() {
   return (
     <SectionPageShell loadError={site.loadError || page.loadError} footer={site.footer}>
       <RoleList roles={page.roles} newTabNote={site.newTabNote} />
-      {page.certifications.length > 0 ? (
+      {page.education.length > 0 ? (
         <div className={page.roles.length > 0 ? 'mt-14' : undefined}>
+          <SectionHeading text={page.educationHeading} square="bg-signal-red" />
+          <RoleList roles={page.education} newTabNote={site.newTabNote} />
+        </div>
+      ) : null}
+      {page.certifications.length > 0 ? (
+        <div className={page.roles.length > 0 || page.education.length > 0 ? 'mt-14' : undefined}>
           <SectionHeading text={page.certificationsHeading} square="bg-signal-yellow" />
           <CertificationList certifications={page.certifications} newTabNote={site.newTabNote} />
         </div>
