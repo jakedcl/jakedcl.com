@@ -63,7 +63,9 @@ export const projectsPageQuery = groq`{
 
 export const experiencePageQuery = groq`*[_id == "experiencePage"][0]{
   pageName,
-  roles[]{ _key, title, organization, organizationUrl, period, bullets },
+  roles[]{ _key, title, organization, organizationUrl, period, bullets, hideBehindSeeMore },
+  seeMoreLabel,
+  seeLessLabel,
   educationHeading,
   education[]{ _key, title, organization, organizationUrl, period, bullets },
   certificationsHeading,

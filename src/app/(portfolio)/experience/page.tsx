@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import ExperienceJobs from '@/app/components/ExperienceJobs'
 import { CertificationList, RoleList } from '@/app/components/ResumeSections'
 import SectionHeading from '@/app/components/SectionHeading'
 import SectionPageShell from '@/app/components/SectionPageShell'
@@ -20,7 +21,12 @@ export default async function ExperiencePage() {
 
   return (
     <SectionPageShell loadError={site.loadError || page.loadError} footer={site.footer}>
-      <RoleList roles={page.roles} newTabNote={site.newTabNote} />
+      <ExperienceJobs
+        roles={page.roles}
+        seeMoreLabel={page.seeMoreLabel}
+        seeLessLabel={page.seeLessLabel}
+        newTabNote={site.newTabNote}
+      />
       {page.education.length > 0 ? (
         <div className={page.roles.length > 0 ? 'mt-14' : undefined}>
           <SectionHeading text={page.educationHeading} square="bg-signal-red" />

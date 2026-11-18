@@ -24,7 +24,7 @@ type Raw<T> = {[K in keyof T]?: T[K] | null}
 export type Link = {_key?: string; label: string; href: string}
 export type Image = {url: string; alt: string; caption: string; width?: number; height?: number}
 export type Seo = {title: string; description: string; shareTitle: string; shareDescription: string}
-export type Role = {_key?: string; title: string; organization: string; organizationUrl: string; period: string; bullets: string[]}
+export type Role = {_key?: string; title: string; organization: string; organizationUrl: string; period: string; bullets: string[]; hideBehindSeeMore?: boolean}
 export type Certification = {_key?: string; name: string; issuer: string; date: string; linkText: string; url: string}
 export type SkillGroup = {_key?: string; label: string; items: string[]}
 export type NavLabels = Record<SectionSlug, string>
@@ -146,7 +146,9 @@ function linksFrom(value: Array<Raw<Link>> | null | undefined): Link[] {
   return items
 }
 
-function rolesFrom(value: Array<Raw<Role> & {bullets?: Array<string | null> | null}> | null | undefined): Role[] {
+function rolesFrom(
+  value: Array<Raw<Omit<Role, 'hideBehindSeeMore'>> & {bullets?: Array<string | null> | null; hideBehindSeeMore?: boolean | null}> | null | undefined,
+): Role[] {
   const roles: Role[] = []
   for (const role of value ?? []) {
     const title = text(role.title)
@@ -159,6 +161,7 @@ function rolesFrom(value: Array<Raw<Role> & {bullets?: Array<string | null> | nu
       organizationUrl: httpUrl(role.organizationUrl),
       period: text(role.period),
       bullets: texts(role.bullets),
+      ...(role.hideBehindSeeMore === true ? {hideBehindSeeMore: true} : {}),
     })
   }
   return roles
@@ -337,6 +340,8 @@ export type ExperiencePage = {
   pageName: string
   seo: Seo
   roles: Role[]
+  seeMoreLabel: string
+  seeLessLabel: string
   educationHeading: string
   education: Role[]
   certificationsHeading: string
@@ -349,6 +354,8 @@ export async function getExperiencePage(): Promise<ExperiencePage> {
       pageName?: string | null
       seo?: Raw<Seo> | null
       roles?: Parameters<typeof rolesFrom>[0]
+      seeMoreLabel?: string | null
+      seeLessLabel?: string | null
       educationHeading?: string | null
       education?: Parameters<typeof rolesFrom>[0]
       certificationsHeading?: string | null
@@ -372,13 +379,15 @@ export async function getExperiencePage(): Promise<ExperiencePage> {
       pageName: text(raw?.pageName),
       seo: seoFrom(raw?.seo),
       roles: rolesFrom(raw?.roles),
+      seeMoreLabel: text(raw?.seeMoreLabel),
+      seeLessLabel: text(raw?.seeLessLabel),
       educationHeading: text(raw?.educationHeading),
       education: rolesFrom(raw?.education),
       certificationsHeading: text(raw?.certificationsHeading),
       certifications,
     }
   } catch {
-    return {loadError: true, pageName: '', seo: EMPTY_SEO, roles: [], educationHeading: '', education: [], certificationsHeading: '', certifications: []}
+    return {loadError: true, pageName: '', seo: EMPTY_SEO, roles: [], seeMoreLabel: '', seeLessLabel: '', educationHeading: '', education: [], certificationsHeading: '', certifications: []}
   }
 }
 
