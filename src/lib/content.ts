@@ -4,10 +4,11 @@ import {type SectionSlug, SECTION_SLUGS} from '@/lib/routes'
 import {sanityFetch} from '@/sanity/lib/fetch'
 import {
   aboutPageQuery,
-  caseStudyQuery,
   experiencePageQuery,
   homeQuery,
   pathLookupQuery,
+  projectPageQuery,
+  projectSlugsQuery,
   projectsPageQuery,
   siteQuery,
   skillsPageQuery,
@@ -22,7 +23,7 @@ import {
 type Raw<T> = {[K in keyof T]?: T[K] | null}
 
 export type Link = {_key?: string; label: string; href: string}
-export type Image = {url: string; alt: string; caption: string; width?: number; height?: number}
+export type Image = {url: string; alt: string; caption: string; width?: number; height?: number; hotspot?: {x: number; y: number}}
 export type Seo = {title: string; description: string; shareTitle: string; shareDescription: string}
 export type Role = {_key?: string; title: string; organization: string; organizationUrl: string; period: string; bullets: string[]; hideBehindSeeMore?: boolean}
 export type Certification = {_key?: string; name: string; issuer: string; date: string; linkText: string; url: string}
@@ -60,7 +61,6 @@ export type Site = {
   appShortName: string
   appDescription: string
   homeSeo: Seo
-  caseStudyName: string
 }
 
 export function text(value: string | null | undefined): string {
@@ -101,7 +101,9 @@ function siteUrlFrom(value: string | null | undefined): string {
   return httpUrl(value).replace(/\/+$/, '')
 }
 
-type RawImage = Raw<{url: string; alt: string; caption: string; width: number; height: number}> | null | undefined
+type RawImage = (Raw<{url: string; alt: string; caption: string; width: number; height: number}> & {
+  hotspot?: {x?: number | null; y?: number | null} | null
+}) | null | undefined
 
 function imageFrom(raw: RawImage): Image | null {
   const url = httpUrl(raw?.url)
@@ -112,7 +114,20 @@ function imageFrom(raw: RawImage): Image | null {
     caption: text(raw?.caption),
     width: raw?.width ?? undefined,
     height: raw?.height ?? undefined,
+    ...(typeof raw?.hotspot?.x === 'number' && typeof raw?.hotspot?.y === 'number'
+      ? {hotspot: {x: raw.hotspot.x, y: raw.hotspot.y}}
+      : {}),
   }
+}
+
+function imagesFrom(value: RawImage[] | null | undefined): Image[] {
+  return (value ?? []).map(imageFrom).filter((image): image is Image => image !== null)
+}
+
+/** Studio page addresses are slug strings; anything odd is dropped rather than linked. */
+function slugFrom(value: string | null | undefined): string {
+  const slug = text(value)
+  return /^[a-z0-9][a-z0-9-]*$/i.test(slug) ? slug : ''
 }
 
 function seoFrom(raw: Raw<Seo> | null | undefined): Seo {
@@ -200,7 +215,6 @@ const EMPTY_SITE: Site = {
   appShortName: '',
   appDescription: '',
   homeSeo: EMPTY_SEO,
-  caseStudyName: '',
 }
 
 type RawSite = {
@@ -212,7 +226,6 @@ type RawSite = {
     keywords?: Array<string | null> | null
   }) | null
   homeSeo?: Raw<Seo> | null
-  caseStudyName?: string | null
 }
 
 export async function getSite(): Promise<Site> {
@@ -257,56 +270,65 @@ export async function getSite(): Promise<Site> {
     appShortName: text(s.appShortName),
     appDescription: text(s.appDescription),
     homeSeo: seoFrom(raw?.homeSeo),
-    caseStudyName: text(raw?.caseStudyName),
   }
 }
+
+export type FeaturedProject = {_id: string; name: string; slug: string; pitch: string; photos: Image[]}
 
 export type Home = {
   loadError: boolean
   bio: PortableTextBlock[]
   links: Link[]
-  showFeature: boolean
   featureLabel: string
-  featureSentence: string
-  featureImage: Image | null
-  featureLinkLabel: string
+  featured: FeaturedProject[]
+}
+
+type RawProject = {
+  _id: string
+  name?: string | null
+  slug?: string | null
+  description?: string | null
+  featuredPitch?: string | null
+  link?: string | null
+  photos?: RawImage[] | null
+  details?: PortableTextBlock[] | null
+  seo?: Raw<Seo> | null
 }
 
 export async function getHome(): Promise<Home> {
   try {
-    const raw = await sanityFetch<
-      | (Raw<Omit<Home, 'featureImage' | 'links' | 'bio'>> & {
-          bio?: PortableTextBlock[] | null
-          links?: Array<Raw<Link>> | null
-          featureImage?: RawImage
-        })
-      | null
-    >(homeQuery)
+    const raw = await sanityFetch<{
+      bio?: PortableTextBlock[] | null
+      links?: Array<Raw<Link>> | null
+      featureLabel?: string | null
+      featured?: RawProject[] | null
+    } | null>(homeQuery)
+    const featured: FeaturedProject[] = []
+    for (const p of raw?.featured ?? []) {
+      const name = text(p.name)
+      const slug = slugFrom(p.slug)
+      if (!name || !slug) continue
+      featured.push({
+        _id: p._id,
+        name,
+        slug,
+        pitch: text(p.featuredPitch) || text(p.description),
+        photos: imagesFrom(p.photos),
+      })
+    }
     return {
       loadError: false,
       bio: richTextFrom(raw?.bio),
       links: linksFrom(raw?.links),
-      showFeature: raw?.showFeature === true,
       featureLabel: text(raw?.featureLabel),
-      featureSentence: text(raw?.featureSentence),
-      featureImage: imageFrom(raw?.featureImage),
-      featureLinkLabel: text(raw?.featureLinkLabel),
+      featured,
     }
   } catch {
-    return {
-      loadError: true,
-      bio: [],
-      links: [],
-      showFeature: false,
-      featureLabel: '',
-      featureSentence: '',
-      featureImage: null,
-      featureLinkLabel: '',
-    }
+    return {loadError: true, bio: [], links: [], featureLabel: '', featured: []}
   }
 }
 
-export type ProjectRow = {_id: string; name: string; description: string; link: string; photo: Image | null}
+export type ProjectRow = {_id: string; name: string; slug: string; description: string; photos: Image[]}
 
 export type ProjectsPage = {loadError: boolean; pageName: string; seo: Seo; projects: ProjectRow[]}
 
@@ -314,7 +336,7 @@ export async function getProjectsPage(): Promise<ProjectsPage> {
   try {
     const raw = await sanityFetch<{
       page?: {pageName?: string | null; seo?: Raw<Seo> | null} | null
-      projects?: Array<{_id: string; name?: string | null; description?: string | null; link?: string | null; photo?: RawImage}> | null
+      projects?: RawProject[] | null
     }>(projectsPageQuery)
     return {
       loadError: false,
@@ -324,14 +346,96 @@ export async function getProjectsPage(): Promise<ProjectsPage> {
         .map((p) => ({
           _id: p._id,
           name: text(p.name),
+          slug: slugFrom(p.slug),
           description: text(p.description),
-          link: httpUrlAsTyped(p.link),
-          photo: imageFrom(p.photo),
+          photos: imagesFrom(p.photos),
         }))
         .filter((p) => p.name),
     }
   } catch {
     return {loadError: true, pageName: '', seo: EMPTY_SEO, projects: []}
+  }
+}
+
+export type ProjectPageLabels = {
+  pageName: string
+  backLinkLabel: string
+  visitLinkLabel: string
+  galleryAriaLabel: string
+  openPhotoLabel: string
+  previousPhotoLabel: string
+  nextPhotoLabel: string
+  closePhotoLabel: string
+}
+
+export type ProjectDetail = {
+  name: string
+  slug: string
+  description: string
+  link: string
+  photos: Image[]
+  details: PortableTextBlock[]
+  seo: Seo
+}
+
+export type ProjectPage = {loadError: boolean; labels: ProjectPageLabels; project: ProjectDetail | null}
+
+const EMPTY_PROJECT_LABELS: ProjectPageLabels = {
+  pageName: '',
+  backLinkLabel: '',
+  visitLinkLabel: '',
+  galleryAriaLabel: '',
+  openPhotoLabel: '',
+  previousPhotoLabel: '',
+  nextPhotoLabel: '',
+  closePhotoLabel: '',
+}
+
+export async function getProjectPage(slug: string): Promise<ProjectPage> {
+  try {
+    const raw = await sanityFetch<{
+      page?: Raw<ProjectPageLabels> | null
+      project?: RawProject | null
+    }>(projectPageQuery, {slug})
+    const l = raw.page ?? {}
+    const labels: ProjectPageLabels = {
+      pageName: text(l.pageName),
+      backLinkLabel: text(l.backLinkLabel),
+      visitLinkLabel: text(l.visitLinkLabel),
+      galleryAriaLabel: text(l.galleryAriaLabel),
+      openPhotoLabel: text(l.openPhotoLabel),
+      previousPhotoLabel: text(l.previousPhotoLabel),
+      nextPhotoLabel: text(l.nextPhotoLabel),
+      closePhotoLabel: text(l.closePhotoLabel),
+    }
+    const p = raw.project
+    const name = text(p?.name)
+    const projectSlug = slugFrom(p?.slug)
+    if (!p || !name || !projectSlug) return {loadError: false, labels, project: null}
+    return {
+      loadError: false,
+      labels,
+      project: {
+        name,
+        slug: projectSlug,
+        description: text(p.description),
+        link: httpUrlAsTyped(p.link),
+        photos: imagesFrom(p.photos),
+        details: richTextFrom(p.details),
+        seo: seoFrom(p.seo),
+      },
+    }
+  } catch {
+    return {loadError: true, labels: EMPTY_PROJECT_LABELS, project: null}
+  }
+}
+
+export async function getProjectSlugs(): Promise<string[]> {
+  try {
+    const raw = await sanityFetch<Array<string | null> | null>(projectSlugsQuery)
+    return (raw ?? []).map((slug) => slugFrom(slug)).filter(Boolean)
+  } catch {
+    return []
   }
 }
 
@@ -434,117 +538,6 @@ export async function getAboutPage(): Promise<AboutPage> {
     }
   } catch {
     return {loadError: true, pageName: '', seo: EMPTY_SEO, body: []}
-  }
-}
-
-export type CaseStudyFact = {_key?: string; label: string; teaser: string; detail: string}
-export type CaseStudyStep = {_key?: string; title: string; body: string}
-export type LabeledLink = {label: string; url: string}
-
-export type CaseStudy = {
-  loadError: boolean
-  name: string
-  eyebrow: string
-  intro: string
-  screenshots: Image[]
-  previousLabel: string
-  nextLabel: string
-  galleryAriaLabel: string
-  factsHeading: string
-  factsAriaLabel: string
-  facts: CaseStudyFact[]
-  stepsHeading: string
-  stepsAriaLabel: string
-  steps: CaseStudyStep[]
-  stackHeading: string
-  stackNote: string
-  processHeading: string
-  processNote: string
-  productLink: LabeledLink | null
-  repoLink: LabeledLink | null
-  seo: Seo
-}
-
-function labeledLinkFrom(raw: {label?: string | null; url?: string | null} | null | undefined): LabeledLink | null {
-  const label = text(raw?.label)
-  const url = httpUrl(raw?.url)
-  return label && url ? {label, url} : null
-}
-
-const EMPTY_CASE_STUDY: CaseStudy = {
-  loadError: false,
-  name: '',
-  eyebrow: '',
-  intro: '',
-  screenshots: [],
-  previousLabel: '',
-  nextLabel: '',
-  galleryAriaLabel: '',
-  factsHeading: '',
-  factsAriaLabel: '',
-  facts: [],
-  stepsHeading: '',
-  stepsAriaLabel: '',
-  steps: [],
-  stackHeading: '',
-  stackNote: '',
-  processHeading: '',
-  processNote: '',
-  productLink: null,
-  repoLink: null,
-  seo: EMPTY_SEO,
-}
-
-export async function getCaseStudy(): Promise<CaseStudy> {
-  type RawCaseStudy = Raw<Omit<CaseStudy, 'screenshots' | 'facts' | 'steps' | 'productLink' | 'repoLink' | 'seo'>> & {
-    screenshots?: RawImage[] | null
-    facts?: Array<Raw<CaseStudyFact>> | null
-    steps?: Array<Raw<CaseStudyStep>> | null
-    productLink?: {label?: string | null; url?: string | null} | null
-    repoLink?: {label?: string | null; url?: string | null} | null
-    seo?: Raw<Seo> | null
-  }
-  let raw: RawCaseStudy | null
-  try {
-    raw = await sanityFetch<RawCaseStudy | null>(caseStudyQuery)
-  } catch {
-    return {...EMPTY_CASE_STUDY, loadError: true}
-  }
-  if (!raw) return EMPTY_CASE_STUDY
-  const facts: CaseStudyFact[] = []
-  for (const fact of raw.facts ?? []) {
-    const label = text(fact.label)
-    const teaser = text(fact.teaser)
-    if (label && teaser) facts.push({_key: fact._key ?? undefined, label, teaser, detail: text(fact.detail)})
-  }
-  const steps: CaseStudyStep[] = []
-  for (const step of raw.steps ?? []) {
-    const title = text(step.title)
-    const body = text(step.body)
-    if (title && body) steps.push({_key: step._key ?? undefined, title, body})
-  }
-  return {
-    loadError: false,
-    name: text(raw.name),
-    eyebrow: text(raw.eyebrow),
-    intro: text(raw.intro),
-    screenshots: (raw.screenshots ?? []).map(imageFrom).filter((i): i is Image => i !== null),
-    previousLabel: text(raw.previousLabel),
-    nextLabel: text(raw.nextLabel),
-    galleryAriaLabel: text(raw.galleryAriaLabel),
-    factsHeading: text(raw.factsHeading),
-    factsAriaLabel: text(raw.factsAriaLabel),
-    facts,
-    stepsHeading: text(raw.stepsHeading),
-    stepsAriaLabel: text(raw.stepsAriaLabel),
-    steps,
-    stackHeading: text(raw.stackHeading),
-    stackNote: text(raw.stackNote),
-    processHeading: text(raw.processHeading),
-    processNote: text(raw.processNote),
-    productLink: labeledLinkFrom(raw.productLink),
-    repoLink: labeledLinkFrom(raw.repoLink),
-    seo: seoFrom(raw.seo),
   }
 }
 

@@ -310,61 +310,8 @@ body::before {
     hero-caret-dcl-life var(--intro-caret-clock, 2.4s) linear both;
 }
 
-/* Desktop project hover card. Hidden on touch and below the md breakpoint. */
-.project-preview {
-  display: none;
-  width: 16rem;
-  overflow: hidden;
-  background: var(--cream);
-  border: 1px solid rgba(10, 10, 10, 0.16);
-  box-shadow: 0 18px 40px -28px rgba(10, 10, 10, 0.65);
-}
-
-.project-preview::before {
-  content: "";
-  display: block;
-  height: 3px;
-  background: var(--signal-yellow);
-}
-
-@media (hover: hover) and (min-width: 768px) {
-  .project-row:hover .project-preview,
-  .project-row:has(:focus-visible) .project-preview {
-    position: absolute;
-    z-index: 30;
-    display: block;
-    top: calc(100% + 0.35rem);
-    left: 0;
-  }
-
-  /* One card. The row under the pointer wins over a focused row. */
-  ul:hover > .project-row:not(:hover) .project-preview {
-    display: none;
-  }
-}
-
-@media (hover: hover) and (min-width: 1280px) {
-  .project-row:hover .project-preview,
-  .project-row:has(:focus-visible) .project-preview {
-    top: 0;
-    left: calc(100% + 1.25rem);
-  }
-}
-
-/* Set from JS on mouseleave-after-click, pageshow, and window blur. */
-html.project-preview-off .project-row:hover .project-preview,
-html.project-preview-off .project-row:has(:focus-visible) .project-preview {
-  display: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .case-gallery-image,
-  .case-step-panel {
-    transition: opacity 0.22s ease-out;
-  }
-}
-
-.case-gallery-control {
+/* Gallery and lightbox controls on project pages (mono, quiet). */
+.gallery-control {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   letter-spacing: 0.12em;
@@ -373,43 +320,23 @@ html.project-preview-off .project-row:has(:focus-visible) .project-preview {
   padding: 0.35rem 0.5rem;
   border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
   background: var(--cream);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
-.case-gallery-control:hover {
+.gallery-control:hover {
   color: var(--signal-blue);
   border-color: color-mix(in srgb, var(--signal-blue) 40%, transparent);
 }
 
-.case-step-tab {
-  min-width: 7rem;
-  flex: 1 1 7rem;
-  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
-  background: var(--cream);
-  padding: 0.55rem 0.65rem;
-  text-align: left;
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
-}
-
-.case-step-tab--active {
-  border-color: var(--signal-blue);
-  background: color-mix(in srgb, var(--signal-blue) 8%, var(--cream));
-}
-
-.case-fact-trigger:hover {
-  background: color-mix(in srgb, var(--cream) 80%, white);
+.photo-lightbox::backdrop {
+  background: color-mix(in srgb, var(--ink) 82%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-
-  .case-step-tab,
-  .case-gallery-image,
-  .case-step-panel {
-    transition: none;
   }
 
   .hero-letter,
@@ -428,5 +355,21 @@ html.project-preview-off .project-row:has(:focus-visible) .project-preview {
 
   .hero-caret {
     display: none !important;
+  }
+}
+
+/* Homepage featured project: each turn fades in. */
+@media (prefers-reduced-motion: no-preference) {
+  .featured-turn {
+    animation: featured-turn-in 0.5s ease-out both;
+  }
+}
+
+@keyframes featured-turn-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

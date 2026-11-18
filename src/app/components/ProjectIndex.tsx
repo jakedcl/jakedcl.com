@@ -1,76 +1,76 @@
+import Link from 'next/link'
+
 import type { ProjectRow as Project } from '@/lib/content'
-import NewTabNote from './NewTabNote'
-import ProjectPreviewReset from './ProjectPreviewReset'
-import SanityImage from './SanityImage'
+import PhotoRotator from './PhotoRotator'
 
-const linkClass =
-  'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
-
-function ProjectRow({ project, newTabNote }: { project: Project; newTabNote: string }) {
-  const { name, description, photo } = project
-
-  const nameEl = project.link ? (
-    <a
-      href={project.link}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`font-medium text-ink ${linkClass}`}
-    >
-      {name}
-      <NewTabNote note={newTabNote} />
-    </a>
-  ) : (
-    <span className="font-medium text-ink">{name}</span>
+function RowContent({ project }: { project: Project }) {
+  const nameId = `project-${project._id}-name`
+  const descriptionId = `project-${project._id}-description`
+  return (
+    <>
+      <div className="min-w-0">
+        <p
+          id={nameId}
+          className="font-medium text-ink underline decoration-ink/30 underline-offset-[3px] transition-colors group-hover:text-signal-blue group-hover:decoration-signal-blue"
+        >
+          {project.name}
+        </p>
+        {project.description ? (
+          <p
+            id={descriptionId}
+            className="mt-1.5 line-clamp-4 text-[0.95rem] leading-relaxed text-ink/80"
+          >
+            {project.description}
+          </p>
+        ) : null}
+      </div>
+      {project.photos.length > 0 ? (
+        <PhotoRotator photos={project.photos} sizes="(min-width: 640px) 11rem, 7rem" />
+      ) : null}
+    </>
   )
+}
+
+function ProjectRow({ project }: { project: Project }) {
+  const grid =
+    project.photos.length > 0
+      ? 'grid grid-cols-[minmax(0,1fr)_7rem] items-start gap-4 sm:grid-cols-[minmax(0,1fr)_11rem] sm:gap-6'
+      : 'block'
+  const rowClass = `group ${grid} py-5`
+
+  if (!project.slug) {
+    return (
+      <li>
+        <div className={rowClass}>
+          <RowContent project={project} />
+        </div>
+      </li>
+    )
+  }
 
   return (
-    <li className="project-row relative py-3">
-      <p className="text-[0.95rem] leading-relaxed text-ink/80 md:truncate">
-        {nameEl}
-        {description ? <span> - {description}</span> : null}
-      </p>
-      {/* Decorative hover card that repeats the row, so it is hidden from screen readers. */}
-      <div className="project-preview" aria-hidden="true">
-        {photo ? (
-          <SanityImage
-            src={photo.url}
-            alt=""
-            width={photo.width ?? 1024}
-            height={photo.height ?? 768}
-            sizes="16rem"
-            className="aspect-[4/3] w-full object-cover"
-          />
-        ) : null}
-        <div className="p-3">
-          <p className="font-display text-base font-extrabold leading-tight tracking-tight text-ink">
-            {name}
-          </p>
-          {description ? (
-            <p className="mt-1.5 text-sm leading-snug text-ink/75">{description}</p>
-          ) : null}
-        </div>
-      </div>
+    <li>
+      <Link
+        href={`/projects/${project.slug}`}
+        aria-labelledby={`project-${project._id}-name`}
+        {...(project.description ? { 'aria-describedby': `project-${project._id}-description` } : {})}
+        className={`${rowClass} -mx-2 px-2 transition-colors hover:bg-cream/70`}
+      >
+        <RowContent project={project} />
+      </Link>
     </li>
   )
 }
 
-export default function ProjectIndex({
-  projects,
-  newTabNote,
-}: {
-  projects: Project[]
-  newTabNote: string
-}) {
+/** Every project as a row: name and short description, screenshots rotating on the right. */
+export default function ProjectIndex({ projects }: { projects: Project[] }) {
   if (projects.length === 0) return null
 
   return (
-    <>
-      <ProjectPreviewReset />
-      <ul>
-        {projects.map((project) => (
-          <ProjectRow key={project._id} project={project} newTabNote={newTabNote} />
-        ))}
-      </ul>
-    </>
+    <ul className="divide-y divide-ink/10">
+      {projects.map((project) => (
+        <ProjectRow key={project._id} project={project} />
+      ))}
+    </ul>
   )
 }

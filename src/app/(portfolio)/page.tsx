@@ -1,7 +1,6 @@
 import { getHome, getSite, type Home, type Site } from '@/lib/content'
-import { SHOWCASE_PATH } from '@/lib/routes'
 import BioCopy from '../components/BioCopy'
-import FeaturedCaseStudy from '../components/FeaturedCaseStudy'
+import FeaturedProjects from '../components/FeaturedProjects'
 import Footer from '../components/Footer'
 import LoadError, { PAGE_LOAD_ERROR } from '../components/LoadError'
 import NewTabNote from '../components/NewTabNote'
@@ -13,8 +12,6 @@ const linkClass =
 
 export default async function HomePage() {
   const [site, home] = await Promise.all([getSite(), getHome()])
-  const showFeature =
-    home.showFeature && Boolean(site.caseStudyName) && Boolean(home.featureSentence)
 
   return (
     <>
@@ -35,15 +32,8 @@ export default async function HomePage() {
         </div>
       ) : null}
 
-      {showFeature ? (
-        <FeaturedCaseStudy
-          label={home.featureLabel}
-          name={site.caseStudyName}
-          sentence={home.featureSentence}
-          image={home.featureImage}
-          linkLabel={home.featureLinkLabel}
-          href={SHOWCASE_PATH}
-        />
+      {home.featured.length > 0 ? (
+        <FeaturedProjects label={home.featureLabel} projects={home.featured} />
       ) : null}
 
       {home.links.length > 0 ? (

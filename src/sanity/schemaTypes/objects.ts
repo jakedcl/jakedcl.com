@@ -39,6 +39,50 @@ export function richTextField(name: string, title: string, description: string) 
   })
 }
 
+/** Longer rich text for project pages: paragraphs, a sub-heading style, lists, bold, italic, and links. */
+export function detailedRichTextField(name: string, title: string, description: string) {
+  return defineField({
+    name,
+    title,
+    type: 'array',
+    description,
+    of: [
+      defineArrayMember({
+        type: 'block',
+        styles: [
+          {title: 'Normal', value: 'normal'},
+          {title: 'Heading', value: 'h3'},
+        ],
+        lists: [
+          {title: 'Bullets', value: 'bullet'},
+          {title: 'Numbered', value: 'number'},
+        ],
+        marks: {
+          decorators: [
+            {title: 'Bold', value: 'strong'},
+            {title: 'Italic', value: 'em'},
+          ],
+          annotations: [
+            defineArrayMember({
+              name: 'link',
+              type: 'object',
+              title: 'Link',
+              fields: [
+                defineField({
+                  name: 'href',
+                  title: 'URL',
+                  type: 'url',
+                  validation: (rule) => rule.uri({scheme: ['http', 'https', 'mailto', 'tel']}),
+                }),
+              ],
+            }),
+          ],
+        },
+      }),
+    ],
+  })
+}
+
 /** An image with required alt text. */
 export function imageWithAltField(
   name: string,

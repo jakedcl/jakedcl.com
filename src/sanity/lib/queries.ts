@@ -5,7 +5,8 @@ const image = `{
   caption,
   "url": asset->url,
   "width": asset->metadata.dimensions.width,
-  "height": asset->metadata.dimensions.height
+  "height": asset->metadata.dimensions.height,
+  "hotspot": hotspot{ x, y }
 }`
 
 const richText = `[]{
@@ -15,6 +16,18 @@ const richText = `[]{
   children[]{ _key, _type, marks, text },
   markDefs[]{ _key, _type, href }
 }`
+
+const richTextWithLists = `[]{
+  _key,
+  _type,
+  style,
+  listItem,
+  level,
+  children[]{ _key, _type, marks, text },
+  markDefs[]{ _key, _type, href }
+}`
+
+const photos = `"photos": photos[defined(asset)]${image}`
 
 const seo = `seo{ title, description, shareTitle, shareDescription }`
 
@@ -36,18 +49,21 @@ export const siteQuery = groq`{
     cardTopLine, cardGreenWord, cardBottomLine,
     "faviconUrl": favicon.asset->url, appIconLetters, appName, appShortName, appDescription
   },
-  "homeSeo": *[_id == "homePage"][0].${seo},
-  "caseStudyName": *[_id == "caseStudyPage"][0].project->name
+  "homeSeo": *[_id == "homePage"][0].${seo}
 }`
 
 export const homeQuery = groq`*[_id == "homePage"][0]{
   bio${richText},
   links[]{ _key, label, href },
-  showFeature,
   featureLabel,
-  featureSentence,
-  "featureImage": featureImage${image},
-  featureLinkLabel
+  "featured": *[_type == "project" && featured == true && defined(slug.current)] | order(orderRank asc){
+    _id,
+    name,
+    "slug": slug.current,
+    description,
+    featuredPitch,
+    ${photos}
+  }
 }`
 
 export const projectsPageQuery = groq`{
@@ -55,11 +71,38 @@ export const projectsPageQuery = groq`{
   "projects": *[_type == "project"] | order(orderRank asc){
     _id,
     name,
+    "slug": slug.current,
     description,
-    link,
-    "photo": photos[defined(asset)][0]${image}
+    ${photos}
   }
 }`
+
+/** One project's own page, plus the shared labels from the Projects page. */
+export const projectPageQuery = groq`{
+  "page": *[_id == "projectsPage"][0]{
+    pageName,
+    backLinkLabel,
+    visitLinkLabel,
+    galleryAriaLabel,
+    openPhotoLabel,
+    previousPhotoLabel,
+    nextPhotoLabel,
+    closePhotoLabel
+  },
+  "project": *[_type == "project" && slug.current == $slug][0]{
+    _id,
+    name,
+    "slug": slug.current,
+    description,
+    link,
+    ${photos},
+    details${richTextWithLists},
+    ${seo}
+  }
+}`
+
+/** Page addresses of every project, in list order (static generation and the sitemap). */
+export const projectSlugsQuery = groq`*[_type == "project" && defined(slug.current)] | order(orderRank asc).slug.current`
 
 export const experiencePageQuery = groq`*[_id == "experiencePage"][0]{
   pageName,
@@ -82,29 +125,6 @@ export const skillsPageQuery = groq`*[_id == "skillsPage"][0]{
 export const aboutPageQuery = groq`*[_id == "aboutPage"][0]{
   pageName,
   body${richText},
-  ${seo}
-}`
-
-export const caseStudyQuery = groq`*[_id == "caseStudyPage"][0]{
-  "name": project->name,
-  eyebrow,
-  intro,
-  "screenshots": screenshots[]${image},
-  previousLabel,
-  nextLabel,
-  galleryAriaLabel,
-  factsHeading,
-  factsAriaLabel,
-  facts[]{ _key, label, teaser, detail },
-  stepsHeading,
-  stepsAriaLabel,
-  steps[]{ _key, title, body },
-  stackHeading,
-  stackNote,
-  processHeading,
-  processNote,
-  productLink{ label, url },
-  repoLink{ label, url },
   ${seo}
 }`
 
