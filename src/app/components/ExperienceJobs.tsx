@@ -54,7 +54,7 @@ export default function ExperienceJobs({
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
             aria-controls={panelId}
-            className="font-display group inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold tracking-tight text-ink/80 underline decoration-ink/30 underline-offset-[5px] transition-colors hover:text-signal-blue hover:decoration-signal-blue"
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm leading-relaxed text-ink/85 underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue"
           >
             {label}
             <span
