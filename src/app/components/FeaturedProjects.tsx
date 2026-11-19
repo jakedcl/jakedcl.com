@@ -183,11 +183,13 @@ export default function FeaturedProjects({
       <div className="featured-turn mt-3">
         <div
           className={`grid gap-5 ${
-            shownPhotos.length > 0 ? 'sm:grid-cols-[auto_1fr] sm:items-start' : ''
+            shownPhotos.length > 0
+              ? 'sm:grid-cols-[minmax(0,5fr)_minmax(0,3fr)] sm:items-start sm:gap-4'
+              : ''
           }`}
         >
           {shownPhotos.length > 0 ? (
-            <div className="featured-media w-full sm:w-auto">
+            <div className="featured-media min-w-0 w-full">
               <Link
                 href={`/work/${current.slug}`}
                 aria-label={current.name}
@@ -200,7 +202,7 @@ export default function FeaturedProjects({
                 <PhotoRotator
                   photos={shownPhotos}
                   preloadPhotos={preloadPhotos}
-                  sizes="(min-width: 640px) 16rem, 100vw"
+                  sizes="(min-width: 640px) 26rem, 100vw"
                   intervalMs={photoMs}
                   fit="contain"
                   paused={paused}
@@ -303,7 +305,7 @@ function FeaturedCopy({
      keyboard focus on that link (not the pitch) can pause the rotation. */
   function title(project: FeaturedProject, interactive: boolean) {
     return (
-      <h2 className="font-display text-xl font-extrabold tracking-tight text-ink">
+      <h2 className="font-display text-xl font-extrabold tracking-tight text-ink sm:text-[clamp(1rem,0.94rem+0.18vw,1.125rem)]">
         {interactive ? (
           <Link
             href={`/work/${project.slug}`}
@@ -330,14 +332,16 @@ function FeaturedCopy({
       <div>
         {title(current, true)}
         {current.pitch ? (
-          <p className="mt-2 text-[0.95rem] leading-relaxed text-ink/85">{current.pitch}</p>
+          <p className="featured-pitch mt-2 text-[0.95rem] leading-relaxed text-ink/85 sm:text-[clamp(0.8125rem,0.78rem+0.14vw,0.9rem)]">
+            {current.pitch}
+          </p>
         ) : null}
       </div>
     )
   }
 
   return (
-    <div className="grid">
+    <div className="featured-copy min-w-0 grid">
       {projects.map((project) => (
         <div
           key={project._id}
@@ -347,7 +351,9 @@ function FeaturedCopy({
         >
           {title(project, project._id === currentId)}
           {project.pitch ? (
-            <p className="mt-2 text-[0.95rem] leading-relaxed text-ink/85">{project.pitch}</p>
+            <p className="featured-pitch mt-2 text-[0.95rem] leading-relaxed text-ink/85 sm:text-[clamp(0.8125rem,0.78rem+0.14vw,0.9rem)]">
+              {project.pitch}
+            </p>
           ) : null}
         </div>
       ))}

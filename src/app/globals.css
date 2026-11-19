@@ -462,10 +462,13 @@ body::before {
 }
 
 @media (min-width: 640px) {
+  /* Photo column is 5/8 of the row; cap height on short viewports so the home page still fits. */
   .home-fit .featured-photo-frame {
-    width: clamp(12rem, 30dvh, 16rem);
-    min-width: 12rem;
-    max-width: 16rem;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     height: auto;
+    max-height: clamp(9.5rem, 26dvh, 17.5rem);
+    aspect-ratio: 4 / 3;
   }
 }
