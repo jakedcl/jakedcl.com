@@ -443,7 +443,10 @@ body::before {
   margin-top: auto;
 }
 
+/* Override the page footer's default mt-16 so leftover space sits above the
+   links and footer, and a tight window is not forced to scroll. */
 .home-fit footer {
+  margin-top: 0;
   padding-top: 1rem;
 }
 
