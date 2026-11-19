@@ -109,8 +109,8 @@ export default function PhotoRotator({
   return (
     <div
       ref={frameRef}
-      className={`relative aspect-[4/3] w-full overflow-hidden border border-ink/12 ${
-        fit === 'contain' ? 'bg-background' : 'bg-cream'
+      className={`relative aspect-[4/3] w-full overflow-hidden ${
+        fit === 'contain' ? 'bg-background' : 'border border-ink/12 bg-cream'
       } ${className}`}
       aria-hidden="true"
     >

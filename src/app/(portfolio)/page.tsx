@@ -38,7 +38,7 @@ export default async function HomePage() {
         ) : null}
 
         {home.links.length > 0 ? (
-          <p className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[0.95rem]">
+          <p className="home-links mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[0.95rem]">
             {home.links.map((link) => {
               const external = link.href.startsWith('http')
               return (

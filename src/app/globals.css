@@ -373,7 +373,7 @@ body::before {
   }
 
   .featured-progress-fill {
-    animation: featured-progress-fill var(--featured-turn, 3s) linear forwards;
+    animation: featured-progress-fill var(--featured-turn, 4.5s) linear forwards;
   }
 }
 
@@ -428,13 +428,22 @@ body::before {
 
 .home-fit .featured-block {
   display: flex;
-  flex: 1 0 auto;
+  flex: 0 0 auto;
   flex-direction: column;
-  justify-content: center;
+}
+
+/* Extra viewport height collects below the featured block, above the links
+   and footer. If there are no links, the footer takes that space. */
+.home-fit .home-links {
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+.home-fit .featured-block + footer {
+  margin-top: auto;
 }
 
 .home-fit footer {
-  margin-top: auto;
   padding-top: 1rem;
 }
 
@@ -445,6 +454,7 @@ body::before {
   width: 100%;
   height: auto;
   flex-shrink: 0;
+  border: 0;
   background-color: var(--background);
 }
 

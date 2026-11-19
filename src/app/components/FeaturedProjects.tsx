@@ -9,9 +9,9 @@ import PhotoRotator from './PhotoRotator'
 import useReducedMotion from './useReducedMotion'
 
 /** How long each featured project stays on screen. Photos advance at half this. */
-const TURN_MS = 3000
+const TURN_MS = 4500
 const nameLinkClass =
-  'underline decoration-ink/30 underline-offset-[3px] transition-colors group-hover:text-signal-blue group-hover:decoration-signal-blue'
+  'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
 
 type Seed = { order: FeaturedProject[]; firstPhotos: Image[]; nextPhotos: Image[] }
 
@@ -102,8 +102,8 @@ function preloadAll(photos: Image[]): Promise<void> {
  * Each turn shows two random screenshots — or one, if that's all the project
  * has — at half the turn interval. The next project's photos are preloaded so
  * a project change crossfades like a photo change, with no blank frame.
- * Hover or keyboard focus pauses; reduced motion turns the automatic turns
- * off (the bars still switch projects).
+ * Hover or keyboard focus on the project title link or the photo pauses;
+ * reduced motion turns the automatic turns off (the bars still switch projects).
  */
 export default function FeaturedProjects({
   label,
@@ -161,42 +161,61 @@ export default function FeaturedProjects({
 
   if (!current) return null
 
+  function pause() {
+    setPaused(true)
+  }
+
+  function resumeUnlessMovingToPauseTarget(event: { relatedTarget: EventTarget | null }) {
+    const next = event.relatedTarget
+    if (next instanceof Element && next.closest('[data-featured-pause]')) return
+    setPaused(false)
+  }
+
   return (
     <section
-      className="featured-block mt-6"
+      className="featured-block mt-5"
       {...(label ? { 'aria-label': label } : {})}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false)
-      }}
     >
       {label ? (
         <p className="font-utility text-[0.65rem] uppercase tracking-[0.18em] text-ink/50">{label}</p>
       ) : null}
 
       <div className="featured-turn mt-3">
-        <Link
-          href={`/projects/${current.slug}`}
-          className={`group grid gap-5 ${
+        <div
+          className={`grid gap-5 ${
             shownPhotos.length > 0 ? 'sm:grid-cols-[auto_1fr] sm:items-start' : ''
           }`}
         >
           {shownPhotos.length > 0 ? (
-            <PhotoRotator
-              photos={shownPhotos}
-              preloadPhotos={preloadPhotos}
-              sizes="(min-width: 640px) 16rem, 100vw"
-              intervalMs={photoMs}
-              fit="contain"
-              paused={paused}
-              priority={index === 0}
-              className="featured-photo-frame"
-            />
+            <Link
+              href={`/projects/${current.slug}`}
+              aria-label={current.name}
+              data-featured-pause=""
+              onMouseEnter={pause}
+              onMouseLeave={resumeUnlessMovingToPauseTarget}
+              onFocus={pause}
+              onBlur={resumeUnlessMovingToPauseTarget}
+            >
+              <PhotoRotator
+                photos={shownPhotos}
+                preloadPhotos={preloadPhotos}
+                sizes="(min-width: 640px) 16rem, 100vw"
+                intervalMs={photoMs}
+                fit="contain"
+                paused={paused}
+                priority={index === 0}
+                className="featured-photo-frame"
+              />
+            </Link>
           ) : null}
-          <FeaturedCopy projects={order} currentId={current._id} reduced={reduced} />
-        </Link>
+          <FeaturedCopy
+            projects={order}
+            currentId={current._id}
+            reduced={reduced}
+            onPause={pause}
+            onResume={resumeUnlessMovingToPauseTarget}
+          />
+        </div>
       </div>
 
       {count > 1 ? (
@@ -241,23 +260,48 @@ function FeaturedCopy({
   projects,
   currentId,
   reduced,
+  onPause,
+  onResume,
 }: {
   projects: FeaturedProject[]
   currentId: string
   reduced: boolean
+  onPause: () => void
+  onResume: (event: { relatedTarget: EventTarget | null }) => void
 }) {
   /* Every project's title and pitch stay stacked in the same grid cell so the
      block keeps a stable height, and the outgoing copy stays visible until the
      incoming one is ready (the parent waits for the next photo). They then
-     crossfade together. */
+     crossfade together. Only the current title is a link, so hover and
+     keyboard focus on that link (not the pitch) can pause the rotation. */
+  function title(project: FeaturedProject, interactive: boolean) {
+    return (
+      <h2 className="font-display text-xl font-extrabold tracking-tight text-ink">
+        {interactive ? (
+          <Link
+            href={`/projects/${project.slug}`}
+            className={nameLinkClass}
+            data-featured-pause=""
+            onMouseEnter={onPause}
+            onMouseLeave={onResume}
+            onFocus={onPause}
+            onBlur={onResume}
+          >
+            {project.name}
+          </Link>
+        ) : (
+          <span className={nameLinkClass}>{project.name}</span>
+        )}
+      </h2>
+    )
+  }
+
   if (reduced) {
     const current = projects.find((project) => project._id === currentId)
     if (!current) return null
     return (
       <div>
-        <h2 className="font-display text-xl font-extrabold tracking-tight text-ink">
-          <span className={nameLinkClass}>{current.name}</span>
-        </h2>
+        {title(current, true)}
         {current.pitch ? (
           <p className="mt-2 text-[0.95rem] leading-relaxed text-ink/85">{current.pitch}</p>
         ) : null}
@@ -274,9 +318,7 @@ function FeaturedCopy({
             project._id === currentId ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
         >
-          <h2 className="font-display text-xl font-extrabold tracking-tight text-ink">
-            <span className={nameLinkClass}>{project.name}</span>
-          </h2>
+          {title(project, project._id === currentId)}
           {project.pitch ? (
             <p className="mt-2 text-[0.95rem] leading-relaxed text-ink/85">{project.pitch}</p>
           ) : null}
