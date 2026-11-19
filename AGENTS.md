@@ -14,10 +14,11 @@ Jake DCL portfolio (`jakedcl.com`). Next.js 16 App Router, React 19, Tailwind v4
 ## Routes
 
 - `/` — intro (big title, name, tagline, bio, featured projects rotator, links)
-- `/projects`, `/experience`, `/skills`, `/about` — one section each. A section is hidden (menu + page 404) when its page name is empty in Studio.
-- `/projects/[slug]` — one page per project (slug = the project's Page address in Studio). 404 for an unknown slug or when the Projects page name is empty.
+- `/work`, `/experience`, `/skills`, `/about` — one section each. A section is hidden (menu + page 404) when its page name is empty in Studio.
+- `/work/[slug]` — one page per work item (slug = the item's Page address in Studio). 404 for an unknown slug or when the Work page name is empty.
+- Permanent redirects in `next.config.ts`: `/projects` → `/work` and `/projects/:slug*` → `/work/:slug*`.
 - `/studio` — Sanity Studio.
-- Anything else goes to `src/app/[...path]/page.tsx`: the rules in Studio > Redirects (exact path, or `/old/*` → `/new/*`), else 404. Redirects cannot take over a real page path (`RESERVED_FIRST_SEGMENTS` in `src/lib/routes.ts`; Studio blocks them). There are no redirects in `next.config.ts`.
+- Anything else goes to `src/app/[...path]/page.tsx`: the rules in Studio > Redirects (exact path, or `/old/*` → `/new/*`), else 404. Redirects cannot take over a real page path (`RESERVED_FIRST_SEGMENTS` in `src/lib/routes.ts`; Studio blocks them).
 
 ## Content (do not mix sources)
 
@@ -27,7 +28,7 @@ Jake edits only in Studio. **No copy, SEO text, URLs, or redirects in code, and 
 | --- | --- | --- |
 | Site-wide | `siteGlobals` | Big title, name, tagline, footer, screen-reader texts, 404 page |
 | Homepage | `homePage` | Bio, links, featured block label, home SEO. Featured projects = projects with `featured` on, in list order |
-| Projects | `projectsPage` + `project` docs | Page name/SEO and shared project-page labels (back link, visit link, screenshot viewer); projects (name, slug, short description, link, featured + optional homepage pitch, photos, rich-text `details`, per-project SEO). Order = drag-and-drop (`orderRank`, @sanity/orderable-document-list). Project facts only from `docs/PROJECT_BRIEFS.md`. |
+| Work | `projectsPage` + `project` docs | Page name/SEO and shared work-item-page labels (back link, visit link, screenshot viewer); work items (name, slug, short description, link, featured + optional homepage pitch, photos, rich-text `details`, per-item SEO). Order = drag-and-drop (`orderRank`, @sanity/orderable-document-list). Item facts only from `docs/PROJECT_BRIEFS.md`. |
 | Experience / Skills / About | `experiencePage` / `skillsPage` / `aboutPage` | Page name (menu label + tab title), content, SEO |
 | Search & sharing | `seoSettings` | Site address/name, keywords, author, share image, generated card text, favicon, app icon/manifest text, indexing + hidden paths |
 | Redirects | `redirects` | Redirect rules (from, to, permanent) |

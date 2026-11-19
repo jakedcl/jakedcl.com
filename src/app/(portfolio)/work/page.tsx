@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-import LoadError, { PROJECTS_LOAD_ERROR } from '@/app/components/LoadError'
+import LoadError, { WORK_LOAD_ERROR } from '@/app/components/LoadError'
 import ProjectIndex from '@/app/components/ProjectIndex'
 import SectionPageShell from '@/app/components/SectionPageShell'
 import { getProjectsPage, getSite } from '@/lib/content'
@@ -11,7 +11,7 @@ export const revalidate = 60
 
 export async function generateMetadata(): Promise<Metadata> {
   const [site, page] = await Promise.all([getSite(), getProjectsPage()])
-  return pageMetadata(site, page.seo, '/projects')
+  return pageMetadata(site, page.seo, '/work')
 }
 
 export default async function ProjectsPage() {
@@ -19,7 +19,7 @@ export default async function ProjectsPage() {
   if (page.loadError) {
     return (
       <SectionPageShell loadError={false} footer={site.footer}>
-        <LoadError>{PROJECTS_LOAD_ERROR}</LoadError>
+        <LoadError>{WORK_LOAD_ERROR}</LoadError>
       </SectionPageShell>
     )
   }

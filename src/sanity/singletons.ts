@@ -13,7 +13,7 @@ import {defineSingleton} from 'sanity'
 export const SINGLETONS = [
   defineSingleton({documentId: 'siteGlobals', schemaType: 'siteGlobals', title: 'Site-wide', icon: EarthGlobeIcon}),
   defineSingleton({documentId: 'homePage', schemaType: 'homePage', title: 'Homepage', icon: HomeIcon}),
-  defineSingleton({documentId: 'projectsPage', schemaType: 'projectsPage', title: 'Projects page', icon: DocumentTextIcon}),
+  defineSingleton({documentId: 'projectsPage', schemaType: 'projectsPage', title: 'Work page', icon: DocumentTextIcon}),
   defineSingleton({documentId: 'experiencePage', schemaType: 'experiencePage', title: 'Experience', icon: CaseIcon}),
   defineSingleton({documentId: 'skillsPage', schemaType: 'skillsPage', title: 'Skills', icon: BulbOutlineIcon}),
   defineSingleton({documentId: 'aboutPage', schemaType: 'aboutPage', title: 'About', icon: UserIcon}),

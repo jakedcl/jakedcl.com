@@ -3,7 +3,7 @@ import {SECTION_SLUGS, type SectionSlug} from '@/lib/routes'
 
 /** Menu colors and order are fixed design (code); the labels come from each page in Studio. */
 const NAV_SECTION_ACCENTS: Record<SectionSlug, string> = {
-  projects: 'decoration-signal-yellow',
+  work: 'decoration-signal-yellow',
   experience: 'decoration-signal-blue',
   skills: 'decoration-signal-red',
   about: 'decoration-signal-green',

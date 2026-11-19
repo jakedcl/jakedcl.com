@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const paths = [
     '',
     ...sectionNavItems(site.nav).map((item) => `/${item.slug}`),
-    ...(site.nav.projects ? slugs.map((slug) => `/projects/${slug}`) : []),
+    ...(site.nav.work ? slugs.map((slug) => `/work/${slug}`) : []),
   ]
   const lastModified = new Date()
   return paths.map((path) => ({ url: `${site.siteUrl}${path}`, lastModified }))

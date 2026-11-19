@@ -77,7 +77,7 @@ export const projectsPageQuery = groq`{
   }
 }`
 
-/** One project's own page, plus the shared labels from the Projects page. */
+/** One work item's own page, plus the shared labels from the Work page. */
 export const projectPageQuery = groq`{
   "page": *[_id == "projectsPage"][0]{
     pageName,
