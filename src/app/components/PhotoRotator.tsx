@@ -15,11 +15,14 @@ const DEFAULT_ROTATE_MS = 3000
  * One photo stays still. Rotation stops for reduced motion, while paused, and offscreen.
  * The interval defaults to 3 seconds (used on the Projects list); the homepage
  * feature passes half of its project-turn interval so two photos show per turn.
+ * fit="contain" shows each photo at its original ratio inside a fixed frame
+ * (no crop, no layout shift as photos rotate). The Projects list keeps cover.
  */
 export default function PhotoRotator({
   photos,
   sizes,
   intervalMs = DEFAULT_ROTATE_MS,
+  fit = 'cover',
   paused = false,
   priority = false,
   className = '',
@@ -27,6 +30,7 @@ export default function PhotoRotator({
   photos: Image[]
   sizes: string
   intervalMs?: number
+  fit?: 'cover' | 'contain'
   paused?: boolean
   priority?: boolean
   className?: string
@@ -60,7 +64,9 @@ export default function PhotoRotator({
   return (
     <div
       ref={frameRef}
-      className={`relative aspect-[4/3] w-full overflow-hidden border border-ink/12 bg-cream ${className}`}
+      className={`relative aspect-[4/3] w-full overflow-hidden border border-ink/12 ${
+        fit === 'contain' ? 'bg-background' : 'bg-cream'
+      } ${className}`}
       aria-hidden="true"
     >
       {photos.map((photo, i) => (
@@ -71,10 +77,12 @@ export default function PhotoRotator({
           fill
           sizes={sizes}
           priority={priority && i === 0}
-          className={`object-cover object-top transition-opacity duration-700 ease-out motion-reduce:transition-none ${
+          className={`${
+            fit === 'contain' ? 'object-contain object-center' : 'object-cover object-top'
+          } transition-opacity duration-700 ease-out motion-reduce:transition-none ${
             i === shown ? 'opacity-100' : 'opacity-0'
           }`}
-          style={{ objectPosition: photoPosition(photo) }}
+          style={fit === 'contain' ? undefined : { objectPosition: photoPosition(photo) }}
         />
       ))}
     </div>

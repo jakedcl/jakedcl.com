@@ -119,7 +119,7 @@ export default function FeaturedProjects({
 
   return (
     <section
-      className="mt-8 border-t border-ink/10 pt-8"
+      className="featured-block mt-8 border-t border-ink/10 pt-8"
       {...(label ? { 'aria-label': label } : {})}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -136,17 +136,19 @@ export default function FeaturedProjects({
         <Link
           href={`/projects/${current.slug}`}
           className={`group grid gap-5 ${
-            shownPhotos.length > 0 ? 'sm:grid-cols-[min(42%,13rem)_1fr] sm:items-start' : ''
+            shownPhotos.length > 0 ? 'sm:grid-cols-[auto_1fr] sm:items-start' : ''
           }`}
         >
           {shownPhotos.length > 0 ? (
             <PhotoRotator
               key={shownPhotos.map((photo) => photo.url).join('|')}
               photos={shownPhotos}
-              sizes="(min-width: 640px) 13rem, 100vw"
+              sizes="(min-width: 640px) 16rem, 100vw"
               intervalMs={photoMs}
+              fit="contain"
               paused={paused}
               priority={index === 0}
+              className="featured-photo-frame"
             />
           ) : null}
           <div>

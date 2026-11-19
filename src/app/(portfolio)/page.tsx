@@ -19,43 +19,45 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(site, home)) }}
       />
-      {site.name ? <p className="mt-5 text-sm text-ink/70">{site.name}</p> : null}
-      {site.tagline ? (
-        <p className="font-utility mt-1 text-sm text-ink/60">{site.tagline}</p>
-      ) : null}
+      <div className="home-fit">
+        {site.name ? <p className="mt-5 text-sm text-ink/70">{site.name}</p> : null}
+        {site.tagline ? (
+          <p className="font-utility mt-1 text-sm text-ink/60">{site.tagline}</p>
+        ) : null}
 
-      {site.loadError || home.loadError ? <LoadError>{PAGE_LOAD_ERROR}</LoadError> : null}
+        {site.loadError || home.loadError ? <LoadError>{PAGE_LOAD_ERROR}</LoadError> : null}
 
-      {home.bio.length > 0 ? (
-        <div className="mt-8 space-y-4 text-[0.95rem] leading-relaxed text-ink/90 md:text-base">
-          <BioCopy blocks={home.bio} newTabNote={site.newTabNote} />
-        </div>
-      ) : null}
+        {home.bio.length > 0 ? (
+          <div className="mt-8 space-y-4 text-[0.95rem] leading-relaxed text-ink/90 md:text-base">
+            <BioCopy blocks={home.bio} newTabNote={site.newTabNote} />
+          </div>
+        ) : null}
 
-      {home.featured.length > 0 ? (
-        <FeaturedProjects label={home.featureLabel} projects={home.featured} />
-      ) : null}
+        {home.featured.length > 0 ? (
+          <FeaturedProjects label={home.featureLabel} projects={home.featured} />
+        ) : null}
 
-      {home.links.length > 0 ? (
-        <p className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[0.95rem]">
-          {home.links.map((link) => {
-            const external = link.href.startsWith('http')
-            return (
-              <a
-                key={link._key ?? link.href}
-                href={link.href}
-                className={linkClass}
-                {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-              >
-                {link.label}
-                {external ? <NewTabNote note={site.newTabNote} /> : null}
-              </a>
-            )
-          })}
-        </p>
-      ) : null}
+        {home.links.length > 0 ? (
+          <p className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[0.95rem]">
+            {home.links.map((link) => {
+              const external = link.href.startsWith('http')
+              return (
+                <a
+                  key={link._key ?? link.href}
+                  href={link.href}
+                  className={linkClass}
+                  {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                >
+                  {link.label}
+                  {external ? <NewTabNote note={site.newTabNote} /> : null}
+                </a>
+              )
+            })}
+          </p>
+        ) : null}
 
-      <Footer text={site.footer} />
+        <Footer text={site.footer} />
+      </div>
     </>
   )
 }

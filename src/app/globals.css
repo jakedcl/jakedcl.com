@@ -394,3 +394,62 @@ body::before {
     transform: scaleX(1);
   }
 }
+
+
+/* Homepage: fill the viewport when the content fits, and scroll normally when
+   it does not. min-height (not height) and no overflow:hidden, so nothing clips.
+   The featured frame keeps a fixed 4:3 box; photos letterbox inside it. */
+.portfolio-shell:has(.home-fit) {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.portfolio-shell:has(.home-fit) > main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+}
+
+.portfolio-shell:has(.home-fit) .portfolio-page-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-fit {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.home-fit .featured-block {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.home-fit footer {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+/* Fixed 4:3 frame so project/photo changes never shift the layout.
+   Size tracks available viewport height; width follows the aspect ratio. */
+.home-fit .featured-photo-frame {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  height: auto;
+  background-color: var(--background);
+}
+
+@media (min-width: 640px) {
+  .home-fit .featured-photo-frame {
+    width: clamp(8rem, 26dvh, 16rem);
+    max-width: 42%;
+    height: auto;
+  }
+}
