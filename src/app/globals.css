@@ -398,6 +398,7 @@ body::before {
 
 /* Homepage: fill the viewport when the content fits, and scroll normally when
    it does not. min-height (not height) and no overflow:hidden, so nothing clips.
+   Content is flex-grow only (no shrink) so the featured frame is never squashed.
    The featured frame keeps a fixed 4:3 box; photos letterbox inside it. */
 .portfolio-shell:has(.home-fit) {
   min-height: 100vh;
@@ -407,27 +408,27 @@ body::before {
 }
 
 .portfolio-shell:has(.home-fit) > main {
-  flex: 1 1 auto;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
 }
 
 .portfolio-shell:has(.home-fit) .portfolio-page-body {
-  flex: 1 1 auto;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
 }
 
 .home-fit {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 0 auto;
   flex-direction: column;
 }
 
 .home-fit .featured-block {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 0 auto;
   flex-direction: column;
   justify-content: center;
 }
@@ -443,13 +444,15 @@ body::before {
   aspect-ratio: 4 / 3;
   width: 100%;
   height: auto;
+  flex-shrink: 0;
   background-color: var(--background);
 }
 
 @media (min-width: 640px) {
   .home-fit .featured-photo-frame {
-    width: clamp(8rem, 26dvh, 16rem);
-    max-width: 42%;
+    width: clamp(12rem, 30dvh, 16rem);
+    min-width: 12rem;
+    max-width: 16rem;
     height: auto;
   }
 }
