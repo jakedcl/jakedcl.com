@@ -83,6 +83,7 @@ export const projectPageQuery = groq`{
     pageName,
     backLinkLabel,
     visitLinkLabel,
+    githubLinkLabel,
     galleryAriaLabel,
     openPhotoLabel,
     previousPhotoLabel,
@@ -95,6 +96,7 @@ export const projectPageQuery = groq`{
     "slug": slug.current,
     description,
     link,
+    githubUrl,
     ${photos},
     details${richTextWithLists},
     ${seo}
