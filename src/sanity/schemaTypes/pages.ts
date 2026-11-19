@@ -90,7 +90,7 @@ export const homePageType = defineType({
     {
       name: 'feature',
       title: 'Featured projects',
-      description: 'Turn on “Featured on homepage” on any project (Projects > All projects) to show it here. Several featured projects take turns.',
+      description: 'Turn on “Featured on homepage” on any project (Projects > All projects) to show it here. Featured projects take turns in a random order each visit.',
     },
   ],
   fields: [

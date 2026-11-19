@@ -6,7 +6,7 @@ import { getSite } from '@/lib/content'
 export default async function NotFound() {
   const site = await getSite()
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center bg-background px-5 text-ink">
+    <main className="portfolio-shell mx-auto flex min-h-screen max-w-2xl flex-col justify-center bg-background px-5 text-ink">
       {site.notFoundTitle ? (
         <h1 className="font-shape text-3xl font-extrabold tracking-tight">{site.notFoundTitle}</h1>
       ) : null}
