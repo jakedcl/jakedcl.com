@@ -173,7 +173,7 @@ export default function FeaturedProjects({
 
   return (
     <section
-      className="featured-block mt-5"
+      className="featured-block mt-6"
       {...(label ? { 'aria-label': label } : {})}
     >
       {label ? (
