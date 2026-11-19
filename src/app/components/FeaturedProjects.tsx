@@ -187,26 +187,29 @@ export default function FeaturedProjects({
           }`}
         >
           {shownPhotos.length > 0 ? (
-            <Link
-              href={`/projects/${current.slug}`}
-              aria-label={current.name}
-              data-featured-pause=""
-              onMouseEnter={pause}
-              onMouseLeave={resumeUnlessMovingToPauseTarget}
-              onFocus={pause}
-              onBlur={resumeUnlessMovingToPauseTarget}
-            >
-              <PhotoRotator
-                photos={shownPhotos}
-                preloadPhotos={preloadPhotos}
-                sizes="(min-width: 640px) 16rem, 100vw"
-                intervalMs={photoMs}
-                fit="contain"
-                paused={paused}
-                priority={index === 0}
-                className="featured-photo-frame"
-              />
-            </Link>
+            <div className="featured-media w-full sm:w-auto">
+              <Link
+                href={`/projects/${current.slug}`}
+                aria-label={current.name}
+                data-featured-pause=""
+                onMouseEnter={pause}
+                onMouseLeave={resumeUnlessMovingToPauseTarget}
+                onFocus={pause}
+                onBlur={resumeUnlessMovingToPauseTarget}
+              >
+                <PhotoRotator
+                  photos={shownPhotos}
+                  preloadPhotos={preloadPhotos}
+                  sizes="(min-width: 640px) 16rem, 100vw"
+                  intervalMs={photoMs}
+                  fit="contain"
+                  paused={paused}
+                  priority={index === 0}
+                  className="featured-photo-frame"
+                />
+              </Link>
+              {count > 1 ? <FeaturedProgress projects={order} index={index} paused={paused} reduced={reduced} onGoTo={goTo} /> : null}
+            </div>
           ) : null}
           <FeaturedCopy
             projects={order}
@@ -218,41 +221,65 @@ export default function FeaturedProjects({
         </div>
       </div>
 
-      {count > 1 ? (
-        <div className="mt-4 flex gap-2">
-          {order.map((project, i) => {
-            const active = i === index % count
-            return (
-              <button
-                key={project._id}
-                type="button"
-                aria-label={project.name}
-                aria-current={active ? 'true' : undefined}
-                onClick={() => goTo(i)}
-                className="relative h-1.5 w-6 overflow-hidden bg-ink/15 hover:bg-ink/30"
-              >
-                {active ? (
-                  <span
-                    key={index}
-                    className={`featured-progress-fill absolute inset-0 origin-left bg-signal-yellow ${
-                      reduced ? 'scale-x-100' : ''
-                    }`}
-                    style={
-                      reduced
-                        ? undefined
-                        : ({
-                            '--featured-turn': `${TURN_MS}ms`,
-                            animationPlayState: paused ? 'paused' : 'running',
-                          } as CSSProperties)
-                    }
-                  />
-                ) : null}
-              </button>
-            )
-          })}
-        </div>
+      {shownPhotos.length === 0 && count > 1 ? (
+        <FeaturedProgress projects={order} index={index} paused={paused} reduced={reduced} onGoTo={goTo} />
       ) : null}
     </section>
+  )
+}
+
+
+function FeaturedProgress({
+  projects,
+  index,
+  paused,
+  reduced,
+  onGoTo,
+}: {
+  projects: FeaturedProject[]
+  index: number
+  paused: boolean
+  reduced: boolean
+  onGoTo: (nextIndex: number) => void
+}) {
+  const count = projects.length
+  return (
+    /* 7px visual gap to the photo; the bars themselves are 13×2.5px.
+       The button's hit area extends around the bar without changing that gap. */
+    <div className="mt-[7px] flex justify-center gap-[3px]">
+      {projects.map((project, i) => {
+        const active = i === index % count
+        return (
+          <button
+            key={project._id}
+            type="button"
+            aria-label={project.name}
+            aria-current={active ? 'true' : undefined}
+            onClick={() => onGoTo(i)}
+            className="group relative h-[2.5px] w-[13px] after:absolute after:-inset-y-2 after:-inset-x-px"
+          >
+            <span className="relative block h-full w-full overflow-hidden rounded-[1px] bg-ink/15 group-hover:bg-ink/30">
+              {active ? (
+                <span
+                  key={index}
+                  className={`featured-progress-fill absolute inset-0 origin-left bg-signal-yellow ${
+                    reduced ? 'scale-x-100' : ''
+                  }`}
+                  style={
+                    reduced
+                      ? undefined
+                      : ({
+                          '--featured-turn': `${TURN_MS}ms`,
+                          animationPlayState: paused ? 'paused' : 'running',
+                        } as CSSProperties)
+                  }
+                />
+              ) : null}
+            </span>
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
