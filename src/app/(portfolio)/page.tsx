@@ -1,4 +1,5 @@
 import { getHome, getSite, type Home, type Site } from '@/lib/content'
+import { contentLinkClass } from '@/lib/contentLink'
 import BioCopy from '../components/BioCopy'
 import FeaturedProjects from '../components/FeaturedProjects'
 import Footer from '../components/Footer'
@@ -7,8 +8,7 @@ import NewTabNote from '../components/NewTabNote'
 
 export const revalidate = 60
 
-const linkClass =
-  'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
+const linkClass = contentLinkClass
 
 export default async function HomePage() {
   const [site, home] = await Promise.all([getSite(), getHome()])

@@ -472,3 +472,20 @@ body::before {
     aspect-ratio: 4 / 3;
   }
 }
+
+/* Portfolio content links: --content-link-hover advances on each hover/focus (see LinkHoverCycle). */
+.portfolio-shell {
+  --content-link-hover: var(--signal-yellow);
+}
+
+.portfolio-shell .content-link:hover,
+.portfolio-shell .content-link:focus-visible {
+  color: var(--content-link-hover);
+  text-decoration-color: var(--content-link-hover);
+}
+
+.portfolio-shell .content-link:hover .content-link-mark,
+.portfolio-shell .content-link:focus-visible .content-link-mark {
+  color: var(--content-link-hover);
+  text-decoration-color: var(--content-link-hover);
+}

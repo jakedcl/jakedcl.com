@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState, useSyncExternalStore, type CSSProperties } from 'react'
 
+import { contentLinkClass } from '@/lib/contentLink'
 import type { FeaturedProject, Image } from '@/lib/content'
 import sanityImageLoader from '@/lib/sanityImageLoader'
 import PhotoRotator from './PhotoRotator'
@@ -10,8 +11,7 @@ import useReducedMotion from './useReducedMotion'
 
 /** How long each featured project stays on screen. Photos advance at half this. */
 const TURN_MS = 4500
-const nameLinkClass =
-  'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
+const nameLinkClass = contentLinkClass
 
 type Seed = { order: FeaturedProject[]; firstPhotos: Image[]; nextPhotos: Image[] }
 

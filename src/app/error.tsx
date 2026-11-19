@@ -1,5 +1,7 @@
 'use client'
 
+import { contentLinkClass } from '@/lib/contentLink'
+
 export default function Error({
   reset,
 }: {
@@ -17,7 +19,7 @@ export default function Error({
       <button
         type="button"
         onClick={() => reset()}
-        className="mt-6 w-fit underline decoration-ink/30 underline-offset-[3px] hover:text-signal-blue hover:decoration-signal-blue"
+        className={`${contentLinkClass} mt-6 w-fit`}
       >
         Try again
       </button>

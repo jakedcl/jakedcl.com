@@ -1,9 +1,10 @@
 import { PortableText, type PortableTextBlock, type PortableTextComponents } from 'next-sanity'
 
+import { contentLinkClass } from '@/lib/contentLink'
+
 import NewTabNote from './NewTabNote'
 
-const linkClass =
-  'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
+const linkClass = contentLinkClass
 
 function components(newTabNote: string): PortableTextComponents {
   return {

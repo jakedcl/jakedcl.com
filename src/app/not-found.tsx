@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import { getSite } from '@/lib/content'
+import { contentLinkClass } from '@/lib/contentLink'
 
 // Text comes from Studio > Site-wide > “Page not found” page.
 export default async function NotFound() {
@@ -16,7 +17,7 @@ export default async function NotFound() {
       {site.notFoundLinkLabel ? (
         <Link
           href="/"
-          className="mt-6 w-fit underline decoration-ink/30 underline-offset-[3px] hover:text-signal-blue hover:decoration-signal-blue"
+          className={`${contentLinkClass} mt-6 w-fit`}
         >
           {site.notFoundLinkLabel}
         </Link>

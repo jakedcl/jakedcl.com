@@ -1,8 +1,9 @@
 import type { Certification, Role, SkillGroup } from '@/lib/content'
+import { contentLinkClass } from '@/lib/contentLink'
+
 import NewTabNote from './NewTabNote'
 
-const linkClass =
-  'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
+const linkClass = contentLinkClass
 
 function OutLink({ href, label, newTabNote }: { href: string; label: string; newTabNote: string }) {
   const external = href.startsWith('http')

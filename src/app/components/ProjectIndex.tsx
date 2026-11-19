@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import type { ProjectRow as Project } from '@/lib/content'
+import { contentLinkClass, contentLinkMarkClass } from '@/lib/contentLink'
 import PhotoRotator from './PhotoRotator'
 
 function RowContent({ project }: { project: Project }) {
@@ -11,7 +12,7 @@ function RowContent({ project }: { project: Project }) {
       <div className="min-w-0">
         <p
           id={nameId}
-          className="font-medium text-ink underline decoration-ink/30 underline-offset-[3px] transition-colors group-hover:text-signal-blue group-hover:decoration-signal-blue"
+          className={`${contentLinkMarkClass} font-medium text-ink underline decoration-ink/30 underline-offset-[3px]`}
         >
           {project.name}
         </p>
@@ -54,7 +55,7 @@ function ProjectRow({ project }: { project: Project }) {
         href={`/work/${project.slug}`}
         aria-labelledby={`project-${project._id}-name`}
         {...(project.description ? { 'aria-describedby': `project-${project._id}-description` } : {})}
-        className={`${rowClass} -mx-2 px-2 transition-colors hover:bg-cream/70`}
+        className={`${contentLinkClass} ${rowClass} -mx-2 px-2 transition-colors hover:bg-cream/70`}
       >
         <RowContent project={project} />
       </Link>

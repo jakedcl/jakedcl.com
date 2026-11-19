@@ -8,12 +8,12 @@ import ProjectDetails from '@/app/components/ProjectDetails'
 import ProjectGallery from '@/app/components/ProjectGallery'
 import SectionPageShell from '@/app/components/SectionPageShell'
 import { getProjectPage, getProjectSlugs, getSite } from '@/lib/content'
+import { contentLinkClass } from '@/lib/contentLink'
 import { pageMetadata } from '@/lib/metadata'
 
 export const revalidate = 60
 
-const linkClass =
-  'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
+const linkClass = contentLinkClass
 
 type Params = { params: Promise<{ slug: string }> }
 

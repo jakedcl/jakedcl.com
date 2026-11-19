@@ -3,6 +3,7 @@
 import { useId, useState } from 'react'
 
 import type { Role } from '@/lib/content'
+import { contentLinkClass } from '@/lib/contentLink'
 import { RoleList } from './ResumeSections'
 
 /**
@@ -54,7 +55,7 @@ export default function ExperienceJobs({
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
             aria-controls={panelId}
-            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm leading-relaxed text-ink/85 underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue"
+            className={`${contentLinkClass} inline-flex items-center gap-2 px-3 py-1.5 text-sm leading-relaxed text-ink/85`}
           >
             {label}
             <span
