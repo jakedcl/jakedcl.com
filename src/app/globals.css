@@ -373,7 +373,7 @@ body::before {
   }
 
   .featured-progress-fill {
-    animation: featured-progress-fill var(--featured-turn, 6s) linear forwards;
+    animation: featured-progress-fill var(--featured-turn, 3s) linear forwards;
   }
 }
 

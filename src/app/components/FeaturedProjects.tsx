@@ -8,7 +8,7 @@ import PhotoRotator from './PhotoRotator'
 import useReducedMotion from './useReducedMotion'
 
 /** How long each featured project stays on screen. Photos advance at half this. */
-const TURN_MS = 6000
+const TURN_MS = 3000
 
 const nameLinkClass =
   'underline decoration-ink/30 underline-offset-[3px] transition-colors group-hover:text-signal-blue group-hover:decoration-signal-blue'
