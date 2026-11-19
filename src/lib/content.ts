@@ -290,6 +290,7 @@ type RawProject = {
   description?: string | null
   featuredPitch?: string | null
   link?: string | null
+  githubUrl?: string | null
   photos?: RawImage[] | null
   details?: PortableTextBlock[] | null
   seo?: Raw<Seo> | null
@@ -361,6 +362,7 @@ export type ProjectPageLabels = {
   pageName: string
   backLinkLabel: string
   visitLinkLabel: string
+  githubLinkLabel: string
   galleryAriaLabel: string
   openPhotoLabel: string
   previousPhotoLabel: string
@@ -373,6 +375,7 @@ export type ProjectDetail = {
   slug: string
   description: string
   link: string
+  githubUrl: string
   photos: Image[]
   details: PortableTextBlock[]
   seo: Seo
@@ -384,6 +387,7 @@ const EMPTY_PROJECT_LABELS: ProjectPageLabels = {
   pageName: '',
   backLinkLabel: '',
   visitLinkLabel: '',
+  githubLinkLabel: '',
   galleryAriaLabel: '',
   openPhotoLabel: '',
   previousPhotoLabel: '',
@@ -402,6 +406,7 @@ export async function getProjectPage(slug: string): Promise<ProjectPage> {
       pageName: text(l.pageName),
       backLinkLabel: text(l.backLinkLabel),
       visitLinkLabel: text(l.visitLinkLabel),
+      githubLinkLabel: text(l.githubLinkLabel),
       galleryAriaLabel: text(l.galleryAriaLabel),
       openPhotoLabel: text(l.openPhotoLabel),
       previousPhotoLabel: text(l.previousPhotoLabel),
@@ -420,6 +425,7 @@ export async function getProjectPage(slug: string): Promise<ProjectPage> {
         slug: projectSlug,
         description: text(p.description),
         link: httpUrlAsTyped(p.link),
+        githubUrl: httpUrlAsTyped(p.githubUrl),
         photos: imagesFrom(p.photos),
         details: richTextFrom(p.details),
         seo: seoFrom(p.seo),

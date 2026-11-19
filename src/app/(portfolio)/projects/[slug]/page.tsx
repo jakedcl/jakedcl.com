@@ -37,6 +37,18 @@ function host(url: string): string {
   }
 }
 
+/** Hostname plus path, without https://, www, a trailing slash, or .git. */
+function shortAddress(url: string): string {
+  try {
+    const parsed = new URL(url)
+    const hostName = parsed.host.replace(/^www\./, '')
+    const path = parsed.pathname.replace(/\/+$/, '').replace(/\.git$/, '')
+    return path && path !== '/' ? `${hostName}${path}` : hostName
+  } catch {
+    return url
+  }
+}
+
 export default async function ProjectPage({ params }: Params) {
   const { slug } = await params
   const [site, page] = await Promise.all([getSite(), getProjectPage(slug)])
@@ -72,19 +84,30 @@ export default async function ProjectPage({ params }: Params) {
           </p>
         ) : null}
 
-        {project.link && labels.visitLinkLabel ? (
-          <p className="mt-4 text-sm">
-            <a
-              href={project.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`font-shape font-bold text-ink ${linkClass} decoration-signal-yellow`}
-            >
-              {labels.visitLinkLabel}
-              <span className="font-utility ml-2 font-normal text-ink/60">{host(project.link)}</span>
-              <span aria-hidden className="ml-1">↗</span>
-              <NewTabNote note={site.newTabNote} />
-            </a>
+        {project.link || project.githubUrl ? (
+          <p className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[0.95rem]">
+            {project.link ? (
+              <a
+                href={project.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={linkClass}
+              >
+                {host(project.link)}
+                <NewTabNote note={site.newTabNote} />
+              </a>
+            ) : null}
+            {project.githubUrl ? (
+              <a
+                href={project.githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={linkClass}
+              >
+                {labels.githubLinkLabel || shortAddress(project.githubUrl)}
+                <NewTabNote note={site.newTabNote} />
+              </a>
+            ) : null}
           </p>
         ) : null}
 

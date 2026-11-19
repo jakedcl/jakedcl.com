@@ -35,7 +35,14 @@ export const projectType = defineType({
       name: 'link',
       title: 'Project link',
       type: 'url',
-      description: 'The live site. Shown on the project\'s page as the visit link.',
+      description: 'The live site. Shown on the project\'s page as a plain link (the web address, without https:// or www).',
+      validation: (rule) => rule.uri({scheme: ['http', 'https']}),
+    }),
+    defineField({
+      name: 'githubUrl',
+      title: 'GitHub source link',
+      type: 'url',
+      description: 'The project\'s source on GitHub. Shown on the project\'s page next to the live site link when this is filled in.',
       validation: (rule) => rule.uri({scheme: ['http', 'https']}),
     }),
     defineField({
