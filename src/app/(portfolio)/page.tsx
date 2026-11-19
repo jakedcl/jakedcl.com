@@ -22,7 +22,7 @@ export default async function HomePage() {
       <div className="home-fit">
         {site.name ? <p className="mt-5 text-sm text-ink/70">{site.name}</p> : null}
         {site.tagline ? (
-          <p className="font-utility mt-1 text-sm text-ink/60">{site.tagline}</p>
+          <p className="font-utility mt-1 text-[0.65rem] uppercase tracking-[0.16em] text-ink/40">{site.tagline}</p>
         ) : null}
 
         {site.loadError || home.loadError ? <LoadError>{PAGE_LOAD_ERROR}</LoadError> : null}
