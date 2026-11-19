@@ -7,22 +7,26 @@ import { photoPosition } from '@/lib/photo'
 import SanityImage from './SanityImage'
 import useReducedMotion from './useReducedMotion'
 
-const ROTATE_MS = 3000
+const DEFAULT_ROTATE_MS = 3000
 
 /**
- * A 4:3 frame that crossfades through a project's screenshots every 3 seconds.
+ * A 4:3 frame that crossfades through a project's screenshots.
  * Decorative (the surrounding link names the project), so the images have empty alt.
  * One photo stays still. Rotation stops for reduced motion, while paused, and offscreen.
+ * The interval defaults to 3 seconds (used on the Projects list); the homepage
+ * feature passes half of its project-turn interval so two photos show per turn.
  */
 export default function PhotoRotator({
   photos,
   sizes,
+  intervalMs = DEFAULT_ROTATE_MS,
   paused = false,
   priority = false,
   className = '',
 }: {
   photos: Image[]
   sizes: string
+  intervalMs?: number
   paused?: boolean
   priority?: boolean
   className?: string
@@ -46,9 +50,9 @@ export default function PhotoRotator({
 
   useEffect(() => {
     if (!rotates || !onScreen || paused) return
-    const timer = window.setInterval(() => setIndex((i) => (i + 1) % count), ROTATE_MS)
+    const timer = window.setInterval(() => setIndex((i) => (i + 1) % count), intervalMs)
     return () => window.clearInterval(timer)
-  }, [rotates, onScreen, paused, count])
+  }, [rotates, onScreen, paused, count, intervalMs])
 
   if (count === 0) return null
   const shown = rotates ? index % count : 0

@@ -43,7 +43,7 @@ export const projectType = defineType({
       title: 'Featured on homepage',
       type: 'boolean',
       initialValue: false,
-      description: 'On: this project shows in the featured block on the homepage. Several featured projects take turns, in the same order as All projects.',
+      description: 'On: this project shows in the featured block on the homepage. Featured projects take turns in a random order each visit, and two random screenshots show in each turn.',
     }),
     defineField({
       name: 'featuredPitch',
