@@ -58,7 +58,7 @@ export const siteGlobalsType = defineType({
       name: 'footer',
       title: 'Footer line',
       type: 'string',
-      description: 'Small capitals at the bottom of the homepage and the Projects, Experience, Skills, and About pages.',
+      description: 'Small capitals at the bottom of the homepage and the Work, Experience, Skills, and About pages.',
     }),
     defineField({name: 'notFoundTitle', title: 'Heading', type: 'string', fieldset: 'notFound'}),
     defineField({name: 'notFoundBody', title: 'Text', type: 'string', fieldset: 'notFound'}),
@@ -89,8 +89,8 @@ export const homePageType = defineType({
   fieldsets: [
     {
       name: 'feature',
-      title: 'Featured projects',
-      description: 'Turn on “Featured on homepage” on any project (Projects > All projects) to show it here. Featured projects take turns in a random order each visit.',
+      title: 'Featured work',
+      description: 'Turn on “Featured on homepage” on any work item (Work > All work) to show it here. Featured items take turns in a random order each visit.',
     },
   ],
   fields: [
@@ -122,11 +122,11 @@ export const homePageType = defineType({
 
 export const projectsPageType = defineType({
   name: 'projectsPage',
-  title: 'Projects page',
+  title: 'Work page',
   type: 'document',
-  description: 'jakedcl.com/projects and the shared text on every project page. The projects themselves are under All projects.',
+  description: 'jakedcl.com/work and the shared text on every work item page. The work items themselves are under All work.',
   fieldsets: [
-    {name: 'projectPage', title: 'Project pages', description: 'Text used on every project\'s own page (jakedcl.com/projects/…).'},
+    {name: 'projectPage', title: 'Work item pages', description: 'Text used on every work item\'s own page (jakedcl.com/work/…).'},
     {
       name: 'photoViewer',
       title: 'Screenshot viewer',
@@ -135,13 +135,13 @@ export const projectsPageType = defineType({
     },
   ],
   fields: [
-    pageName('Projects'),
+    pageName('Work'),
     defineField({
       name: 'backLinkLabel',
       title: 'Back link',
       type: 'string',
       fieldset: 'projectPage',
-      description: 'The link at the top of a project page that returns to the list, e.g. All projects.',
+      description: 'The link at the top of a work item page that returns to the list, e.g. All work.',
     }),
     defineField({
       name: 'visitLinkLabel',
@@ -178,7 +178,7 @@ export const projectsPageType = defineType({
     defineField({name: 'closePhotoLabel', title: 'Close button', type: 'string', fieldset: 'photoViewer'}),
     seo,
   ],
-  preview: {prepare: () => ({title: 'Projects page'})},
+  preview: {prepare: () => ({title: 'Work page'})},
 })
 
 export const experiencePageType = defineType({
@@ -288,10 +288,10 @@ export const caseStudyPageType = defineType({
   fields: [
     defineField({
       name: 'project',
-      title: 'Project',
+      title: 'Work item',
       type: 'reference',
       to: [{type: 'project'}],
-      description: 'Which project this case study is about. Its name is the page heading and the name in the homepage feature. Leave empty to hide /showcase and the homepage feature.',
+      description: 'Which work item this case study is about. Its name is the page heading and the name in the homepage feature. Leave empty to hide /showcase and the homepage feature.',
       validation: (rule) => rule.required().warning('Empty hides /showcase and the homepage feature.'),
     }),
     defineField({name: 'eyebrow', title: 'Small line above the name', type: 'string'}),

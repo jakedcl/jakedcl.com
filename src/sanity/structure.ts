@@ -14,18 +14,18 @@ export const structure: StructureResolver = (S, context) =>
       S.divider(),
       S.listItem().singleton('homePage'),
       S.listItem()
-        .title('Projects')
+        .title('Work')
         .id('projects')
         .icon(ProjectsIcon)
         .child(
           S.list()
-            .title('Projects')
+            .title('Work')
             .items([
               S.listItem().singleton('projectsPage'),
               orderableDocumentListDeskItem({
                 type: 'project',
                 id: 'all-projects',
-                title: 'All projects (drag to reorder)',
+                title: 'All work (drag to reorder)',
                 icon: ProjectsIcon,
                 S,
                 context,

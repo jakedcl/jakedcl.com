@@ -189,7 +189,7 @@ export default function FeaturedProjects({
           {shownPhotos.length > 0 ? (
             <div className="featured-media w-full sm:w-auto">
               <Link
-                href={`/projects/${current.slug}`}
+                href={`/work/${current.slug}`}
                 aria-label={current.name}
                 data-featured-pause=""
                 onMouseEnter={pause}
@@ -306,7 +306,7 @@ function FeaturedCopy({
       <h2 className="font-display text-xl font-extrabold tracking-tight text-ink">
         {interactive ? (
           <Link
-            href={`/projects/${project.slug}`}
+            href={`/work/${project.slug}`}
             className={nameLinkClass}
             data-featured-pause=""
             onMouseEnter={onPause}

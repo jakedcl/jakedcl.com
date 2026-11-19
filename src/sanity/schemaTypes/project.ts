@@ -5,7 +5,7 @@ import {detailedRichTextField} from './objects'
 
 export const projectType = defineType({
   name: 'project',
-  title: 'Project',
+  title: 'Work',
   type: 'document',
   orderings: [orderRankOrdering],
   fields: [
@@ -13,14 +13,14 @@ export const projectType = defineType({
       name: 'name',
       title: 'Name',
       type: 'string',
-      description: 'Shown in the Projects list, as the heading on the project\'s page, and on the homepage when featured.',
+      description: 'Shown in the Work list, as the heading on the work item\'s page, and on the homepage when featured.',
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'slug',
       title: 'Page address',
       type: 'slug',
-      description: 'The end of this project\'s page address: jakedcl.com/projects/<this>. Click Generate to make it from the name. Changing it breaks old links to the page.',
+      description: 'The end of this work item\'s page address: jakedcl.com/work/<this>. Click Generate to make it from the name. Changing it breaks old links to the page.',
       options: {source: 'name', maxLength: 64},
       validation: (rule) => rule.required().error('The project needs a page address to get its own page.'),
     }),
@@ -29,11 +29,11 @@ export const projectType = defineType({
       title: 'Short description',
       type: 'text',
       rows: 3,
-      description: 'Plain text. Shown next to the name in the Projects list (up to about 4 lines there), at the top of the project\'s page, and on the homepage when featured.',
+      description: 'Plain text. Shown next to the name in the Work list (up to about 4 lines there), at the top of the work item\'s page, and on the homepage when featured.',
     }),
     defineField({
       name: 'link',
-      title: 'Project link',
+      title: 'Live site link',
       type: 'url',
       description: 'The live site. Shown on the project\'s page as a plain link (the web address, without https:// or www).',
       validation: (rule) => rule.uri({scheme: ['http', 'https']}),
@@ -50,7 +50,7 @@ export const projectType = defineType({
       title: 'Featured on homepage',
       type: 'boolean',
       initialValue: false,
-      description: 'On: this project shows in the featured block on the homepage. Featured projects take turns in a random order each visit, and two random screenshots show in each turn.',
+      description: 'On: this work item shows in the featured block on the homepage. Featured items take turns in a random order each visit, and two random screenshots show in each turn.',
     }),
     defineField({
       name: 'featuredPitch',
@@ -64,7 +64,7 @@ export const projectType = defineType({
       name: 'photos',
       title: 'Screenshots',
       type: 'array',
-      description: 'Add as many as you like and drag to reorder. They take turns every 3 seconds in the Projects list and on the homepage, and all show on the project\'s page.',
+      description: 'Add as many as you like and drag to reorder. They take turns every 3 seconds in the Work list and on the homepage, and all show on the work item\'s page.',
       of: [
         defineArrayMember({
           type: 'image',
@@ -78,14 +78,14 @@ export const projectType = defineType({
     }),
     detailedRichTextField(
       'details',
-      'Project page write-up',
-      'The longer write-up on the project\'s own page, under the screenshots. Use headings, bullet or numbered lists, bold, italic, and links.',
+      'Work page write-up',
+      'The longer write-up on the work item\'s own page, under the screenshots. Use headings, bullet or numbered lists, bold, italic, and links.',
     ),
     defineField({
       name: 'seo',
-      title: 'Search & sharing for this project\'s page',
+      title: 'Search & sharing for this work page',
       type: 'pageSeo',
-      description: 'Not shown on the page. What Google, browser tabs, and shared-link previews show for this project\'s page.',
+      description: 'Not shown on the page. What Google, browser tabs, and shared-link previews show for this work item\'s page.',
     }),
     orderRankField({type: 'project'}),
     defineField({
@@ -103,7 +103,7 @@ export const projectType = defineType({
       type: 'number',
       readOnly: true,
       hidden: true,
-      deprecated: {reason: 'Drag projects in All projects to reorder.'},
+      deprecated: {reason: 'Drag work items in All work to reorder.'},
     }),
   ],
   preview: {
@@ -116,7 +116,7 @@ export const projectType = defineType({
         subtitle = link
       }
       return {
-        title: title || 'Untitled project',
+        title: title || 'Untitled work item',
         subtitle: [subtitle, featured ? 'Featured' : ''].filter(Boolean).join(' · ') || undefined,
         media,
       }

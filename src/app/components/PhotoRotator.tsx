@@ -14,10 +14,10 @@ const FADE_MS = 700
  * A 4:3 frame that crossfades through a project's screenshots.
  * Decorative (the surrounding link names the project), so the images have empty alt.
  * One photo stays still. Rotation stops for reduced motion, while paused, and offscreen.
- * The interval defaults to 3 seconds (used on the Projects list); the homepage
+ * The interval defaults to 3 seconds (used on the Work list); the homepage
  * feature passes half of its project-turn interval so two photos show per turn.
  * fit="contain" shows each photo at its original ratio inside a fixed frame
- * (no crop, no layout shift as photos rotate). The Projects list keeps cover.
+ * (no crop, no layout shift as photos rotate). The Work list keeps cover.
  * When the photo set changes (a new featured project), the previous image stays
  * visible until the next one has loaded, then they crossfade — the frame is not remounted.
  */

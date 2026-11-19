@@ -51,7 +51,7 @@ function ProjectRow({ project }: { project: Project }) {
   return (
     <li>
       <Link
-        href={`/projects/${project.slug}`}
+        href={`/work/${project.slug}`}
         aria-labelledby={`project-${project._id}-name`}
         {...(project.description ? { 'aria-describedby': `project-${project._id}-description` } : {})}
         className={`${rowClass} -mx-2 px-2 transition-colors hover:bg-cream/70`}

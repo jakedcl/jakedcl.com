@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import LoadError, { PROJECTS_LOAD_ERROR } from '@/app/components/LoadError'
+import LoadError, { WORK_LOAD_ERROR } from '@/app/components/LoadError'
 import NewTabNote from '@/app/components/NewTabNote'
 import ProjectDetails from '@/app/components/ProjectDetails'
 import ProjectGallery from '@/app/components/ProjectGallery'
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params
   const [site, page] = await Promise.all([getSite(), getProjectPage(slug)])
   if (!page.project || !page.labels.pageName) return {}
-  return pageMetadata(site, page.project.seo, `/projects/${page.project.slug}`, 'article')
+  return pageMetadata(site, page.project.seo, `/work/${page.project.slug}`, 'article')
 }
 
 function host(url: string): string {
@@ -55,7 +55,7 @@ export default async function ProjectPage({ params }: Params) {
   if (page.loadError) {
     return (
       <SectionPageShell loadError={false} footer={site.footer}>
-        <LoadError>{PROJECTS_LOAD_ERROR}</LoadError>
+        <LoadError>{WORK_LOAD_ERROR}</LoadError>
       </SectionPageShell>
     )
   }
@@ -67,7 +67,7 @@ export default async function ProjectPage({ params }: Params) {
       <article>
         {labels.backLinkLabel ? (
           <p className="font-utility text-xs text-ink/60">
-            <Link href="/projects" className={`inline-flex items-center gap-1.5 ${linkClass}`}>
+            <Link href="/work" className={`inline-flex items-center gap-1.5 ${linkClass}`}>
               <span aria-hidden>←</span>
               {labels.backLinkLabel}
             </Link>

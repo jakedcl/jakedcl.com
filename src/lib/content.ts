@@ -195,7 +195,7 @@ const EMPTY_SITE: Site = {
   notFoundTitle: '',
   notFoundBody: '',
   notFoundLinkLabel: '',
-  nav: {projects: '', experience: '', skills: '', about: ''},
+  nav: {work: '', experience: '', skills: '', about: ''},
   siteUrl: '',
   allowIndexing: false,
   hiddenPaths: [],
@@ -219,7 +219,7 @@ const EMPTY_SITE: Site = {
 
 type RawSite = {
   globals?: Raw<Site> | null
-  nav?: Raw<NavLabels> | null
+  nav?: Raw<{projects?: string | null; experience?: string | null; skills?: string | null; about?: string | null}> | null
   seo?: (Raw<Omit<Site, 'shareImage' | 'hiddenPaths' | 'keywords'>> & {
     shareImage?: RawImage
     hiddenPaths?: Array<string | null> | null
@@ -238,7 +238,11 @@ export async function getSite(): Promise<Site> {
   const g = raw?.globals ?? {}
   const s = raw?.seo ?? {}
   const nav = {} as NavLabels
-  for (const slug of SECTION_SLUGS) nav[slug] = text(raw?.nav?.[slug])
+  const navRaw = raw?.nav
+  for (const slug of SECTION_SLUGS) {
+    const queryKey = slug === 'work' ? 'projects' : slug
+    nav[slug] = text(navRaw?.[queryKey as keyof typeof navRaw])
+  }
   return {
     loadError: false,
     bigTitle: text(g.bigTitle),

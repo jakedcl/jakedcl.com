@@ -2,7 +2,7 @@
  * Route structure (code, not content). Paths that are real pages or files, so a
  * Studio redirect can never take them over.
  */
-export const SECTION_SLUGS = ['projects', 'experience', 'skills', 'about'] as const
+export const SECTION_SLUGS = ['work', 'experience', 'skills', 'about'] as const
 
 export type SectionSlug = (typeof SECTION_SLUGS)[number]
 
