@@ -12,7 +12,7 @@ export default async function PortfolioLayout({
   const site = await getSite()
 
   return (
-    <div className="min-h-screen bg-background text-ink">
+    <div className="portfolio-shell min-h-screen bg-background text-ink">
       <main className="mx-auto w-full max-w-2xl px-5 pb-16 pt-[max(1.75rem,env(safe-area-inset-top))] sm:pt-14">
         <PortfolioChrome
           heroTitle={site.bigTitle}

@@ -7,7 +7,7 @@ export default function Error({
   reset: () => void
 }) {
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center bg-background px-5 text-ink">
+    <main className="portfolio-shell mx-auto flex min-h-screen max-w-2xl flex-col justify-center bg-background px-5 text-ink">
       <h1 className="font-shape text-3xl font-extrabold tracking-tight">
         This page did not load
       </h1>
