@@ -667,6 +667,14 @@ body::before {
   --content-link-hover: var(--signal-yellow);
 }
 
+.content-link-external-arrow {
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  margin-inline-end: 0.02em;
+  vertical-align: 0.08em;
+}
+
 .portfolio-shell .content-link:hover,
 .portfolio-shell .content-link:focus-visible {
   color: var(--content-link-hover);

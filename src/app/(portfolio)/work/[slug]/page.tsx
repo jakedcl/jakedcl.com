@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import ExternalLinkArrow from '@/app/components/ExternalLinkArrow'
 import LoadError, { WORK_LOAD_ERROR } from '@/app/components/LoadError'
 import NewTabNote from '@/app/components/NewTabNote'
 import ProjectDetails from '@/app/components/ProjectDetails'
@@ -82,10 +83,11 @@ export default async function ProjectPage({ params }: Params) {
                 href={visitLink.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-flex items-center gap-1 ${linkClass}`}
+                className={linkClass}
               >
                 {visitLink.label}
-                <span aria-hidden>↗</span>
+                {'\u2009'}
+                <ExternalLinkArrow />
                 <NewTabNote note={site.newTabNote} />
               </a>
             ) : null}
@@ -94,10 +96,11 @@ export default async function ProjectPage({ params }: Params) {
                 href={sourceLink.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-flex items-center gap-1 ${linkClass}`}
+                className={linkClass}
               >
                 {sourceLink.label}
-                <span aria-hidden>↗</span>
+                {'\u2009'}
+                <ExternalLinkArrow />
                 <NewTabNote note={site.newTabNote} />
               </a>
             ) : null}
