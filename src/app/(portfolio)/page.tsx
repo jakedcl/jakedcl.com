@@ -1,4 +1,4 @@
-import { getHome, getSite, type Home, type Site } from '@/lib/content'
+import { getHome, getSite, type Site } from '@/lib/content'
 import BioCopy from '../components/BioCopy'
 import FeaturedProjects from '../components/FeaturedProjects'
 import LoadError, { PAGE_LOAD_ERROR } from '../components/LoadError'
@@ -12,7 +12,7 @@ export default async function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(site, home)) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(site)) }}
       />
       <div className="home-fit">
         {site.name ? <p className="mt-3 text-sm text-ink/70 sm:mt-4">{site.name}</p> : null}
@@ -37,10 +37,10 @@ export default async function HomePage() {
   )
 }
 
-function structuredData(site: Site, home: Home) {
-  const email = home.links.find((link) => link.href.startsWith('mailto:'))
-  const telephone = home.links.find((link) => link.href.startsWith('tel:'))
-  const sameAs = home.links.map((link) => link.href).filter((href) => href.startsWith('http'))
+function structuredData(site: Site) {
+  const email = site.footerLinks.find((link) => link.href.startsWith('mailto:'))
+  const telephone = site.footerLinks.find((link) => link.href.startsWith('tel:'))
+  const sameAs = site.footerLinks.map((link) => link.href).filter((href) => href.startsWith('http'))
 
   return {
     '@context': 'https://schema.org',

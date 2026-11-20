@@ -527,11 +527,14 @@ body::before {
   cursor: default;
 }
 
-/* Home only: less top padding than sm:pt-14 so a full-width featured photo still fits. */
+/* Same top padding on every portfolio page so the title does not jump between routes. */
 @media (min-width: 640px) {
-  .portfolio-shell:has(.home-fit) > main {
-    padding-top: 2rem !important;
-    padding-bottom: 3rem !important;
+  .portfolio-shell > main.portfolio-main {
+    padding-top: 2rem;
+  }
+
+  .portfolio-shell:has(.home-fit) > main.portfolio-main {
+    padding-bottom: 3rem;
   }
 }
 
