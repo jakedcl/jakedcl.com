@@ -4,13 +4,13 @@ import Link from 'next/link'
 import { useSelectedLayoutSegment } from 'next/navigation'
 import { useEffect, useReducer, type ReactNode } from 'react'
 
-import { contentLinkClass } from '@/lib/contentLink'
+import { contentLinkBareClass } from '@/lib/contentLink'
 import { isSectionSlug } from '@/lib/routes'
 import { introTitleCompact, type SectionNavItem } from '@/lib/sections'
 import IntroName from './IntroName'
 import SectionNav from './SectionNav'
 
-const introLinkClass = `${contentLinkClass} intro-name-link block w-full rounded-sm no-underline outline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--content-link-hover)]`
+const introLinkClass = `${contentLinkBareClass} intro-name-link block w-full rounded-sm outline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--content-link-hover)]`
 
 type IntroState = {
   ready: boolean

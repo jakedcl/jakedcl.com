@@ -3,11 +3,11 @@
 import Link from 'next/link'
 import { useLayoutEffect, useRef } from 'react'
 
-import { contentLinkClass } from '@/lib/contentLink'
 import type { SectionSlug } from '@/lib/routes'
 import type { SectionNavItem } from '@/lib/sections'
 
-const rowLinkBase = `section-nav-link ${contentLinkClass} font-shape text-sm font-bold tracking-tight text-ink underline underline-offset-[4px] decoration-2`
+const rowLinkBase =
+  'section-nav-link font-shape text-sm font-bold tracking-tight text-ink underline underline-offset-[4px] decoration-2 transition-colors'
 
 const droppedTitleBase =
   'section-nav-link section-nav-link--dropped section-nav-page-title font-shape text-sm font-bold tracking-tight text-ink no-underline'

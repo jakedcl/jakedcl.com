@@ -491,14 +491,42 @@ body::before {
   text-decoration-color: var(--content-link-hover);
 }
 
-.portfolio-shell .section-nav-link.content-link:hover,
-.portfolio-shell .section-nav-link.content-link:focus-visible {
-  color: var(--content-link-hover);
-  text-decoration-color: var(--content-link-hover);
+/* Section nav: own accent on hover (not the global link cycle). Underline keeps its accent color. */
+.portfolio-shell .section-nav-link.decoration-signal-yellow:hover,
+.portfolio-shell .section-nav-link.decoration-signal-yellow:focus-visible {
+  color: var(--signal-yellow);
+}
+
+.portfolio-shell .section-nav-link.decoration-signal-blue:hover,
+.portfolio-shell .section-nav-link.decoration-signal-blue:focus-visible {
+  color: var(--signal-blue);
+}
+
+.portfolio-shell .section-nav-link.decoration-signal-red:hover,
+.portfolio-shell .section-nav-link.decoration-signal-red:focus-visible {
+  color: var(--signal-red);
+}
+
+.portfolio-shell .section-nav-link.decoration-signal-green:hover,
+.portfolio-shell .section-nav-link.decoration-signal-green:focus-visible {
+  color: var(--signal-green);
+}
+
+/* Intro home link: cycle colors on the letterforms only (no underline on the link). */
+.portfolio-shell .intro-name-link.content-link {
+  text-decoration: none;
 }
 
 .portfolio-shell .intro-name-link.content-link:hover,
 .portfolio-shell .intro-name-link.content-link:focus-visible {
+  text-decoration: none;
+  color: inherit;
+}
+
+.portfolio-shell .intro-name-link.content-link:hover .intro-name,
+.portfolio-shell .intro-name-link.content-link:focus-visible .intro-name,
+.portfolio-shell .intro-name-link.content-link:hover .intro-dcl,
+.portfolio-shell .intro-name-link.content-link:focus-visible .intro-dcl {
   color: var(--content-link-hover);
 }
 
