@@ -226,6 +226,19 @@ body::before {
   flex-shrink: 0;
 }
 
+.section-nav-link--work-back::before {
+  content: "←";
+  width: 0.45em;
+  height: 0.45em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  color: var(--signal-yellow);
+  font-size: 1.45em;
+  line-height: 1;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .section-nav-link--dropped {
     transition: font-size 0.28s cubic-bezier(0.22, 1, 0.36, 1);

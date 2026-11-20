@@ -28,7 +28,7 @@ Jake edits only in Studio. **No copy, SEO text, URLs, or redirects in code, and 
 | --- | --- | --- |
 | Site-wide | `siteGlobals` | Big title, name, tagline, footer links, screen-reader texts, 404 page |
 | Homepage | `homePage` | Bio, links, featured block label, home SEO. Featured projects = projects with `featured` on, in list order |
-| Work | `projectsPage` + `project` docs | Page name/SEO and shared work-item-page labels (back link, visit link, screenshot viewer); work items (name, slug, short description, link, featured + optional homepage pitch, photos, rich-text `details`, per-item SEO). Order = drag-and-drop (`orderRank`, @sanity/orderable-document-list). Item facts only from `docs/PROJECT_BRIEFS.md`. |
+| Work | `projectsPage` + `project` docs | Page name/SEO and shared work-item-page labels (visit site link, GitHub source link, screenshot viewer); work items (name, slug, short description, link, featured + optional homepage pitch, photos, rich-text `details`, per-item SEO). Order = drag-and-drop (`orderRank`, @sanity/orderable-document-list). Item facts only from `docs/PROJECT_BRIEFS.md`. |
 | Experience / Skills / About | `experiencePage` / `skillsPage` / `aboutPage` | Page name (menu label + tab title), content, SEO |
 | Search & sharing | `seoSettings` | Site address/name, keywords, author, share image, generated card text, favicon, app icon/manifest text, indexing + hidden paths |
 | Redirects | `redirects` | Redirect rules (from, to, permanent) |

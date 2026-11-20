@@ -1,8 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useLayoutEffect, useRef } from 'react'
 
+import { contentLinkClass } from '@/lib/contentLink'
 import {
   portfolioTextPrimary,
   portfolioTypeNav,
@@ -13,7 +15,8 @@ import type { SectionNavItem } from '@/lib/sections'
 
 const rowLinkBase = `section-nav-link ${portfolioTypeNav} ${portfolioTextPrimary} underline underline-offset-[4px] decoration-2 transition-colors`
 
-const droppedTitleBase = `section-nav-link section-nav-link--dropped section-nav-page-title ${portfolioTypeUi} ${portfolioTextPrimary} no-underline`
+const droppedTitleBase = `section-nav-link section-nav-link--dropped section-nav-page-title ${portfolioTypeUi} ${portfolioTextPrimary}`
+const droppedTitleMuted = `${droppedTitleBase} no-underline`
 
 const accentBullet: Record<string, string> = {
   'decoration-signal-yellow': 'before:bg-signal-yellow',
@@ -26,11 +29,20 @@ const NAV_GAP_PX = 16
 const NAV_MOTION_MS = 280
 const NAV_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
-function linkClass(item: SectionNavItem, dropped: boolean) {
+function linkClass(item: SectionNavItem, dropped: boolean, workItemBack: boolean) {
+  if (dropped && workItemBack && item.slug === 'work') {
+    return `${droppedTitleBase} section-nav-link--work-back ${contentLinkClass}`
+  }
   if (dropped) {
-    return `${droppedTitleBase} before:content-[""] ${accentBullet[item.accentDecoration]}`
+    return `${droppedTitleMuted} before:content-[""] ${accentBullet[item.accentDecoration]}`
   }
   return `${rowLinkBase} ${item.accentDecoration}`
+}
+
+function isWorkItemPath(pathname: string | null): boolean {
+  if (!pathname) return false
+  const segments = pathname.split('/').filter(Boolean)
+  return segments.length === 2 && segments[0] === 'work'
 }
 
 export default function SectionNav({
@@ -42,6 +54,8 @@ export default function SectionNav({
   active?: SectionSlug
   ariaLabel: string
 }) {
+  const pathname = usePathname()
+  const workItemBack = isWorkItemPath(pathname)
   const trackRef = useRef<HTMLDivElement>(null)
   const prevRects = useRef<Map<string, DOMRect>>(new Map())
 
@@ -104,7 +118,22 @@ export default function SectionNav({
       >
         {items.map((item) => {
           const dropped = active === item.slug
-          const className = linkClass(item, dropped)
+          const className = linkClass(item, dropped, workItemBack)
+
+          if (dropped && workItemBack && item.slug === 'work') {
+            return (
+              <Link
+                key={item.slug}
+                href="/work"
+                data-nav-slug={item.slug}
+                data-dropped="true"
+                className={className}
+                style={{ marginTop: `${NAV_GAP_PX / 2}px` }}
+              >
+                {item.label}
+              </Link>
+            )
+          }
 
           if (dropped) {
             return (
