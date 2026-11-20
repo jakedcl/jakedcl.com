@@ -667,12 +667,35 @@ body::before {
   --content-link-hover: var(--signal-yellow);
 }
 
+.content-link-external-mark {
+  --content-link-external-underline: color-mix(in srgb, var(--ink) 30%, transparent);
+  display: inline-block;
+  padding-bottom: 3px;
+  background-image: linear-gradient(
+    var(--content-link-external-underline),
+    var(--content-link-external-underline)
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: left bottom;
+  transition:
+    color 0.2s ease,
+    background-image 0.2s ease;
+}
+
+.portfolio-shell .content-link:hover .content-link-external-mark,
+.portfolio-shell .content-link:focus-visible .content-link-external-mark {
+  --content-link-external-underline: var(--content-link-hover);
+}
+
 .content-link-external-arrow {
   display: inline-block;
-  width: 0.75em;
-  height: 0.75em;
-  margin-inline-end: 0.02em;
-  vertical-align: 0.08em;
+  width: 0.8em;
+  height: 0.8em;
+  max-width: none;
+  margin-left: 0.15em;
+  vertical-align: -0.05em;
+  flex-shrink: 0;
 }
 
 .portfolio-shell .content-link:hover,

@@ -8,7 +8,10 @@ import ProjectDetails from '@/app/components/ProjectDetails'
 import ProjectGallery from '@/app/components/ProjectGallery'
 import SectionPageShell from '@/app/components/SectionPageShell'
 import { getProjectPage, getProjectSlugs, getSite } from '@/lib/content'
-import { contentLinkClass } from '@/lib/contentLink'
+import {
+  contentLinkExternalAnchorClass,
+  contentLinkExternalMarkClass,
+} from '@/lib/contentLink'
 import {
   portfolioBody,
   portfolioSpaceNudge,
@@ -22,8 +25,6 @@ import {
 import { pageMetadata } from '@/lib/metadata'
 
 export const revalidate = 60
-
-const linkClass = contentLinkClass
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -83,11 +84,12 @@ export default async function ProjectPage({ params }: Params) {
                 href={visitLink.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={linkClass}
+                className={contentLinkExternalAnchorClass}
               >
-                {visitLink.label}
-                {'\u2009'}
-                <ExternalLinkArrow />
+                <span className={contentLinkExternalMarkClass}>
+                  {visitLink.label}
+                  <ExternalLinkArrow />
+                </span>
                 <NewTabNote note={site.newTabNote} />
               </a>
             ) : null}
@@ -96,11 +98,12 @@ export default async function ProjectPage({ params }: Params) {
                 href={sourceLink.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={linkClass}
+                className={contentLinkExternalAnchorClass}
               >
-                {sourceLink.label}
-                {'\u2009'}
-                <ExternalLinkArrow />
+                <span className={contentLinkExternalMarkClass}>
+                  {sourceLink.label}
+                  <ExternalLinkArrow />
+                </span>
                 <NewTabNote note={site.newTabNote} />
               </a>
             ) : null}

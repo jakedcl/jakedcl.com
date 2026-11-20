@@ -8,18 +8,19 @@ export default function ExternalLinkArrow() {
       aria-hidden
     >
       <path
-        d="M6 10 7.9 8.1"
+        d="M3 9 9 3"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth="1.6"
         strokeLinecap="round"
-        strokeLinejoin="round"
+        fill="none"
       />
       <path
-        d="M7.9 8.1H11.1M7.9 8.1V3.6"
+        d="M4.5 3H9V7.5"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
+        fill="none"
       />
     </svg>
   )
