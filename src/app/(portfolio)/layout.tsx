@@ -1,5 +1,6 @@
+import Footer from '@/app/components/Footer'
 import PortfolioChrome from '@/app/components/PortfolioChrome'
-import { getSite } from '@/lib/content'
+import { getHome, getSite } from '@/lib/content'
 import { sectionNavItems } from '@/lib/sections'
 
 export const revalidate = 60
@@ -9,7 +10,7 @@ export default async function PortfolioLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const site = await getSite()
+  const [site, home] = await Promise.all([getSite(), getHome()])
 
   return (
     <div className="portfolio-shell min-h-screen bg-background text-ink">
@@ -19,7 +20,10 @@ export default async function PortfolioLayout({
           navItems={sectionNavItems(site.nav)}
           navAriaLabel={site.navAriaLabel}
         >
-          {children}
+          <div className="portfolio-page-stack flex flex-col">
+            {children}
+            <Footer links={home.links} newTabNote={site.newTabNote} />
+          </div>
         </PortfolioChrome>
       </main>
     </div>

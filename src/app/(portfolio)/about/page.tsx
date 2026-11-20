@@ -18,7 +18,7 @@ export default async function AboutPage() {
   if (!page.loadError && !page.pageName) notFound()
 
   return (
-    <SectionPageShell loadError={site.loadError || page.loadError} footer={site.footer}>
+    <SectionPageShell loadError={site.loadError || page.loadError}>
       {page.body.length > 0 ? (
         <div className="space-y-4 text-[0.95rem] leading-relaxed text-ink/90 md:text-base">
           <BioCopy blocks={page.body} newTabNote={site.newTabNote} />

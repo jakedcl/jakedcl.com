@@ -54,7 +54,7 @@ export default async function ProjectPage({ params }: Params) {
   const [site, page] = await Promise.all([getSite(), getProjectPage(slug)])
   if (page.loadError) {
     return (
-      <SectionPageShell loadError={false} footer={site.footer}>
+      <SectionPageShell loadError={false} >
         <LoadError>{WORK_LOAD_ERROR}</LoadError>
       </SectionPageShell>
     )
@@ -63,7 +63,7 @@ export default async function ProjectPage({ params }: Params) {
   if (!project || !labels.pageName) notFound()
 
   return (
-    <SectionPageShell loadError={site.loadError} footer={site.footer}>
+    <SectionPageShell loadError={site.loadError} >
       <article>
         {labels.backLinkLabel ? (
           <p className="font-utility text-xs text-ink/60">

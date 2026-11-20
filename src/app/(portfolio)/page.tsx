@@ -1,14 +1,9 @@
 import { getHome, getSite, type Home, type Site } from '@/lib/content'
-import { contentLinkClass } from '@/lib/contentLink'
 import BioCopy from '../components/BioCopy'
 import FeaturedProjects from '../components/FeaturedProjects'
-import Footer from '../components/Footer'
 import LoadError, { PAGE_LOAD_ERROR } from '../components/LoadError'
-import NewTabNote from '../components/NewTabNote'
 
 export const revalidate = 60
-
-const linkClass = contentLinkClass
 
 export default async function HomePage() {
   const [site, home] = await Promise.all([getSite(), getHome()])
@@ -37,26 +32,6 @@ export default async function HomePage() {
           <FeaturedProjects label={home.featureLabel} projects={home.featured} />
         ) : null}
 
-        {home.links.length > 0 ? (
-          <p className="home-links mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[0.95rem] sm:mt-5">
-            {home.links.map((link) => {
-              const external = link.href.startsWith('http')
-              return (
-                <a
-                  key={link._key ?? link.href}
-                  href={link.href}
-                  className={linkClass}
-                  {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                >
-                  {link.label}
-                  {external ? <NewTabNote note={site.newTabNote} /> : null}
-                </a>
-              )
-            })}
-          </p>
-        ) : null}
-
-        <Footer text={site.footer} />
       </div>
     </>
   )

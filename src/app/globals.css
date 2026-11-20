@@ -434,21 +434,14 @@ body::before {
   flex-direction: column;
 }
 
-/* Extra viewport height collects below the featured block, above the links
-   and footer. If there are no links, the footer takes that space. */
-.home-fit .home-links {
-  margin-top: auto;
-  padding-top: 1rem;
+.portfolio-shell:has(.home-fit) .portfolio-page-stack {
+  flex: 1 0 auto;
+  min-height: 0;
 }
 
-.home-fit .featured-block + footer {
-  margin-top: auto;
-}
-
-/* Override the page footer's default mt-16 so leftover space sits above the
-   links and footer, and a tight window is not forced to scroll. */
-.home-fit footer {
-  margin-top: 0;
+/* Push contact footer to the bottom when the home page fits the viewport. */
+.portfolio-shell:has(.home-fit) .site-footer {
+  margin-top: auto !important;
   padding-top: 0.75rem;
 }
 
@@ -556,7 +549,4 @@ body::before {
     margin-top: 0.35rem;
   }
 
-  .home-fit .home-links {
-    padding-top: 0.5rem;
-  }
 }

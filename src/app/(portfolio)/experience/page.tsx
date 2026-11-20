@@ -20,7 +20,7 @@ export default async function ExperiencePage() {
   if (!page.loadError && !page.pageName) notFound()
 
   return (
-    <SectionPageShell loadError={site.loadError || page.loadError} footer={site.footer}>
+    <SectionPageShell loadError={site.loadError || page.loadError}>
       <ExperienceJobs
         roles={page.roles}
         seeMoreLabel={page.seeMoreLabel}
