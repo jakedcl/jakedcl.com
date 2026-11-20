@@ -336,7 +336,7 @@ function FeaturedCopy({
       <div className={`featured-copy min-w-0${className ? ` ${className}` : ''}`}>
         {title(current, true)}
         {current.pitch ? (
-          <p className="featured-pitch mt-2 text-[0.95rem] leading-relaxed text-ink/85 sm:text-[clamp(0.8125rem,0.78rem+0.14vw,0.9rem)]">
+          <p className="featured-pitch portfolio-body-copy-size mt-2 leading-relaxed text-ink/85">
             {current.pitch}
           </p>
         ) : null}
@@ -355,7 +355,7 @@ function FeaturedCopy({
         >
           {title(project, project._id === currentId)}
           {project.pitch ? (
-            <p className="featured-pitch mt-2 text-[0.95rem] leading-relaxed text-ink/85 sm:text-[clamp(0.8125rem,0.78rem+0.14vw,0.9rem)]">
+            <p className="featured-pitch portfolio-body-copy-size mt-2 leading-relaxed text-ink/85">
               {project.pitch}
             </p>
           ) : null}

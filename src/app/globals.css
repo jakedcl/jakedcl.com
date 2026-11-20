@@ -467,6 +467,17 @@ body::before {
   }
 }
 
+/* Homepage bio and featured pitch share fluid type size. */
+.portfolio-body-copy-size {
+  font-size: 0.95rem;
+}
+
+@media (min-width: 640px) {
+  .portfolio-body-copy-size {
+    font-size: clamp(0.8125rem, 0.78rem + 0.14vw, 0.9rem);
+  }
+}
+
 /* Portfolio content links: --content-link-hover advances on each hover/focus (see LinkHoverCycle). */
 .portfolio-shell {
   --content-link-hover: var(--signal-yellow);

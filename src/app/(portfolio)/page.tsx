@@ -23,7 +23,7 @@ export default async function HomePage() {
         {site.loadError || home.loadError ? <LoadError>{PAGE_LOAD_ERROR}</LoadError> : null}
 
         {home.bio.length > 0 ? (
-          <div className="home-bio mt-1.5 space-y-2.5 text-[0.95rem] leading-relaxed text-ink/90 sm:mt-2 md:text-base">
+          <div className="home-bio portfolio-body-copy-size mt-1.5 space-y-2.5 leading-relaxed text-ink/90 sm:mt-2">
             <BioCopy blocks={home.bio} newTabNote={site.newTabNote} />
           </div>
         ) : null}
