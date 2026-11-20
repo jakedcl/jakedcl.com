@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 import type { ProjectRow as Project } from '@/lib/content'
-import { contentLinkClass, contentLinkMarkClass } from '@/lib/contentLink'
+import { contentLinkMarkClass, contentLinkRowClass } from '@/lib/contentLink'
 import {
   portfolioBodySecondary,
   portfolioSpaceTight,
@@ -60,7 +60,7 @@ function ProjectRow({ project }: { project: Project }) {
         href={`/work/${project.slug}`}
         aria-labelledby={`project-${project._id}-name`}
         {...(project.description ? { 'aria-describedby': `project-${project._id}-description` } : {})}
-        className={`${contentLinkClass} ${rowClass} -mx-2 px-2 transition-colors hover:bg-cream/70`}
+        className={`${contentLinkRowClass} ${rowClass} -mx-2 px-2 hover:bg-cream/70`}
       >
         <RowContent project={project} />
       </Link>
