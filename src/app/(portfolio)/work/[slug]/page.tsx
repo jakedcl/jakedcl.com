@@ -1,17 +1,19 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import ExternalLinkArrow from '@/app/components/ExternalLinkArrow'
 import LoadError, { WORK_LOAD_ERROR } from '@/app/components/LoadError'
 import NewTabNote from '@/app/components/NewTabNote'
 import ProjectDetails from '@/app/components/ProjectDetails'
 import ProjectGallery from '@/app/components/ProjectGallery'
 import SectionPageShell from '@/app/components/SectionPageShell'
 import { getProjectPage, getProjectSlugs, getSite } from '@/lib/content'
-import { contentLinkClass } from '@/lib/contentLink'
+import {
+  contentLinkExternalAnchorClass,
+  contentLinkExternalMarkClass,
+} from '@/lib/contentLink'
 import {
   portfolioBody,
-  portfolioMetaPlain,
   portfolioSpaceNudge,
   portfolioSpaceSection,
   portfolioSpaceSectionLg,
@@ -23,8 +25,6 @@ import {
 import { pageMetadata } from '@/lib/metadata'
 
 export const revalidate = 60
-
-const linkClass = contentLinkClass
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -40,26 +40,6 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return pageMetadata(site, page.project.seo, `/work/${page.project.slug}`, 'article')
 }
 
-function host(url: string): string {
-  try {
-    return new URL(url).host.replace(/^www\./, '')
-  } catch {
-    return url
-  }
-}
-
-/** Hostname plus path, without https://, www, a trailing slash, or .git. */
-function shortAddress(url: string): string {
-  try {
-    const parsed = new URL(url)
-    const hostName = parsed.host.replace(/^www\./, '')
-    const path = parsed.pathname.replace(/\/+$/, '').replace(/\.git$/, '')
-    return path && path !== '/' ? `${hostName}${path}` : hostName
-  } catch {
-    return url
-  }
-}
-
 export default async function ProjectPage({ params }: Params) {
   const { slug } = await params
   const [site, page] = await Promise.all([getSite(), getProjectPage(slug)])
@@ -73,18 +53,18 @@ export default async function ProjectPage({ params }: Params) {
   const { project, labels } = page
   if (!project || !labels.pageName) notFound()
 
+  const visitLink =
+    project.link && labels.visitSiteLabel
+      ? { href: project.link, label: labels.visitSiteLabel }
+      : null
+  const sourceLink =
+    project.githubUrl && labels.sourceLabel
+      ? { href: project.githubUrl, label: labels.sourceLabel }
+      : null
+
   return (
     <SectionPageShell loadError={site.loadError} >
       <article>
-        {labels.backLinkLabel ? (
-          <p className={portfolioMetaPlain}>
-            <Link href="/work" className={`inline-flex items-center gap-1.5 ${linkClass}`}>
-              <span aria-hidden>←</span>
-              {labels.backLinkLabel}
-            </Link>
-          </p>
-        ) : null}
-
         <h2 className={`${portfolioTypeDisplayLg} ${portfolioTextPrimary} ${portfolioSpaceStack}`}>
           {project.name}
         </h2>
@@ -95,27 +75,35 @@ export default async function ProjectPage({ params }: Params) {
           </p>
         ) : null}
 
-        {project.link || project.githubUrl ? (
-          <p className={`flex flex-wrap gap-x-4 gap-y-2 ${portfolioTypeBody} ${portfolioTextPrimary}`}>
-            {project.link ? (
+        {visitLink || sourceLink ? (
+          <p
+            className={`flex flex-wrap gap-x-4 gap-y-2 ${portfolioTypeBody} ${portfolioTextPrimary} ${portfolioSpaceStack}`}
+          >
+            {visitLink ? (
               <a
-                href={project.link}
+                href={visitLink.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={linkClass}
+                className={contentLinkExternalAnchorClass}
               >
-                {host(project.link)}
+                <span className={contentLinkExternalMarkClass}>
+                  {visitLink.label}
+                  <ExternalLinkArrow />
+                </span>
                 <NewTabNote note={site.newTabNote} />
               </a>
             ) : null}
-            {project.githubUrl ? (
+            {sourceLink ? (
               <a
-                href={project.githubUrl}
+                href={sourceLink.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={linkClass}
+                className={contentLinkExternalAnchorClass}
               >
-                {labels.githubLinkLabel || shortAddress(project.githubUrl)}
+                <span className={contentLinkExternalMarkClass}>
+                  {sourceLink.label}
+                  <ExternalLinkArrow />
+                </span>
                 <NewTabNote note={site.newTabNote} />
               </a>
             ) : null}

@@ -226,6 +226,17 @@ body::before {
   flex-shrink: 0;
 }
 
+.section-nav-work-back-icon {
+  width: 0.45em;
+  height: 0.45em;
+  flex-shrink: 0;
+  display: block;
+}
+
+.section-nav-link--work-back.section-nav-page-title {
+  cursor: pointer;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .section-nav-link--dropped {
     transition: font-size 0.28s cubic-bezier(0.22, 1, 0.36, 1);
@@ -654,6 +665,42 @@ body::before {
 /* Portfolio content links: --content-link-hover advances on each hover/focus (see LinkHoverCycle). */
 .portfolio-shell {
   --content-link-hover: var(--signal-yellow);
+}
+
+.content-link-external-mark {
+  --content-link-external-underline: color-mix(in srgb, var(--ink) 30%, transparent);
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  transition: color 0.2s ease;
+}
+
+.content-link-external-mark::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Align with content-link underline + 3px offset (matched in browser). */
+  top: calc(0.5lh + 0.5em - 2px);
+  height: 1px;
+  background-color: var(--content-link-external-underline);
+  pointer-events: none;
+  transition: background-color 0.2s ease;
+}
+
+.portfolio-shell .content-link:hover .content-link-external-mark,
+.portfolio-shell .content-link:focus-visible .content-link-external-mark {
+  --content-link-external-underline: var(--content-link-hover);
+}
+
+.content-link-external-arrow {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  max-width: none;
+  margin-left: 0.15em;
+  vertical-align: -0.05em;
+  flex-shrink: 0;
 }
 
 .portfolio-shell .content-link:hover,

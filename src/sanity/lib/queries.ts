@@ -80,9 +80,8 @@ export const projectsPageQuery = groq`{
 export const projectPageQuery = groq`{
   "page": *[_id == "projectsPage"][0]{
     pageName,
-    backLinkLabel,
-    visitLinkLabel,
-    githubLinkLabel,
+    visitSiteLabel,
+    sourceLabel,
     galleryAriaLabel,
     openPhotoLabel,
     previousPhotoLabel,
