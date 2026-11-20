@@ -15,7 +15,7 @@ export default function SectionPageShell({
   return (
     <>
       {loadError ? <LoadError>{PAGE_LOAD_ERROR}</LoadError> : null}
-      <div className="mt-14">{children}</div>
+      <div className="mt-8 sm:mt-10">{children}</div>
       <Footer text={footer} />
     </>
   )

@@ -20,7 +20,7 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(site, home)) }}
       />
       <div className="home-fit">
-        {site.name ? <p className="mt-5 text-sm text-ink/70">{site.name}</p> : null}
+        {site.name ? <p className="mt-3 text-sm text-ink/70 sm:mt-4">{site.name}</p> : null}
         {site.tagline ? (
           <p className="font-utility mt-1 text-[0.65rem] uppercase tracking-[0.16em] text-ink/40">{site.tagline}</p>
         ) : null}
@@ -28,7 +28,7 @@ export default async function HomePage() {
         {site.loadError || home.loadError ? <LoadError>{PAGE_LOAD_ERROR}</LoadError> : null}
 
         {home.bio.length > 0 ? (
-          <div className="mt-8 space-y-4 text-[0.95rem] leading-relaxed text-ink/90 md:text-base">
+          <div className="mt-3 space-y-2.5 text-[0.95rem] leading-relaxed text-ink/90 sm:mt-4 md:text-base">
             <BioCopy blocks={home.bio} newTabNote={site.newTabNote} />
           </div>
         ) : null}
@@ -38,7 +38,7 @@ export default async function HomePage() {
         ) : null}
 
         {home.links.length > 0 ? (
-          <p className="home-links mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[0.95rem]">
+          <p className="home-links mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[0.95rem] sm:mt-5">
             {home.links.map((link) => {
               const external = link.href.startsWith('http')
               return (

@@ -9,17 +9,15 @@ const HOVER_COLORS = [
   'var(--signal-green)',
 ] as const
 
-function cyclingLink(el: Element | null): HTMLElement | null {
+function cyclingTarget(el: Element | null): HTMLElement | null {
   if (!(el instanceof HTMLElement)) return null
-  if (el.classList.contains('section-nav-link')) return null
-  if (el.classList.contains('intro-name-link')) return null
   if (!el.classList.contains('content-link')) return null
   return el
 }
 
 /**
- * One listener for the portfolio: each hover or keyboard focus on a content link
- * sets the next nav accent on --content-link-hover. Studio has no .portfolio-shell.
+ * One listener for the portfolio: each hover or keyboard focus on a .content-link
+ * advances --content-link-hover. Studio has no .portfolio-shell.
  */
 export default function LinkHoverCycle() {
   useEffect(() => {
@@ -36,13 +34,13 @@ export default function LinkHoverCycle() {
       const shell = target.closest('.portfolio-shell')
       if (!(shell instanceof HTMLElement)) return
 
-      const link = cyclingLink(target.closest('.content-link'))
+      const link = cyclingTarget(target.closest('.content-link'))
       if (!link) return
 
       const related = event.relatedTarget
       const from =
         related instanceof Element
-          ? cyclingLink(related.closest('.content-link'))
+          ? cyclingTarget(related.closest('.content-link'))
           : null
       if (from === link) return
 

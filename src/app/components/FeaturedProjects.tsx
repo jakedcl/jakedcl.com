@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState, useSyncExternalStore, type CSSProperties } from 'react'
 
-import { contentLinkClass } from '@/lib/contentLink'
+import { contentLinkBareClass, contentLinkClass } from '@/lib/contentLink'
 import type { FeaturedProject, Image } from '@/lib/content'
 import sanityImageLoader from '@/lib/sanityImageLoader'
 import PhotoRotator from './PhotoRotator'
@@ -173,26 +173,27 @@ export default function FeaturedProjects({
 
   return (
     <section
-      className="featured-block mt-6"
+      className="featured-block mt-4 sm:mt-5"
       {...(label ? { 'aria-label': label } : {})}
     >
       {label ? (
         <p className="font-utility text-[0.65rem] uppercase tracking-[0.18em] text-ink/50">{label}</p>
       ) : null}
 
-      <div className="featured-turn mt-3">
+      <div className="featured-turn mt-2">
         <div
-          className={`grid gap-5 ${
+          className={`grid gap-4 ${
             shownPhotos.length > 0
-              ? 'sm:grid-cols-[minmax(0,5fr)_minmax(0,3fr)] sm:items-start sm:gap-4'
+              ? 'sm:grid-cols-[minmax(0,3fr)_minmax(0,5fr)] sm:items-start sm:gap-3.5'
               : ''
           }`}
         >
           {shownPhotos.length > 0 ? (
-            <div className="featured-media min-w-0 w-full">
+            <div className="featured-media min-w-0 w-full sm:col-start-2 sm:row-start-1">
               <Link
                 href={`/work/${current.slug}`}
                 aria-label={current.name}
+                className={contentLinkBareClass}
                 data-featured-pause=""
                 onMouseEnter={pause}
                 onMouseLeave={resumeUnlessMovingToPauseTarget}
@@ -214,6 +215,7 @@ export default function FeaturedProjects({
             </div>
           ) : null}
           <FeaturedCopy
+            className={shownPhotos.length > 0 ? 'sm:col-start-1 sm:row-start-1' : undefined}
             projects={order}
             currentId={current._id}
             reduced={reduced}
@@ -286,12 +288,14 @@ function FeaturedProgress({
 }
 
 function FeaturedCopy({
+  className,
   projects,
   currentId,
   reduced,
   onPause,
   onResume,
 }: {
+  className?: string
   projects: FeaturedProject[]
   currentId: string
   reduced: boolean
@@ -329,7 +333,7 @@ function FeaturedCopy({
     const current = projects.find((project) => project._id === currentId)
     if (!current) return null
     return (
-      <div>
+      <div className={`featured-copy min-w-0${className ? ` ${className}` : ''}`}>
         {title(current, true)}
         {current.pitch ? (
           <p className="featured-pitch mt-2 text-[0.95rem] leading-relaxed text-ink/85 sm:text-[clamp(0.8125rem,0.78rem+0.14vw,0.9rem)]">
@@ -341,7 +345,7 @@ function FeaturedCopy({
   }
 
   return (
-    <div className="featured-copy min-w-0 grid">
+    <div className={`featured-copy min-w-0 grid${className ? ` ${className}` : ''}`}>
       {projects.map((project) => (
         <div
           key={project._id}

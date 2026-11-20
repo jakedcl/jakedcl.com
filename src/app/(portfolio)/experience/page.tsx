@@ -28,13 +28,13 @@ export default async function ExperiencePage() {
         newTabNote={site.newTabNote}
       />
       {page.education.length > 0 ? (
-        <div className={page.roles.length > 0 ? 'mt-14' : undefined}>
+        <div className={page.roles.length > 0 ? 'mt-8 sm:mt-10' : undefined}>
           <SectionHeading text={page.educationHeading} square="bg-signal-red" />
           <RoleList roles={page.education} newTabNote={site.newTabNote} />
         </div>
       ) : null}
       {page.certifications.length > 0 ? (
-        <div className={page.roles.length > 0 || page.education.length > 0 ? 'mt-14' : undefined}>
+        <div className={page.roles.length > 0 || page.education.length > 0 ? 'mt-8 sm:mt-10' : undefined}>
           <SectionHeading text={page.certificationsHeading} square="bg-signal-yellow" />
           <CertificationList certifications={page.certifications} newTabNote={site.newTabNote} />
         </div>

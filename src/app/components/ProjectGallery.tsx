@@ -3,6 +3,7 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
 
 import type { Image } from '@/lib/content'
+import { contentLinkBareClass } from '@/lib/contentLink'
 import { photoPosition } from '@/lib/photo'
 import SanityImage from './SanityImage'
 
@@ -150,7 +151,7 @@ export default function ProjectGallery({ photos, labels }: { photos: Image[]; la
           ) : null}
           <div className="flex flex-wrap items-center justify-center gap-3">
             {count > 1 && labels.previousLabel ? (
-              <button type="button" className="gallery-control" onClick={() => step(-1)}>
+              <button type="button" className={`gallery-control ${contentLinkBareClass}`} onClick={() => step(-1)}>
                 {labels.previousLabel}
               </button>
             ) : null}
@@ -160,12 +161,12 @@ export default function ProjectGallery({ photos, labels }: { photos: Image[]; la
               </span>
             ) : null}
             {count > 1 && labels.nextLabel ? (
-              <button type="button" className="gallery-control" onClick={() => step(1)}>
+              <button type="button" className={`gallery-control ${contentLinkBareClass}`} onClick={() => step(1)}>
                 {labels.nextLabel}
               </button>
             ) : null}
             {labels.closeLabel ? (
-              <button type="button" className="gallery-control" onClick={close} autoFocus>
+              <button type="button" className={`gallery-control ${contentLinkBareClass}`} onClick={close} autoFocus>
                 {labels.closeLabel}
               </button>
             ) : null}

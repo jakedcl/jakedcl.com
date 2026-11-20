@@ -49,7 +49,7 @@ export default function ExperienceJobs({
         </div>
       </div>
       {label ? (
-        <div className="mt-3 flex justify-center">
+        <div className="mt-2 flex justify-center">
           <button
             type="button"
             onClick={() => setOpen((value) => !value)}

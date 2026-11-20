@@ -31,7 +31,7 @@ function Entry({
   bullets: string[]
 }) {
   return (
-    <article className="py-4">
+    <article className="py-3">
       <div className="flex items-baseline justify-between gap-x-4">
         <h3 className="min-w-0 text-[0.95rem] leading-snug text-ink">
           {title}
