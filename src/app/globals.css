@@ -669,18 +669,23 @@ body::before {
 
 .content-link-external-mark {
   --content-link-external-underline: color-mix(in srgb, var(--ink) 30%, transparent);
-  display: inline-block;
-  padding-bottom: 3px;
-  background-image: linear-gradient(
-    var(--content-link-external-underline),
-    var(--content-link-external-underline)
-  );
-  background-repeat: no-repeat;
-  background-size: 100% 1px;
-  background-position: left bottom;
-  transition:
-    color 0.2s ease,
-    background-image 0.2s ease;
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  transition: color 0.2s ease;
+}
+
+.content-link-external-mark::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Align with content-link underline + 3px offset (matched in browser). */
+  top: calc(0.5lh + 0.5em - 2px);
+  height: 1px;
+  background-color: var(--content-link-external-underline);
+  pointer-events: none;
+  transition: background-color 0.2s ease;
 }
 
 .portfolio-shell .content-link:hover .content-link-external-mark,
