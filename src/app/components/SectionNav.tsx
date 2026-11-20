@@ -4,7 +4,10 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useLayoutEffect, useRef } from 'react'
 
-import { contentLinkClass } from '@/lib/contentLink'
+import {
+  contentLinkMarkClass,
+  contentLinkRowClass,
+} from '@/lib/contentLink'
 import {
   portfolioTextPrimary,
   portfolioTypeNav,
@@ -29,9 +32,25 @@ const NAV_GAP_PX = 16
 const NAV_MOTION_MS = 280
 const NAV_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
+function WorkBackArrow() {
+  return (
+    <span className="section-nav-work-back-icon" aria-hidden>
+      <svg viewBox="0 0 12 12" fill="none" className="block h-full w-full">
+        <path
+          d="M7.25 2.25 3.5 6l3.75 3.75"
+          stroke="var(--signal-yellow)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  )
+}
+
 function linkClass(item: SectionNavItem, dropped: boolean, workItemBack: boolean) {
   if (dropped && workItemBack && item.slug === 'work') {
-    return `${droppedTitleBase} section-nav-link--work-back ${contentLinkClass}`
+    return `${droppedTitleBase} section-nav-link--work-back ${contentLinkRowClass}`
   }
   if (dropped) {
     return `${droppedTitleMuted} before:content-[""] ${accentBullet[item.accentDecoration]}`
@@ -130,7 +149,12 @@ export default function SectionNav({
                 className={className}
                 style={{ marginTop: `${NAV_GAP_PX / 2}px` }}
               >
-                {item.label}
+                <WorkBackArrow />
+                <span
+                  className={`${contentLinkMarkClass} underline decoration-ink/30 underline-offset-[3px]`}
+                >
+                  {item.label}
+                </span>
               </Link>
             )
           }

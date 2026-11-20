@@ -226,17 +226,15 @@ body::before {
   flex-shrink: 0;
 }
 
-.section-nav-link--work-back::before {
-  content: "←";
+.section-nav-work-back-icon {
   width: 0.45em;
   height: 0.45em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  color: var(--signal-yellow);
-  font-size: 1.45em;
-  line-height: 1;
+  flex-shrink: 0;
+  display: block;
+}
+
+.section-nav-link--work-back.section-nav-page-title {
+  cursor: pointer;
 }
 
 @media (prefers-reduced-motion: no-preference) {
