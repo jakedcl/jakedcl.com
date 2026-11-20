@@ -1,6 +1,7 @@
 'use client'
 
 import { contentLinkClass } from '@/lib/contentLink'
+import { portfolioBody, portfolioSpaceNudge, portfolioSpaceSection } from '@/lib/portfolioUi'
 
 export default function Error({
   reset,
@@ -13,13 +14,13 @@ export default function Error({
       <h1 className="font-shape text-3xl font-extrabold tracking-tight">
         This page did not load
       </h1>
-      <p className="mt-3 max-w-md text-base leading-relaxed text-ink/75">
+      <p className={`max-w-md ${portfolioBody} ${portfolioSpaceNudge}`}>
         Something broke while rendering the portfolio. Refresh, or try again.
       </p>
       <button
         type="button"
         onClick={() => reset()}
-        className={`${contentLinkClass} mt-6 w-fit`}
+        className={`${contentLinkClass} ${portfolioSpaceSection} w-fit`}
       >
         Try again
       </button>

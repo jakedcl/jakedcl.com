@@ -5,6 +5,7 @@ import { useSelectedLayoutSegment } from 'next/navigation'
 import { useEffect, useReducer, type ReactNode } from 'react'
 
 import { contentLinkBareClass } from '@/lib/contentLink'
+import { portfolioSpaceStack } from '@/lib/portfolioUi'
 import { isSectionSlug } from '@/lib/routes'
 import { introTitleCompact, type SectionNavItem } from '@/lib/sections'
 import IntroName from './IntroName'
@@ -94,7 +95,7 @@ export default function PortfolioChrome({
             {intro}
           </Link>
         )}
-        <div className="mt-4">
+        <div className={portfolioSpaceStack}>
           <SectionNav items={navItems} active={active} ariaLabel={navAriaLabel} />
         </div>
       </header>

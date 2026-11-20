@@ -1,4 +1,11 @@
 import { getHome, getSite, type Site } from '@/lib/content'
+import {
+  portfolioBody,
+  portfolioGapProse,
+  portfolioMeta,
+  portfolioSpaceRole,
+  portfolioSpaceTight,
+} from '@/lib/portfolioUi'
 import BioCopy from '../components/BioCopy'
 import FeaturedProjects from '../components/FeaturedProjects'
 import LoadError, { PAGE_LOAD_ERROR } from '../components/LoadError'
@@ -16,7 +23,7 @@ export default async function HomePage() {
       />
       <div className="home-fit">
         {site.name || site.tagline ? (
-          <p className="font-utility mt-3 max-w-full text-[0.65rem] uppercase tracking-[0.16em] text-ink/40 sm:mt-4">
+          <p className={`${portfolioMeta} ${portfolioSpaceRole} max-w-full`}>
             {[site.name, site.tagline].filter(Boolean).join(' · ')}
           </p>
         ) : null}
@@ -24,7 +31,7 @@ export default async function HomePage() {
         {site.loadError || home.loadError ? <LoadError>{PAGE_LOAD_ERROR}</LoadError> : null}
 
         {home.bio.length > 0 ? (
-          <div className="home-bio portfolio-body-copy-size mt-1.5 space-y-2.5 leading-relaxed text-ink/90 sm:mt-2">
+          <div className={`home-bio ${portfolioBody} ${portfolioGapProse} ${portfolioSpaceTight}`}>
             <BioCopy blocks={home.bio} newTabNote={site.newTabNote} />
           </div>
         ) : null}

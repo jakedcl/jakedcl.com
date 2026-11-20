@@ -4,6 +4,12 @@ import { useRef, useState, type KeyboardEvent } from 'react'
 
 import type { Image } from '@/lib/content'
 import { contentLinkBareClass } from '@/lib/contentLink'
+import {
+  portfolioMeta,
+  portfolioSpaceNudge,
+  portfolioTypeMeta,
+  portfolioTypeMetaCaps,
+} from '@/lib/portfolioUi'
 import { photoPosition } from '@/lib/photo'
 import SanityImage from './SanityImage'
 
@@ -90,14 +96,14 @@ export default function ProjectGallery({ photos, labels }: { photos: Image[]; la
           />
         </OpenButton>
         {lead.caption ? (
-          <figcaption className="font-utility mt-2 text-[0.65rem] uppercase tracking-[0.14em] text-ink/50">
+          <figcaption className={`${portfolioMeta} ${portfolioSpaceNudge}`}>
             {lead.caption}
           </figcaption>
         ) : null}
       </figure>
 
       {rest.length > 0 ? (
-        <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <ul className={`${portfolioSpaceNudge} grid grid-cols-2 gap-3 sm:grid-cols-3`}>
           {rest.map((photo, i) => (
             <li key={`${photo.url}-${i}`}>
               <OpenButton photo={photo} openLabel={labels.openPhotoLabel} onOpen={() => openAt(i + 1)} className="">
@@ -143,7 +149,9 @@ export default function ProjectGallery({ photos, labels }: { photos: Image[]; la
                 style={{ aspectRatio: `${current.width ?? 4} / ${current.height ?? 3}` }}
               />
               {current.caption ? (
-                <figcaption className="font-utility mt-2 text-[0.65rem] uppercase tracking-[0.14em] text-cream/70">
+                <figcaption
+                  className={`${portfolioTypeMeta} ${portfolioTypeMetaCaps} ${portfolioSpaceNudge} text-cream/70`}
+                >
                   {current.caption}
                 </figcaption>
               ) : null}
@@ -156,7 +164,7 @@ export default function ProjectGallery({ photos, labels }: { photos: Image[]; la
               </button>
             ) : null}
             {count > 1 && open !== null ? (
-              <span className="font-utility text-[0.65rem] tracking-[0.12em] text-cream/70">
+              <span className={`${portfolioTypeMeta} text-cream/70`}>
                 {open + 1} / {count}
               </span>
             ) : null}

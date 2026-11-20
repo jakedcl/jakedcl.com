@@ -4,6 +4,15 @@ import Link from 'next/link'
 import { useEffect, useState, useSyncExternalStore, type CSSProperties } from 'react'
 
 import { contentLinkBareClass, contentLinkClass } from '@/lib/contentLink'
+import {
+  portfolioBodySecondary,
+  portfolioMeta,
+  portfolioSpaceFeatured,
+  portfolioSpaceNudge,
+  portfolioSpaceTight,
+  portfolioTextPrimary,
+  portfolioTypeDisplaySm,
+} from '@/lib/portfolioUi'
 import type { FeaturedProject, Image } from '@/lib/content'
 import sanityImageLoader from '@/lib/sanityImageLoader'
 import PhotoRotator from './PhotoRotator'
@@ -173,14 +182,14 @@ export default function FeaturedProjects({
 
   return (
     <section
-      className="featured-block mt-6 sm:mt-7"
+      className={`featured-block ${portfolioSpaceFeatured}`}
       {...(label ? { 'aria-label': label } : {})}
     >
       {label ? (
-        <p className="font-utility text-[0.65rem] uppercase tracking-[0.18em] text-ink/50">{label}</p>
+        <p className={portfolioMeta}>{label}</p>
       ) : null}
 
-      <div className="featured-turn mt-2">
+      <div className={`featured-turn ${portfolioSpaceNudge}`}>
         <div
           className={`grid gap-4 ${
             shownPhotos.length > 0
@@ -250,7 +259,7 @@ function FeaturedProgress({
   return (
     /* 7px visual gap to the photo; the bars themselves are 13×2.5px.
        The button's hit area extends around the bar without changing that gap. */
-    <div className="mt-[7px] flex justify-center gap-[3px]">
+    <div className={`${portfolioSpaceTight} flex justify-center gap-[3px]`}>
       {projects.map((project, i) => {
         const active = i === index % count
         return (
@@ -309,7 +318,7 @@ function FeaturedCopy({
      keyboard focus on that link (not the pitch) can pause the rotation. */
   function title(project: FeaturedProject, interactive: boolean) {
     return (
-      <h2 className="font-display text-xl font-extrabold tracking-tight text-ink sm:text-[clamp(1rem,0.94rem+0.18vw,1.125rem)]">
+      <h2 className={`${portfolioTypeDisplaySm} ${portfolioTextPrimary}`}>
         {interactive ? (
           <Link
             href={`/work/${project.slug}`}
@@ -336,7 +345,7 @@ function FeaturedCopy({
       <div className={`featured-copy min-w-0${className ? ` ${className}` : ''}`}>
         {title(current, true)}
         {current.pitch ? (
-          <p className="featured-pitch portfolio-body-copy-size mt-2 leading-relaxed text-ink/85">
+          <p className={`featured-pitch ${portfolioBodySecondary} ${portfolioSpaceNudge}`}>
             {current.pitch}
           </p>
         ) : null}
@@ -355,7 +364,7 @@ function FeaturedCopy({
         >
           {title(project, project._id === currentId)}
           {project.pitch ? (
-            <p className="featured-pitch portfolio-body-copy-size mt-2 leading-relaxed text-ink/85">
+            <p className={`featured-pitch ${portfolioBodySecondary} ${portfolioSpaceNudge}`}>
               {project.pitch}
             </p>
           ) : null}

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import BioCopy from '@/app/components/BioCopy'
+import { portfolioProse } from '@/lib/portfolioUi'
 import SectionPageShell from '@/app/components/SectionPageShell'
 import { getAboutPage, getSite } from '@/lib/content'
 import { pageMetadata } from '@/lib/metadata'
@@ -20,7 +21,7 @@ export default async function AboutPage() {
   return (
     <SectionPageShell loadError={site.loadError || page.loadError}>
       {page.body.length > 0 ? (
-        <div className="space-y-4 text-[0.95rem] leading-relaxed text-ink/90 md:text-base">
+        <div className={portfolioProse}>
           <BioCopy blocks={page.body} newTabNote={site.newTabNote} />
         </div>
       ) : null}

@@ -1,5 +1,16 @@
 import type { Certification, Role, SkillGroup } from '@/lib/content'
 import { contentLinkClass } from '@/lib/contentLink'
+import {
+  portfolioBodySecondary,
+  portfolioGapProseRelaxed,
+  portfolioMetaPlain,
+  portfolioSpaceNudge,
+  portfolioSpaceTight,
+  portfolioTextMeta,
+  portfolioTextPrimary,
+  portfolioTypeBody,
+  portfolioTypeUi,
+} from '@/lib/portfolioUi'
 
 import NewTabNote from './NewTabNote'
 
@@ -33,21 +44,23 @@ function Entry({
   return (
     <article className="py-3">
       <div className="flex items-baseline justify-between gap-x-4">
-        <h3 className="min-w-0 text-[0.95rem] leading-snug text-ink">
+        <h3 className={`min-w-0 leading-snug ${portfolioTypeBody} ${portfolioTextPrimary}`}>
           {title}
           {org ? (
             <>
-              <span className="text-ink/40"> - </span>
+              <span className={portfolioTextMeta}> - </span>
               {org}
             </>
           ) : null}
         </h3>
         {period ? (
-          <p className="font-utility shrink-0 text-right text-xs text-ink/55">{period}</p>
+          <p className={`shrink-0 text-right ${portfolioMetaPlain}`}>{period}</p>
         ) : null}
       </div>
       {bullets.length > 0 && (
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-ink/85">
+        <ul
+          className={`${portfolioSpaceNudge} list-disc space-y-1 pl-5 ${portfolioBodySecondary}`}
+        >
           {bullets.map((bullet) => (
             <li key={bullet}>{bullet}</li>
           ))}
@@ -101,7 +114,7 @@ export function CertificationList({
           cert.issuer && link ? (
             <>
               {cert.issuer}
-              <span className="text-ink/40"> · </span>
+              <span className={portfolioTextMeta}> · </span>
               {link}
             </>
           ) : (
@@ -125,11 +138,13 @@ export function SkillsList({ groups }: { groups: SkillGroup[] }) {
   if (groups.length === 0) return null
 
   return (
-    <div className="space-y-5">
+    <div className={portfolioGapProseRelaxed}>
       {groups.map((group) => (
         <div key={group._key ?? group.label}>
-          <h3 className="text-sm font-medium text-ink">{group.label}</h3>
-          <p className="mt-1 text-sm leading-relaxed text-ink/80">{group.items.join(', ')}</p>
+          <h3 className={`font-medium ${portfolioTypeUi} ${portfolioTextPrimary}`}>{group.label}</h3>
+          <p className={`${portfolioSpaceTight} ${portfolioBodySecondary}`}>
+            {group.items.join(', ')}
+          </p>
         </div>
       ))}
     </div>

@@ -3,14 +3,17 @@
 import Link from 'next/link'
 import { useLayoutEffect, useRef } from 'react'
 
+import {
+  portfolioTextPrimary,
+  portfolioTypeNav,
+  portfolioTypeUi,
+} from '@/lib/portfolioUi'
 import type { SectionSlug } from '@/lib/routes'
 import type { SectionNavItem } from '@/lib/sections'
 
-const rowLinkBase =
-  'section-nav-link font-shape text-sm font-bold tracking-tight text-ink underline underline-offset-[4px] decoration-2 transition-colors'
+const rowLinkBase = `section-nav-link ${portfolioTypeNav} ${portfolioTextPrimary} underline underline-offset-[4px] decoration-2 transition-colors`
 
-const droppedTitleBase =
-  'section-nav-link section-nav-link--dropped section-nav-page-title font-shape text-sm font-bold tracking-tight text-ink no-underline'
+const droppedTitleBase = `section-nav-link section-nav-link--dropped section-nav-page-title ${portfolioTypeUi} ${portfolioTextPrimary} no-underline`
 
 const accentBullet: Record<string, string> = {
   'decoration-signal-yellow': 'before:bg-signal-yellow',

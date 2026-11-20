@@ -2,6 +2,11 @@ import Link from 'next/link'
 
 import type { ProjectRow as Project } from '@/lib/content'
 import { contentLinkClass, contentLinkMarkClass } from '@/lib/contentLink'
+import {
+  portfolioBodySecondary,
+  portfolioSpaceTight,
+  portfolioTextPrimary,
+} from '@/lib/portfolioUi'
 import PhotoRotator from './PhotoRotator'
 
 function RowContent({ project }: { project: Project }) {
@@ -12,14 +17,14 @@ function RowContent({ project }: { project: Project }) {
       <div className="min-w-0">
         <p
           id={nameId}
-          className={`${contentLinkMarkClass} font-medium text-ink underline decoration-ink/30 underline-offset-[3px]`}
+          className={`${contentLinkMarkClass} font-medium ${portfolioTextPrimary} underline decoration-ink/30 underline-offset-[3px]`}
         >
           {project.name}
         </p>
         {project.description ? (
           <p
             id={descriptionId}
-            className="mt-1.5 line-clamp-4 text-[0.95rem] leading-relaxed text-ink/80"
+            className={`line-clamp-4 ${portfolioBodySecondary} ${portfolioSpaceTight}`}
           >
             {project.description}
           </p>

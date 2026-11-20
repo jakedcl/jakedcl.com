@@ -9,6 +9,17 @@ import ProjectGallery from '@/app/components/ProjectGallery'
 import SectionPageShell from '@/app/components/SectionPageShell'
 import { getProjectPage, getProjectSlugs, getSite } from '@/lib/content'
 import { contentLinkClass } from '@/lib/contentLink'
+import {
+  portfolioBody,
+  portfolioMetaPlain,
+  portfolioSpaceNudge,
+  portfolioSpaceSection,
+  portfolioSpaceSectionLg,
+  portfolioSpaceStack,
+  portfolioTextPrimary,
+  portfolioTypeBody,
+  portfolioTypeDisplayLg,
+} from '@/lib/portfolioUi'
 import { pageMetadata } from '@/lib/metadata'
 
 export const revalidate = 60
@@ -66,7 +77,7 @@ export default async function ProjectPage({ params }: Params) {
     <SectionPageShell loadError={site.loadError} >
       <article>
         {labels.backLinkLabel ? (
-          <p className="font-utility text-xs text-ink/60">
+          <p className={portfolioMetaPlain}>
             <Link href="/work" className={`inline-flex items-center gap-1.5 ${linkClass}`}>
               <span aria-hidden>←</span>
               {labels.backLinkLabel}
@@ -74,18 +85,18 @@ export default async function ProjectPage({ params }: Params) {
           </p>
         ) : null}
 
-        <h2 className="font-display mt-4 text-2xl font-extrabold tracking-tight text-ink sm:text-[1.75rem]">
+        <h2 className={`${portfolioTypeDisplayLg} ${portfolioTextPrimary} ${portfolioSpaceStack}`}>
           {project.name}
         </h2>
 
         {project.description ? (
-          <p className="mt-3 max-w-[38rem] text-[0.95rem] leading-relaxed text-ink/90 md:text-base">
+          <p className={`max-w-[38rem] ${portfolioBody} ${portfolioSpaceNudge}`}>
             {project.description}
           </p>
         ) : null}
 
         {project.link || project.githubUrl ? (
-          <p className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[0.95rem]">
+          <p className={`flex flex-wrap gap-x-4 gap-y-2 ${portfolioTypeBody} ${portfolioTextPrimary}`}>
             {project.link ? (
               <a
                 href={project.link}
@@ -112,7 +123,7 @@ export default async function ProjectPage({ params }: Params) {
         ) : null}
 
         {project.photos.length > 0 ? (
-          <div className="mt-8">
+          <div className={portfolioSpaceSection}>
             <ProjectGallery
               photos={project.photos}
               labels={{
@@ -127,7 +138,7 @@ export default async function ProjectPage({ params }: Params) {
         ) : null}
 
         {project.details.length > 0 ? (
-          <div className="mt-10">
+          <div className={portfolioSpaceSectionLg}>
             <ProjectDetails blocks={project.details} newTabNote={site.newTabNote} />
           </div>
         ) : null}

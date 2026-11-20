@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import { getSite } from '@/lib/content'
 import { contentLinkClass } from '@/lib/contentLink'
+import { portfolioBody, portfolioSpaceNudge, portfolioSpaceSection } from '@/lib/portfolioUi'
 
 // Text comes from Studio > Site-wide > “Page not found” page.
 export default async function NotFound() {
@@ -12,12 +13,12 @@ export default async function NotFound() {
         <h1 className="font-shape text-3xl font-extrabold tracking-tight">{site.notFoundTitle}</h1>
       ) : null}
       {site.notFoundBody ? (
-        <p className="mt-3 max-w-md text-base leading-relaxed text-ink/75">{site.notFoundBody}</p>
+        <p className={`max-w-md ${portfolioBody} ${portfolioSpaceNudge}`}>{site.notFoundBody}</p>
       ) : null}
       {site.notFoundLinkLabel ? (
         <Link
           href="/"
-          className={`${contentLinkClass} mt-6 w-fit`}
+          className={`${contentLinkClass} ${portfolioSpaceSection} w-fit`}
         >
           {site.notFoundLinkLabel}
         </Link>
