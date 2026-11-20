@@ -199,7 +199,7 @@ body::before {
 }
 
 .section-nav-track--drop {
-  padding-bottom: 2.25rem;
+  padding-bottom: 1.25rem;
 }
 
 .section-nav-link {
@@ -333,9 +333,10 @@ body::before {
     border-color 0.2s ease;
 }
 
-.gallery-control:hover {
-  color: var(--signal-blue);
-  border-color: color-mix(in srgb, var(--signal-blue) 40%, transparent);
+.gallery-control.content-link:hover,
+.gallery-control.content-link:focus-visible {
+  color: var(--content-link-hover);
+  border-color: color-mix(in srgb, var(--content-link-hover) 40%, transparent);
 }
 
 .photo-lightbox::backdrop {
@@ -411,8 +412,9 @@ body::before {
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
+
 
 .portfolio-shell:has(.home-fit) .portfolio-page-body {
   flex: 1 0 auto;
@@ -432,22 +434,15 @@ body::before {
   flex-direction: column;
 }
 
-/* Extra viewport height collects below the featured block, above the links
-   and footer. If there are no links, the footer takes that space. */
-.home-fit .home-links {
-  margin-top: auto;
-  padding-top: 1.5rem;
+.portfolio-shell:has(.home-fit) .portfolio-page-stack {
+  flex: 1 0 auto;
+  min-height: 0;
 }
 
-.home-fit .featured-block + footer {
-  margin-top: auto;
-}
-
-/* Override the page footer's default mt-16 so leftover space sits above the
-   links and footer, and a tight window is not forced to scroll. */
-.home-fit footer {
-  margin-top: 0;
-  padding-top: 1rem;
+/* Push contact footer to the bottom when the home page fits the viewport. */
+.portfolio-shell:has(.home-fit) .site-footer {
+  margin-top: auto !important;
+  padding-top: 0.75rem;
 }
 
 /* Fixed 4:3 frame so project/photo changes never shift the layout.
@@ -462,10 +457,284 @@ body::before {
 }
 
 @media (min-width: 640px) {
+  /* Photo column is 5/8 of the row — width drives size (no max-height shrink). */
   .home-fit .featured-photo-frame {
-    width: clamp(12rem, 30dvh, 16rem);
-    min-width: 12rem;
-    max-width: 16rem;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     height: auto;
+    aspect-ratio: 4 / 3;
   }
+}
+
+/* ——— Portfolio type, color, and spacing tokens ——— */
+
+.portfolio-text-primary {
+  color: var(--ink);
+}
+
+.portfolio-text-body {
+  color: color-mix(in srgb, var(--ink) 90%, transparent);
+}
+
+.portfolio-text-secondary {
+  color: color-mix(in srgb, var(--ink) 85%, transparent);
+}
+
+.portfolio-text-meta {
+  color: color-mix(in srgb, var(--ink) 40%, transparent);
+}
+
+.portfolio-type-body {
+  font-size: 0.95rem;
+}
+
+@media (min-width: 640px) {
+  .portfolio-type-body {
+    font-size: clamp(0.8125rem, 0.78rem + 0.14vw, 0.9rem);
+  }
+}
+
+.portfolio-type-meta {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+}
+
+.portfolio-type-meta-caps {
+  text-transform: uppercase;
+}
+
+.portfolio-type-ui {
+  font-family: var(--font-shape);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.portfolio-type-display-sm {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+@media (min-width: 640px) {
+  .portfolio-type-display-sm {
+    font-size: clamp(1rem, 0.94rem + 0.18vw, 1.125rem);
+  }
+}
+
+.portfolio-type-display-lg {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+@media (min-width: 640px) {
+  .portfolio-type-display-lg {
+    font-size: 1.75rem;
+  }
+}
+
+.portfolio-type-nav {
+  font-family: var(--font-shape);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.portfolio-space-tight {
+  margin-top: 0.375rem;
+}
+
+@media (min-width: 640px) {
+  .portfolio-space-tight {
+    margin-top: 0.5rem;
+  }
+}
+
+.portfolio-space-nudge {
+  margin-top: 0.5rem;
+}
+
+.portfolio-space-stack {
+  margin-top: 1rem;
+}
+
+.portfolio-space-section {
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .portfolio-space-section {
+    margin-top: 1.5rem;
+  }
+}
+
+.portfolio-space-section-lg {
+  margin-top: 2rem;
+}
+
+@media (min-width: 640px) {
+  .portfolio-space-section-lg {
+    margin-top: 2.5rem;
+  }
+}
+
+.portfolio-space-featured {
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .portfolio-space-featured {
+    margin-top: 1.75rem;
+  }
+}
+
+.portfolio-space-page {
+  margin-top: 2rem;
+}
+
+@media (min-width: 640px) {
+  .portfolio-space-page {
+    margin-top: 2.5rem;
+  }
+}
+
+.portfolio-space-role {
+  margin-top: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .portfolio-space-role {
+    margin-top: 1rem;
+  }
+}
+
+.portfolio-space-main-top {
+  padding-top: max(1.25rem, env(safe-area-inset-top, 0px));
+}
+
+@media (min-width: 640px) {
+  .portfolio-space-main-top {
+    padding-top: 2rem;
+  }
+}
+
+.portfolio-space-footer {
+  margin-top: 2.5rem;
+  padding-top: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .portfolio-space-footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+  }
+}
+
+.portfolio-mb-heading {
+  margin-bottom: 0.625rem;
+}
+
+.portfolio-gap-prose > * + * {
+  margin-top: 0.625rem;
+}
+
+.portfolio-gap-prose-relaxed > * + * {
+  margin-top: 1rem;
+}
+
+/* Portfolio content links: --content-link-hover advances on each hover/focus (see LinkHoverCycle). */
+.portfolio-shell {
+  --content-link-hover: var(--signal-yellow);
+}
+
+.portfolio-shell .content-link:hover,
+.portfolio-shell .content-link:focus-visible {
+  color: var(--content-link-hover);
+  text-decoration-color: var(--content-link-hover);
+}
+
+.portfolio-shell .content-link:hover .content-link-mark,
+.portfolio-shell .content-link:focus-visible .content-link-mark {
+  color: var(--content-link-hover);
+  text-decoration-color: var(--content-link-hover);
+}
+
+.portfolio-shell .content-link-row:hover,
+.portfolio-shell .content-link-row:focus-visible {
+  color: inherit;
+  text-decoration-color: inherit;
+}
+
+/* Section nav: own accent on hover (not the global link cycle). Underline keeps its accent color. */
+.portfolio-shell .section-nav-link.decoration-signal-yellow:hover,
+.portfolio-shell .section-nav-link.decoration-signal-yellow:focus-visible {
+  color: var(--signal-yellow);
+}
+
+.portfolio-shell .section-nav-link.decoration-signal-blue:hover,
+.portfolio-shell .section-nav-link.decoration-signal-blue:focus-visible {
+  color: var(--signal-blue);
+}
+
+.portfolio-shell .section-nav-link.decoration-signal-red:hover,
+.portfolio-shell .section-nav-link.decoration-signal-red:focus-visible {
+  color: var(--signal-red);
+}
+
+.portfolio-shell .section-nav-link.decoration-signal-green:hover,
+.portfolio-shell .section-nav-link.decoration-signal-green:focus-visible {
+  color: var(--signal-green);
+}
+
+/* Intro home link: cycle colors on the letterforms only (no underline on the link). */
+.portfolio-shell .intro-name-link.content-link {
+  text-decoration: none;
+}
+
+.portfolio-shell .intro-name-link.content-link:hover,
+.portfolio-shell .intro-name-link.content-link:focus-visible {
+  text-decoration: none;
+  color: inherit;
+}
+
+.portfolio-shell .intro-name-link.content-link:hover .intro-name,
+.portfolio-shell .intro-name-link.content-link:focus-visible .intro-name,
+.portfolio-shell .intro-name-link.content-link:hover .intro-dcl,
+.portfolio-shell .intro-name-link.content-link:focus-visible .intro-dcl {
+  color: var(--content-link-hover);
+}
+
+.section-nav-page-title {
+  cursor: default;
+}
+
+@media (min-width: 640px) {
+  .portfolio-shell:has(.home-fit) > main.portfolio-main {
+    padding-bottom: 3rem;
+  }
+}
+
+@media (min-width: 640px) and (max-height: 840px) {
+  .home-fit .featured-pitch {
+    margin-top: 0.35rem;
+    line-height: 1.45;
+  }
+
+  .home-fit .featured-block {
+    margin-top: 1.5rem;
+  }
+
+  .home-fit .featured-turn {
+    margin-top: 0.35rem;
+  }
+
 }

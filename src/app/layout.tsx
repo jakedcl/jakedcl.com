@@ -5,6 +5,7 @@ import { Bricolage_Grotesque, IBM_Plex_Mono, Syne } from "next/font/google";
 import { getSite } from "@/lib/content";
 import { faviconUrl } from "@/lib/favicon";
 import { pageMetadata } from "@/lib/metadata";
+import LinkHoverCycle from "@/app/components/LinkHoverCycle";
 import "./globals.css";
 
 const syne = Syne({
@@ -81,6 +82,7 @@ export default function RootLayout({
       className={`${syne.variable} ${bricolage.variable} ${plexMono.variable}`}
     >
       <body className="font-sans antialiased text-ink bg-background">
+        <LinkHoverCycle />
         {children}
         <Analytics />
         <SpeedInsights />

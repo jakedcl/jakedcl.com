@@ -1,5 +1,7 @@
+import Footer from '@/app/components/Footer'
 import PortfolioChrome from '@/app/components/PortfolioChrome'
 import { getSite } from '@/lib/content'
+import { portfolioSpaceMainTop } from '@/lib/portfolioUi'
 import { sectionNavItems } from '@/lib/sections'
 
 export const revalidate = 60
@@ -13,13 +15,18 @@ export default async function PortfolioLayout({
 
   return (
     <div className="portfolio-shell min-h-screen bg-background text-ink">
-      <main className="mx-auto w-full max-w-2xl px-5 pb-16 pt-[max(1.75rem,env(safe-area-inset-top))] sm:pt-14">
+      <main
+        className={`portfolio-main ${portfolioSpaceMainTop} mx-auto w-full max-w-2xl px-5 pb-16`}
+      >
         <PortfolioChrome
           heroTitle={site.bigTitle}
           navItems={sectionNavItems(site.nav)}
           navAriaLabel={site.navAriaLabel}
         >
-          {children}
+          <div className="portfolio-page-stack flex flex-col">
+            {children}
+            <Footer links={site.footerLinks} newTabNote={site.newTabNote} />
+          </div>
         </PortfolioChrome>
       </main>
     </div>

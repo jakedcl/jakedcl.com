@@ -3,14 +3,17 @@
 import Link from 'next/link'
 import { useLayoutEffect, useRef } from 'react'
 
+import {
+  portfolioTextPrimary,
+  portfolioTypeNav,
+  portfolioTypeUi,
+} from '@/lib/portfolioUi'
 import type { SectionSlug } from '@/lib/routes'
 import type { SectionNavItem } from '@/lib/sections'
 
-const rowLinkBase =
-  'section-nav-link font-shape text-sm font-bold tracking-tight text-ink underline underline-offset-[4px] decoration-2 transition-colors hover:text-signal-blue'
+const rowLinkBase = `section-nav-link ${portfolioTypeNav} ${portfolioTextPrimary} underline underline-offset-[4px] decoration-2 transition-colors`
 
-const droppedLinkBase =
-  'section-nav-link section-nav-link--dropped font-shape text-sm font-bold tracking-tight text-ink no-underline transition-colors hover:text-signal-blue'
+const droppedTitleBase = `section-nav-link section-nav-link--dropped section-nav-page-title ${portfolioTypeUi} ${portfolioTextPrimary} no-underline`
 
 const accentBullet: Record<string, string> = {
   'decoration-signal-yellow': 'before:bg-signal-yellow',
@@ -25,7 +28,7 @@ const NAV_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
 function linkClass(item: SectionNavItem, dropped: boolean) {
   if (dropped) {
-    return `${droppedLinkBase} before:content-[""] ${accentBullet[item.accentDecoration]}`
+    return `${droppedTitleBase} before:content-[""] ${accentBullet[item.accentDecoration]}`
   }
   return `${rowLinkBase} ${item.accentDecoration}`
 }
@@ -101,18 +104,29 @@ export default function SectionNav({
       >
         {items.map((item) => {
           const dropped = active === item.slug
+          const className = linkClass(item, dropped)
+
+          if (dropped) {
+            return (
+              <span
+                key={item.slug}
+                data-nav-slug={item.slug}
+                data-dropped="true"
+                className={className}
+                style={{ marginTop: `${NAV_GAP_PX / 2}px` }}
+                aria-current="page"
+              >
+                {item.label}
+              </span>
+            )
+          }
 
           return (
             <Link
               key={item.slug}
               href={`/${item.slug}`}
               data-nav-slug={item.slug}
-              data-dropped={dropped ? 'true' : undefined}
-              className={linkClass(item, dropped)}
-              style={
-                dropped ? { marginTop: `${NAV_GAP_PX / 2}px` } : undefined
-              }
-              {...(dropped ? { 'aria-current': 'page' as const } : {})}
+              className={className}
             >
               {item.label}
             </Link>

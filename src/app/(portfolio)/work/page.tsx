@@ -18,7 +18,7 @@ export default async function ProjectsPage() {
   const [site, page] = await Promise.all([getSite(), getProjectsPage()])
   if (page.loadError) {
     return (
-      <SectionPageShell loadError={false} footer={site.footer}>
+      <SectionPageShell loadError={false} >
         <LoadError>{WORK_LOAD_ERROR}</LoadError>
       </SectionPageShell>
     )
@@ -26,7 +26,7 @@ export default async function ProjectsPage() {
   if (!page.pageName) notFound()
 
   return (
-    <SectionPageShell loadError={site.loadError} footer={site.footer}>
+    <SectionPageShell loadError={site.loadError} >
       <ProjectIndex projects={page.projects} />
     </SectionPageShell>
   )

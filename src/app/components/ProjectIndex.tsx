@@ -1,6 +1,12 @@
 import Link from 'next/link'
 
 import type { ProjectRow as Project } from '@/lib/content'
+import { contentLinkMarkClass, contentLinkRowClass } from '@/lib/contentLink'
+import {
+  portfolioBodySecondary,
+  portfolioSpaceTight,
+  portfolioTextPrimary,
+} from '@/lib/portfolioUi'
 import PhotoRotator from './PhotoRotator'
 
 function RowContent({ project }: { project: Project }) {
@@ -11,14 +17,14 @@ function RowContent({ project }: { project: Project }) {
       <div className="min-w-0">
         <p
           id={nameId}
-          className="font-medium text-ink underline decoration-ink/30 underline-offset-[3px] transition-colors group-hover:text-signal-blue group-hover:decoration-signal-blue"
+          className={`${contentLinkMarkClass} font-medium ${portfolioTextPrimary} underline decoration-ink/30 underline-offset-[3px]`}
         >
           {project.name}
         </p>
         {project.description ? (
           <p
             id={descriptionId}
-            className="mt-1.5 line-clamp-4 text-[0.95rem] leading-relaxed text-ink/80"
+            className={`line-clamp-4 ${portfolioBodySecondary} ${portfolioSpaceTight}`}
           >
             {project.description}
           </p>
@@ -54,7 +60,7 @@ function ProjectRow({ project }: { project: Project }) {
         href={`/work/${project.slug}`}
         aria-labelledby={`project-${project._id}-name`}
         {...(project.description ? { 'aria-describedby': `project-${project._id}-description` } : {})}
-        className={`${rowClass} -mx-2 px-2 transition-colors hover:bg-cream/70`}
+        className={`${contentLinkRowClass} ${rowClass} -mx-2 px-2 hover:bg-cream/70`}
       >
         <RowContent project={project} />
       </Link>

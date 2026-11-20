@@ -26,7 +26,7 @@ Jake edits only in Studio. **No copy, SEO text, URLs, or redirects in code, and 
 
 | Studio item | Document | Powers |
 | --- | --- | --- |
-| Site-wide | `siteGlobals` | Big title, name, tagline, footer, screen-reader texts, 404 page |
+| Site-wide | `siteGlobals` | Big title, name, tagline, footer links, screen-reader texts, 404 page |
 | Homepage | `homePage` | Bio, links, featured block label, home SEO. Featured projects = projects with `featured` on, in list order |
 | Work | `projectsPage` + `project` docs | Page name/SEO and shared work-item-page labels (back link, visit link, screenshot viewer); work items (name, slug, short description, link, featured + optional homepage pitch, photos, rich-text `details`, per-item SEO). Order = drag-and-drop (`orderRank`, @sanity/orderable-document-list). Item facts only from `docs/PROJECT_BRIEFS.md`. |
 | Experience / Skills / About | `experiencePage` / `skillsPage` / `aboutPage` | Page name (menu label + tab title), content, SEO |
@@ -39,7 +39,7 @@ Queries: `src/sanity/lib/queries.ts`. Normalizing: `src/lib/content.ts`.
 
 ### Allowed to stay in code (keep this list current)
 
-Menu colors and order (`src/lib/sections.ts`), fonts/layout/animation/design colors, the “could not load” texts (`LoadError.tsx`, `error.tsx`, shown when Sanity is down), Sanity connection config (`env.ts`), plus technical constants: `lang="en"`, og locale `en_US`, manifest colors/start_url/display, googleBot directives, JSON-LD `@type: Person`, separators (` - `, `, `), gallery counter (1 / 3), decorative arrows (← ↗), the 3-second screenshot rotation timing, image size defaults, OG card + phone icon layout, the reserved route list.
+Menu colors and order (`src/lib/sections.ts`), portfolio type/color/spacing tokens (`globals.css`, `src/lib/portfolioUi.ts`), fonts/layout/animation/design colors, the “could not load” texts (`LoadError.tsx`, `error.tsx`, shown when Sanity is down), Sanity connection config (`env.ts`), plus technical constants: `lang="en"`, og locale `en_US`, manifest colors/start_url/display, googleBot directives, JSON-LD `@type: Person`, separators (` - `, `, `), gallery counter (1 / 3), decorative arrows (← ↗), the 3-second screenshot rotation timing, image size defaults, OG card + phone icon layout, the reserved route list.
 
 ## Design — Signal Max (live)
 

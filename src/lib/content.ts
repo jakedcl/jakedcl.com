@@ -35,7 +35,7 @@ export type Site = {
   bigTitle: string
   name: string
   tagline: string
-  footer: string
+  footerLinks: Link[]
   newTabNote: string
   navAriaLabel: string
   notFoundTitle: string
@@ -189,7 +189,7 @@ const EMPTY_SITE: Site = {
   bigTitle: '',
   name: '',
   tagline: '',
-  footer: '',
+  footerLinks: [],
   newTabNote: '',
   navAriaLabel: '',
   notFoundTitle: '',
@@ -218,7 +218,7 @@ const EMPTY_SITE: Site = {
 }
 
 type RawSite = {
-  globals?: Raw<Site> | null
+  globals?: (Raw<Omit<Site, 'footerLinks'>> & {footerLinks?: Array<Raw<Link>> | null}) | null
   nav?: Raw<{projects?: string | null; experience?: string | null; skills?: string | null; about?: string | null}> | null
   seo?: (Raw<Omit<Site, 'shareImage' | 'hiddenPaths' | 'keywords'>> & {
     shareImage?: RawImage
@@ -248,7 +248,7 @@ export async function getSite(): Promise<Site> {
     bigTitle: text(g.bigTitle),
     name: text(g.name),
     tagline: text(g.tagline),
-    footer: text(g.footer),
+    footerLinks: linksFrom(g.footerLinks),
     newTabNote: text(g.newTabNote),
     navAriaLabel: text(g.navAriaLabel),
     notFoundTitle: text(g.notFoundTitle),
@@ -282,7 +282,6 @@ export type FeaturedProject = {_id: string; name: string; slug: string; pitch: s
 export type Home = {
   loadError: boolean
   bio: PortableTextBlock[]
-  links: Link[]
   featureLabel: string
   featured: FeaturedProject[]
 }
@@ -304,7 +303,6 @@ export async function getHome(): Promise<Home> {
   try {
     const raw = await sanityFetch<{
       bio?: PortableTextBlock[] | null
-      links?: Array<Raw<Link>> | null
       featureLabel?: string | null
       featured?: RawProject[] | null
     } | null>(homeQuery)
@@ -324,12 +322,11 @@ export async function getHome(): Promise<Home> {
     return {
       loadError: false,
       bio: richTextFrom(raw?.bio),
-      links: linksFrom(raw?.links),
       featureLabel: text(raw?.featureLabel),
       featured,
     }
   } catch {
-    return {loadError: true, bio: [], links: [], featureLabel: '', featured: []}
+    return {loadError: true, bio: [], featureLabel: '', featured: []}
   }
 }
 

@@ -3,6 +3,16 @@
 import Link from 'next/link'
 import { useEffect, useState, useSyncExternalStore, type CSSProperties } from 'react'
 
+import { contentLinkBareClass, contentLinkClass } from '@/lib/contentLink'
+import {
+  portfolioBodySecondary,
+  portfolioMeta,
+  portfolioSpaceFeatured,
+  portfolioSpaceNudge,
+  portfolioSpaceTight,
+  portfolioTextPrimary,
+  portfolioTypeDisplaySm,
+} from '@/lib/portfolioUi'
 import type { FeaturedProject, Image } from '@/lib/content'
 import sanityImageLoader from '@/lib/sanityImageLoader'
 import PhotoRotator from './PhotoRotator'
@@ -10,8 +20,7 @@ import useReducedMotion from './useReducedMotion'
 
 /** How long each featured project stays on screen. Photos advance at half this. */
 const TURN_MS = 4500
-const nameLinkClass =
-  'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
+const nameLinkClass = contentLinkClass
 
 type Seed = { order: FeaturedProject[]; firstPhotos: Image[]; nextPhotos: Image[] }
 
@@ -173,24 +182,27 @@ export default function FeaturedProjects({
 
   return (
     <section
-      className="featured-block mt-6"
+      className={`featured-block ${portfolioSpaceFeatured}`}
       {...(label ? { 'aria-label': label } : {})}
     >
       {label ? (
-        <p className="font-utility text-[0.65rem] uppercase tracking-[0.18em] text-ink/50">{label}</p>
+        <p className={portfolioMeta}>{label}</p>
       ) : null}
 
-      <div className="featured-turn mt-3">
+      <div className={`featured-turn ${portfolioSpaceNudge}`}>
         <div
-          className={`grid gap-5 ${
-            shownPhotos.length > 0 ? 'sm:grid-cols-[auto_1fr] sm:items-start' : ''
+          className={`grid gap-4 ${
+            shownPhotos.length > 0
+              ? 'sm:grid-cols-[minmax(0,3fr)_minmax(0,5fr)] sm:items-start sm:gap-3.5'
+              : ''
           }`}
         >
           {shownPhotos.length > 0 ? (
-            <div className="featured-media w-full sm:w-auto">
+            <div className="featured-media min-w-0 w-full sm:col-start-2 sm:row-start-1">
               <Link
                 href={`/work/${current.slug}`}
                 aria-label={current.name}
+                className={contentLinkBareClass}
                 data-featured-pause=""
                 onMouseEnter={pause}
                 onMouseLeave={resumeUnlessMovingToPauseTarget}
@@ -200,7 +212,7 @@ export default function FeaturedProjects({
                 <PhotoRotator
                   photos={shownPhotos}
                   preloadPhotos={preloadPhotos}
-                  sizes="(min-width: 640px) 16rem, 100vw"
+                  sizes="(min-width: 640px) 26rem, 100vw"
                   intervalMs={photoMs}
                   fit="contain"
                   paused={paused}
@@ -212,6 +224,7 @@ export default function FeaturedProjects({
             </div>
           ) : null}
           <FeaturedCopy
+            className={shownPhotos.length > 0 ? 'sm:col-start-1 sm:row-start-1' : undefined}
             projects={order}
             currentId={current._id}
             reduced={reduced}
@@ -246,7 +259,7 @@ function FeaturedProgress({
   return (
     /* 7px visual gap to the photo; the bars themselves are 13×2.5px.
        The button's hit area extends around the bar without changing that gap. */
-    <div className="mt-[7px] flex justify-center gap-[3px]">
+    <div className={`${portfolioSpaceTight} flex justify-center gap-[3px]`}>
       {projects.map((project, i) => {
         const active = i === index % count
         return (
@@ -284,12 +297,14 @@ function FeaturedProgress({
 }
 
 function FeaturedCopy({
+  className,
   projects,
   currentId,
   reduced,
   onPause,
   onResume,
 }: {
+  className?: string
   projects: FeaturedProject[]
   currentId: string
   reduced: boolean
@@ -303,7 +318,7 @@ function FeaturedCopy({
      keyboard focus on that link (not the pitch) can pause the rotation. */
   function title(project: FeaturedProject, interactive: boolean) {
     return (
-      <h2 className="font-display text-xl font-extrabold tracking-tight text-ink">
+      <h2 className={`${portfolioTypeDisplaySm} ${portfolioTextPrimary}`}>
         {interactive ? (
           <Link
             href={`/work/${project.slug}`}
@@ -327,17 +342,19 @@ function FeaturedCopy({
     const current = projects.find((project) => project._id === currentId)
     if (!current) return null
     return (
-      <div>
+      <div className={`featured-copy min-w-0${className ? ` ${className}` : ''}`}>
         {title(current, true)}
         {current.pitch ? (
-          <p className="mt-2 text-[0.95rem] leading-relaxed text-ink/85">{current.pitch}</p>
+          <p className={`featured-pitch ${portfolioBodySecondary} ${portfolioSpaceNudge}`}>
+            {current.pitch}
+          </p>
         ) : null}
       </div>
     )
   }
 
   return (
-    <div className="grid">
+    <div className={`featured-copy min-w-0 grid${className ? ` ${className}` : ''}`}>
       {projects.map((project) => (
         <div
           key={project._id}
@@ -347,7 +364,9 @@ function FeaturedCopy({
         >
           {title(project, project._id === currentId)}
           {project.pitch ? (
-            <p className="mt-2 text-[0.95rem] leading-relaxed text-ink/85">{project.pitch}</p>
+            <p className={`featured-pitch ${portfolioBodySecondary} ${portfolioSpaceNudge}`}>
+              {project.pitch}
+            </p>
           ) : null}
         </div>
       ))}

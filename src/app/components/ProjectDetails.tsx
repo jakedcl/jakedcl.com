@@ -1,16 +1,22 @@
 import { PortableText, type PortableTextBlock, type PortableTextComponents } from 'next-sanity'
 
+import { contentLinkClass } from '@/lib/contentLink'
+import {
+  portfolioProse,
+  portfolioTextPrimary,
+  portfolioTypeUi,
+} from '@/lib/portfolioUi'
+
 import NewTabNote from './NewTabNote'
 
-const linkClass =
-  'underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue'
+const linkClass = contentLinkClass
 
 function components(newTabNote: string): PortableTextComponents {
   return {
     block: {
       normal: ({ children }) => <p>{children}</p>,
       h3: ({ children }) => (
-        <h3 className="font-shape pt-4 text-lg font-bold tracking-tight text-ink">{children}</h3>
+        <h3 className={`pt-4 ${portfolioTypeUi} ${portfolioTextPrimary}`}>{children}</h3>
       ),
     },
     list: {
@@ -22,7 +28,9 @@ function components(newTabNote: string): PortableTextComponents {
       number: ({ children }) => <li>{children}</li>,
     },
     marks: {
-      strong: ({ children }) => <strong className="font-semibold text-ink">{children}</strong>,
+      strong: ({ children }) => (
+        <strong className={`font-semibold ${portfolioTextPrimary}`}>{children}</strong>
+      ),
       em: ({ children }) => <em>{children}</em>,
       link: ({ children, value }) => {
         const href = value && typeof value.href === 'string' ? value.href : ''
@@ -53,7 +61,7 @@ export default function ProjectDetails({
 }) {
   if (blocks.length === 0) return null
   return (
-    <div className="max-w-[38rem] space-y-4 text-[0.95rem] leading-relaxed text-ink/85 md:text-base">
+    <div className={`max-w-[38rem] ${portfolioProse}`}>
       <PortableText value={blocks} components={components(newTabNote)} />
     </div>
   )

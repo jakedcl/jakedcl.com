@@ -3,6 +3,8 @@
 import { useId, useState } from 'react'
 
 import type { Role } from '@/lib/content'
+import { contentLinkClass } from '@/lib/contentLink'
+import { portfolioBodySecondary, portfolioSpaceNudge } from '@/lib/portfolioUi'
 import { RoleList } from './ResumeSections'
 
 /**
@@ -48,13 +50,13 @@ export default function ExperienceJobs({
         </div>
       </div>
       {label ? (
-        <div className="mt-3 flex justify-center">
+        <div className={`${portfolioSpaceNudge} flex justify-center`}>
           <button
             type="button"
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
             aria-controls={panelId}
-            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm leading-relaxed text-ink/85 underline decoration-ink/30 underline-offset-[3px] transition-colors hover:text-signal-blue hover:decoration-signal-blue"
+            className={`${contentLinkClass} inline-flex cursor-pointer items-center gap-2 px-3 py-1.5 ${portfolioBodySecondary}`}
           >
             {label}
             <span

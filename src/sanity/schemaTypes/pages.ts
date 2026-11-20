@@ -55,10 +55,11 @@ export const siteGlobalsType = defineType({
       validation: (rule) => rule.max(60).warning('Long taglines wrap on phones.'),
     }),
     defineField({
-      name: 'footer',
-      title: 'Footer line',
-      type: 'string',
-      description: 'Small capitals at the bottom of the homepage and the Work, Experience, Skills, and About pages.',
+      name: 'footerLinks',
+      title: 'Footer links',
+      type: 'array',
+      description: 'Contact and social links at the bottom of every portfolio page, in this order.',
+      of: [defineArrayMember({type: 'siteLink'})],
     }),
     defineField({name: 'notFoundTitle', title: 'Heading', type: 'string', fieldset: 'notFound'}),
     defineField({name: 'notFoundBody', title: 'Text', type: 'string', fieldset: 'notFound'}),
@@ -85,7 +86,7 @@ export const homePageType = defineType({
   name: 'homePage',
   title: 'Homepage',
   type: 'document',
-  description: 'Everything on jakedcl.com/. The big title, your name, tagline, and footer are under Site-wide.',
+  description: 'Everything on jakedcl.com/. The big title, your name, tagline, and footer links are under Site-wide.',
   fieldsets: [
     {
       name: 'feature',
@@ -95,13 +96,6 @@ export const homePageType = defineType({
   ],
   fields: [
     richTextField('bio', 'Short bio', 'Under the menu on the homepage. Each paragraph shows as its own paragraph.'),
-    defineField({
-      name: 'links',
-      title: 'Contact & social links',
-      type: 'array',
-      description: 'Shown under the bio, in this order. Also tells Google how to reach you.',
-      of: [defineArrayMember({type: 'siteLink'})],
-    }),
     defineField({
       name: 'featureLabel',
       title: 'Small label',

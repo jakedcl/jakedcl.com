@@ -18,7 +18,7 @@ export default async function SkillsPage() {
   if (!page.loadError && !page.pageName) notFound()
 
   return (
-    <SectionPageShell loadError={site.loadError || page.loadError} footer={site.footer}>
+    <SectionPageShell loadError={site.loadError || page.loadError}>
       <SkillsList groups={page.groups} />
     </SectionPageShell>
   )

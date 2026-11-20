@@ -34,7 +34,7 @@ const seo = `seo{ title, description, shareTitle, shareDescription }`
 /** Everything every page needs: site-wide text, menu, and search & sharing settings. */
 export const siteQuery = groq`{
   "globals": *[_id == "siteGlobals"][0]{
-    bigTitle, name, tagline, footer, newTabNote, navAriaLabel,
+    bigTitle, name, tagline, footerLinks[]{ _key, label, href }, newTabNote, navAriaLabel,
     notFoundTitle, notFoundBody, notFoundLinkLabel
   },
   "nav": {
@@ -54,7 +54,6 @@ export const siteQuery = groq`{
 
 export const homeQuery = groq`*[_id == "homePage"][0]{
   bio${richText},
-  links[]{ _key, label, href },
   featureLabel,
   "featured": *[_type == "project" && featured == true && defined(slug.current)] | order(orderRank asc){
     _id,
