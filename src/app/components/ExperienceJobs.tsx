@@ -55,7 +55,7 @@ export default function ExperienceJobs({
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
             aria-controls={panelId}
-            className={`${contentLinkClass} inline-flex items-center gap-2 px-3 py-1.5 text-sm leading-relaxed text-ink/85`}
+            className={`${contentLinkClass} inline-flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm leading-relaxed text-ink/85`}
           >
             {label}
             <span
