@@ -15,9 +15,10 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(site)) }}
       />
       <div className="home-fit">
-        {site.name ? <p className="mt-3 text-sm text-ink/70 sm:mt-4">{site.name}</p> : null}
-        {site.tagline ? (
-          <p className="font-utility mt-1 text-[0.65rem] uppercase tracking-[0.16em] text-ink/40">{site.tagline}</p>
+        {site.name || site.tagline ? (
+          <p className="font-utility mt-3 max-w-full text-[0.65rem] uppercase tracking-[0.16em] text-ink/40 sm:mt-4">
+            {[site.name, site.tagline].filter(Boolean).join(' · ')}
+          </p>
         ) : null}
 
         {site.loadError || home.loadError ? <LoadError>{PAGE_LOAD_ERROR}</LoadError> : null}
