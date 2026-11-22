@@ -131,27 +131,18 @@ export const projectsPageType = defineType({
   fields: [
     pageName('Work'),
     defineField({
-      name: 'backLinkLabel',
-      title: 'Back link',
+      name: 'visitSiteLabel',
+      title: 'Visit site link label',
       type: 'string',
       fieldset: 'projectPage',
-      description: 'The link at the top of a work item page that returns to the list, e.g. All work.',
+      description: 'The label for each work item\'s live-site link, e.g. Visit site.',
     }),
     defineField({
-      name: 'visitLinkLabel',
-      title: 'Old: Visit site label',
-      type: 'string',
-      fieldset: 'projectPage',
-      hidden: true,
-      readOnly: true,
-      deprecated: {reason: 'The live site is now shown as the web address itself, not a Visit site button.'},
-    }),
-    defineField({
-      name: 'githubLinkLabel',
+      name: 'sourceLabel',
       title: 'GitHub source link label',
       type: 'string',
       fieldset: 'projectPage',
-      description: 'The label for the GitHub source link on each project page, e.g. GitHub. Leave empty to show the GitHub address instead.',
+      description: 'The label for each work item\'s GitHub source link, e.g. GitHub source.',
     }),
     defineField({
       name: 'galleryAriaLabel',

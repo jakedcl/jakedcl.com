@@ -10,3 +10,10 @@ export const contentLinkRowClass =
   'content-link content-link-row transition-colors no-underline'
 
 export const contentLinkMarkClass = 'content-link-mark transition-colors'
+
+/** External URL with label + inline SVG arrow; underline on `.content-link-external-mark`. */
+export const contentLinkExternalAnchorClass =
+  'content-link content-link-external no-underline transition-colors'
+
+export const contentLinkExternalMarkClass =
+  'content-link-external-mark transition-colors'

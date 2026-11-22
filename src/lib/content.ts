@@ -361,9 +361,8 @@ export async function getProjectsPage(): Promise<ProjectsPage> {
 
 export type ProjectPageLabels = {
   pageName: string
-  backLinkLabel: string
-  visitLinkLabel: string
-  githubLinkLabel: string
+  visitSiteLabel: string
+  sourceLabel: string
   galleryAriaLabel: string
   openPhotoLabel: string
   previousPhotoLabel: string
@@ -386,9 +385,8 @@ export type ProjectPage = {loadError: boolean; labels: ProjectPageLabels; projec
 
 const EMPTY_PROJECT_LABELS: ProjectPageLabels = {
   pageName: '',
-  backLinkLabel: '',
-  visitLinkLabel: '',
-  githubLinkLabel: '',
+  visitSiteLabel: '',
+  sourceLabel: '',
   galleryAriaLabel: '',
   openPhotoLabel: '',
   previousPhotoLabel: '',
@@ -405,9 +403,8 @@ export async function getProjectPage(slug: string): Promise<ProjectPage> {
     const l = raw.page ?? {}
     const labels: ProjectPageLabels = {
       pageName: text(l.pageName),
-      backLinkLabel: text(l.backLinkLabel),
-      visitLinkLabel: text(l.visitLinkLabel),
-      githubLinkLabel: text(l.githubLinkLabel),
+      visitSiteLabel: text(l.visitSiteLabel),
+      sourceLabel: text(l.sourceLabel),
       galleryAriaLabel: text(l.galleryAriaLabel),
       openPhotoLabel: text(l.openPhotoLabel),
       previousPhotoLabel: text(l.previousPhotoLabel),
