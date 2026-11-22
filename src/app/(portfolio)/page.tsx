@@ -22,9 +22,9 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(site)) }}
       />
       <div className="home-fit">
-        {site.name || site.tagline ? (
+        {site.tagline ? (
           <p className={`${portfolioMeta} ${portfolioSpaceRole} max-w-full`}>
-            {[site.name, site.tagline].filter(Boolean).join(' · ')}
+            {site.tagline}
           </p>
         ) : null}
 
