@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
         destination: '/work/:slug*',
         permanent: true,
       },
+      {
+        source: '/admin',
+        destination: '/studio',
+        permanent: true,
+      },
     ]
   },
   images: {

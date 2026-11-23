@@ -13,6 +13,7 @@ import {
   siteQuery,
   skillsPageQuery,
 } from '@/sanity/lib/queries'
+import type {PathLookupQueryResult, ProjectSlugsQueryResult} from '@/sanity/sanity.types'
 
 /*
  * Every word on the site comes from Studio through these loaders. Values are
@@ -436,7 +437,7 @@ export async function getProjectPage(slug: string): Promise<ProjectPage> {
 
 export async function getProjectSlugs(): Promise<string[]> {
   try {
-    const raw = await sanityFetch<Array<string | null> | null>(projectSlugsQuery)
+    const raw = await sanityFetch<ProjectSlugsQueryResult>(projectSlugsQuery)
     return (raw ?? []).map((slug) => slugFrom(slug)).filter(Boolean)
   } catch {
     return []
@@ -550,9 +551,7 @@ export type PathLookup = {
 }
 
 export async function getPathLookup(): Promise<PathLookup> {
-  const raw = await sanityFetch<{
-    rules?: Array<{from?: string | null; to?: string | null; permanent?: boolean | null}> | null
-  }>(pathLookupQuery)
+  const raw = await sanityFetch<PathLookupQueryResult>(pathLookupQuery)
   return {
     rules: (raw.rules ?? [])
       .map((r) => ({from: text(r.from), to: text(r.to), permanent: r.permanent === true}))

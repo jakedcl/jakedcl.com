@@ -1,4 +1,4 @@
-import {groq} from 'next-sanity'
+import {defineQuery} from 'next-sanity'
 
 const image = `{
   alt,
@@ -32,7 +32,7 @@ const photos = `"photos": photos[defined(asset)]${image}`
 const seo = `seo{ title, description, shareTitle, shareDescription }`
 
 /** Everything every page needs: site-wide text, menu, and search & sharing settings. */
-export const siteQuery = groq`{
+export const siteQuery = defineQuery(`{
   "globals": *[_id == "siteGlobals"][0]{
     bigTitle, name, tagline, footerLinks[]{ _key, label, href }, newTabNote, navAriaLabel,
     notFoundTitle, notFoundBody, notFoundLinkLabel
@@ -50,9 +50,9 @@ export const siteQuery = groq`{
     "faviconUrl": favicon.asset->url, appIconLetters, appName, appShortName, appDescription
   },
   "homeSeo": *[_id == "homePage"][0].${seo}
-}`
+}`)
 
-export const homeQuery = groq`*[_id == "homePage"][0]{
+export const homeQuery = defineQuery(`*[_id == "homePage"][0]{
   bio${richText},
   featureLabel,
   "featured": *[_type == "project" && featured == true && defined(slug.current)] | order(orderRank asc){
@@ -63,9 +63,9 @@ export const homeQuery = groq`*[_id == "homePage"][0]{
     featuredPitch,
     ${photos}
   }
-}`
+}`)
 
-export const projectsPageQuery = groq`{
+export const projectsPageQuery = defineQuery(`{
   "page": *[_id == "projectsPage"][0]{ pageName, ${seo} },
   "projects": *[_type == "project"] | order(orderRank asc){
     _id,
@@ -74,10 +74,10 @@ export const projectsPageQuery = groq`{
     description,
     ${photos}
   }
-}`
+}`)
 
 /** One work item's own page, plus the shared labels from the Work page. */
-export const projectPageQuery = groq`{
+export const projectPageQuery = defineQuery(`{
   "page": *[_id == "projectsPage"][0]{
     pageName,
     visitSiteLabel,
@@ -99,12 +99,12 @@ export const projectPageQuery = groq`{
     details${richTextWithLists},
     ${seo}
   }
-}`
+}`)
 
 /** Page addresses of every project, in list order (static generation and the sitemap). */
-export const projectSlugsQuery = groq`*[_type == "project" && defined(slug.current)] | order(orderRank asc).slug.current`
+export const projectSlugsQuery = defineQuery(`*[_type == "project" && defined(slug.current)] | order(orderRank asc).slug.current`)
 
-export const experiencePageQuery = groq`*[_id == "experiencePage"][0]{
+export const experiencePageQuery = defineQuery(`*[_id == "experiencePage"][0]{
   pageName,
   roles[]{ _key, title, organization, organizationUrl, period, bullets, hideBehindSeeMore },
   seeMoreLabel,
@@ -114,21 +114,21 @@ export const experiencePageQuery = groq`*[_id == "experiencePage"][0]{
   certificationsHeading,
   certifications[]{ _key, name, issuer, date, credentialLinkText, credentialUrl },
   ${seo}
-}`
+}`)
 
-export const skillsPageQuery = groq`*[_id == "skillsPage"][0]{
+export const skillsPageQuery = defineQuery(`*[_id == "skillsPage"][0]{
   pageName,
   groups[]{ _key, label, items },
   ${seo}
-}`
+}`)
 
-export const aboutPageQuery = groq`*[_id == "aboutPage"][0]{
+export const aboutPageQuery = defineQuery(`*[_id == "aboutPage"][0]{
   pageName,
   body${richText},
   ${seo}
-}`
+}`)
 
 /** Redirects from Studio > Redirects. */
-export const pathLookupQuery = groq`{
+export const pathLookupQuery = defineQuery(`{
   "rules": *[_id == "redirects"][0].rules[]{ from, to, permanent }
-}`
+}`)
