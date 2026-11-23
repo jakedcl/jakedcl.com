@@ -643,6 +643,48 @@ body::before {
   padding-top: 0.75rem;
 }
 
+.site-footer-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.site-footer-links {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.site-footer-mark {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.site-footer-mark__link {
+  display: block;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.site-footer-mark__link:hover,
+.site-footer-mark__link:focus-visible {
+  opacity: 0.92;
+}
+
+.site-footer-mark__link:focus-visible {
+  outline: 2px solid var(--signal-blue);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.site-footer-mark__img {
+  display: block;
+  width: clamp(2.75rem, 3.5vw + 1.25rem, 4rem);
+  height: auto;
+}
+
 @media (min-width: 640px) {
   .portfolio-space-footer {
     margin-top: 3rem;
