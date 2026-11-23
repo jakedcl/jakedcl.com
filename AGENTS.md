@@ -39,7 +39,7 @@ Queries: `src/sanity/lib/queries.ts`. Normalizing: `src/lib/content.ts`.
 
 ### Allowed to stay in code (keep this list current)
 
-Menu colors and order (`src/lib/sections.ts`), portfolio type/color/spacing tokens (`globals.css`, `src/lib/portfolioUi.ts`), fonts/layout/animation/design colors, the “could not load” texts (`LoadError.tsx`, `error.tsx`, shown when Sanity is down), Sanity connection config (`env.ts`), plus technical constants: `lang="en"`, og locale `en_US`, manifest colors/start_url/display, googleBot directives, JSON-LD `@type: Person`, separators (` - `, `, `), gallery counter (1 / 3), decorative arrows (← ↗), the 3-second screenshot rotation timing, image size defaults, OG card + phone icon layout, the reserved route list.
+Menu colors and order (`src/lib/sections.ts`), portfolio type/color/spacing tokens (`globals.css`, `src/lib/portfolioUi.ts`), fonts/layout/animation/design colors, the dcldev footer mark (`Footer.tsx`, `public/by-dcldev.png`), the “could not load” texts (`LoadError.tsx`, `error.tsx`, shown when Sanity is down), Sanity connection config (`env.ts`), plus technical constants: `lang="en"`, og locale `en_US`, manifest colors/start_url/display, googleBot directives, JSON-LD `@type: Person`, separators (` - `, `, `), gallery counter (1 / 3), decorative arrows (← ↗), the 3-second screenshot rotation timing, image size defaults, OG card + phone icon layout, the reserved route list.
 
 ## Design — Signal Max (live)
 
