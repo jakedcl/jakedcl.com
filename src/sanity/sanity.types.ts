@@ -208,25 +208,6 @@ export type Project = {
   }>;
   seo?: PageSeo;
   orderRank?: string;
-  title?: Array<{
-    children?: Array<{
-      marks?: Array<string>;
-      text?: string;
-      _type: "span";
-      _key: string;
-    }>;
-    style?: "normal" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "blockquote";
-    listItem?: "bullet" | "number";
-    markDefs?: Array<{
-      href?: string;
-      _type: "link";
-      _key: string;
-    }>;
-    level?: number;
-    _type: "block";
-    _key: string;
-  }>;
-  displayOrder?: number;
 };
 
 export type PageSeo = {
@@ -357,17 +338,6 @@ export type HomePage = {
     _key: string;
   }>;
   featureLabel?: string;
-  showFeature?: boolean;
-  featureSentence?: string;
-  featureImage?: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  };
-  featureLinkLabel?: string;
   seo?: PageSeo;
 };
 

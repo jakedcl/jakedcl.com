@@ -1,6 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
-import {imageWithAltField, richTextField} from './objects'
+import {richTextField} from './objects'
 
 const pageName = (section: string) =>
   defineField({
@@ -103,12 +103,6 @@ export const homePageType = defineType({
       fieldset: 'feature',
       description: 'Small capitals above the featured project name, e.g. Featured.',
     }),
-    // Old single case-study feature, replaced by per-project “Featured on homepage”.
-    // Hidden and read-only; the data is cleared after the project pages go live.
-    defineField({name: 'showFeature', title: 'Old: show the featured case study', type: 'boolean', hidden: true, readOnly: true, deprecated: {reason: 'Use Featured on homepage on each project.'}}),
-    defineField({name: 'featureSentence', title: 'Old: one-line pitch', type: 'text', hidden: true, readOnly: true, deprecated: {reason: 'Use Homepage pitch on each project.'}}),
-    {...imageWithAltField('featureImage', 'Old: image', 'Replaced by the project screenshots.'), hidden: true, readOnly: true, deprecated: {reason: 'Moved into the Logiparty screenshots.'}},
-    defineField({name: 'featureLinkLabel', title: 'Old: link text', type: 'string', hidden: true, readOnly: true, deprecated: {reason: 'The case study button was removed.'}}),
     seo,
   ],
   preview: {prepare: () => ({title: 'Homepage'})},
