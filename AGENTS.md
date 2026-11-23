@@ -33,7 +33,7 @@ Jake edits only in Studio. **No copy, SEO text, URLs, or redirects in code, and 
 | Search & sharing | `seoSettings` | Site address/name, keywords, author, share image, generated card text, favicon, app icon/manifest text, indexing + hidden paths |
 | Redirects | `redirects` | Redirect rules (from, to, permanent) |
 
-The old `settings` doc (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) is kept read-only and hidden from Studio; nothing reads it. Do not delete it. Project `title`/`displayOrder` are legacy hidden fields. `caseStudyPage` (old /showcase) is a read-only archive, out of the Studio menu; its content lives in the Logiparty project. Homepage `showFeature`/`featureSentence`/`featureImage`/`featureLinkLabel` are hidden legacy fields.
+The old `settings` doc (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) is kept read-only and hidden from Studio; nothing reads it. Do not delete it. `caseStudyPage` (old /showcase) is a read-only archive, out of the Studio menu; its content lives in the Logiparty project.
 
 Queries: `src/sanity/lib/queries.ts`. Normalizing: `src/lib/content.ts`.
 

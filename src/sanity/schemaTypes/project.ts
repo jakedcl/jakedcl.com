@@ -88,23 +88,6 @@ export const projectType = defineType({
       description: 'Not shown on the page. What Google, browser tabs, and shared-link previews show for this work item\'s page.',
     }),
     orderRankField({type: 'project'}),
-    defineField({
-      name: 'title',
-      title: 'Old title (replaced by Name and Description)',
-      type: 'array',
-      of: [{type: 'block'}],
-      readOnly: true,
-      hidden: true,
-      deprecated: {reason: 'Split into Name and Description.'},
-    }),
-    defineField({
-      name: 'displayOrder',
-      title: 'Old display order (replaced by drag-and-drop)',
-      type: 'number',
-      readOnly: true,
-      hidden: true,
-      deprecated: {reason: 'Drag work items in All work to reorder.'},
-    }),
   ],
   preview: {
     select: {title: 'name', link: 'link', media: 'photos.0', featured: 'featured'},
