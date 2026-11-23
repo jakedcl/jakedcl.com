@@ -21,6 +21,7 @@ export default defineConfig({
   releases: {enabled: false},
   scheduledDrafts: {enabled: false},
   tasks: {enabled: false},
+  announcements: {enabled: false},
   document: {
     singletons: SINGLETONS,
     actions: (prev, context) => {
