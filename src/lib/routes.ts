@@ -9,7 +9,8 @@ export type SectionSlug = (typeof SECTION_SLUGS)[number]
 export const RESERVED_FIRST_SEGMENTS: ReadonlySet<string> = new Set([
   ...SECTION_SLUGS,
   'studio',
-  'apple-icon',
+  'apple-icon.png',
+  'icon.png',
   'opengraph-image',
   'manifest.webmanifest',
   'sitemap.xml',

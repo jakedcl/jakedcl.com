@@ -3,7 +3,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Bricolage_Grotesque, IBM_Plex_Mono, Syne } from "next/font/google";
 import { getSite } from "@/lib/content";
-import { faviconUrl } from "@/lib/favicon";
 import { pageMetadata } from "@/lib/metadata";
 import LinkHoverCycle from "@/app/components/LinkHoverCycle";
 import "./globals.css";
@@ -56,15 +55,6 @@ export async function generateMetadata(): Promise<Metadata> {
     ...(site.keywords.length > 0 ? { keywords: site.keywords } : {}),
     ...(site.author ? { authors: [{ name: site.author }], creator: site.author } : {}),
     ...(site.category ? { category: site.category } : {}),
-    ...(site.faviconUrl
-      ? {
-          icons: {
-            icon: [{ url: faviconUrl(site.faviconUrl), type: "image/png", sizes: "32x32" }],
-            apple: [{ url: "/apple-icon", type: "image/png" }],
-            shortcut: [faviconUrl(site.faviconUrl)],
-          },
-        }
-      : { icons: { apple: [{ url: "/apple-icon", type: "image/png" }] } }),
     robots: site.allowIndexing
       ? { index: true, follow: true, googleBot }
       : { index: false, follow: false },

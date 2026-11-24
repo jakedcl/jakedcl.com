@@ -1,12 +1,11 @@
 import type { MetadataRoute } from "next";
 
 import { getSite } from "@/lib/content";
-import { faviconUrl } from "@/lib/favicon";
 
 export const revalidate = 60;
 
-// Names, description, and icon come from Studio > Search & sharing. Empty fields are left out.
-// start_url, display, and colors are fixed app/design settings.
+// Names and description come from Studio > Search & sharing. Empty fields are left out.
+// Icons, start_url, display, and colors are fixed app/design settings.
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const site = await getSite();
   return {
@@ -18,10 +17,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     background_color: "#f6f3ec",
     theme_color: "#f6f3ec",
     icons: [
-      ...(site.faviconUrl
-        ? [{ src: faviconUrl(site.faviconUrl), sizes: "32x32", type: "image/png" }]
-        : []),
-      { src: "/apple-icon", sizes: "180x180", type: "image/png" },
+      { src: "/icon.png", sizes: "512x512", type: "image/png" },
+      { src: "/apple-icon.png", sizes: "180x180", type: "image/png" },
     ],
   };
 }
