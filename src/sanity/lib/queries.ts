@@ -47,7 +47,7 @@ export const siteQuery = defineQuery(`{
     siteUrl, allowIndexing, hiddenPaths, personSummary, keywords, author, category,
     siteName, "shareImage": shareImage${image}, shareImageAlt,
     cardTopLine, cardGreenWord, cardBottomLine,
-    "faviconUrl": favicon.asset->url, appIconLetters, appName, appShortName, appDescription
+    "faviconUrl": favicon.asset->url, appName, appShortName, appDescription
   },
   "homeSeo": *[_id == "homePage"][0].${seo}
 }`)

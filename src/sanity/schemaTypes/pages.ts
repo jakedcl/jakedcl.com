@@ -432,15 +432,7 @@ export const seoSettingsType = defineType({
       title: 'Browser tab icon (favicon)',
       type: 'image',
       fieldset: 'icons',
-      description: 'A small square image. Shown in browser tabs and bookmarks.',
-    }),
-    defineField({
-      name: 'appIconLetters',
-      title: 'Phone icon letters',
-      type: 'string',
-      fieldset: 'icons',
-      description: 'The letters on the icon when the site is saved to a phone home screen, e.g. JD.',
-      validation: (rule) => rule.max(3).warning('More than 3 letters will not fit.'),
+      description: 'A square image. Shown in browser tabs and bookmarks, and on the phone home-screen icon.',
     }),
     defineField({name: 'appName', title: 'App name', type: 'string', fieldset: 'icons', description: 'Full name when the site is installed as an app.'}),
     defineField({

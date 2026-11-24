@@ -507,13 +507,6 @@
         },
         "optional": true
       },
-      "appIconLetters": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "string"
-        },
-        "optional": true
-      },
       "appName": {
         "type": "objectAttribute",
         "value": {
