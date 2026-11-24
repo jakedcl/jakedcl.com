@@ -101,7 +101,6 @@ export type SeoSettings = {
     crop?: SanityImageCrop;
     _type: "image";
   };
-  appIconLetters?: string;
   appName?: string;
   appShortName?: string;
   appDescription?: string;
@@ -557,7 +556,7 @@ export type AllSanitySchemaTypes =
 
 // Source: src/sanity/lib/queries.ts
 // Variable: siteQuery
-// Query: {  "globals": *[_id == "siteGlobals"][0]{    bigTitle, name, tagline, footerLinks[]{ _key, label, href }, newTabNote, navAriaLabel,    notFoundTitle, notFoundBody, notFoundLinkLabel  },  "nav": {    "projects": *[_id == "projectsPage"][0].pageName,    "experience": *[_id == "experiencePage"][0].pageName,    "skills": *[_id == "skillsPage"][0].pageName,    "about": *[_id == "aboutPage"][0].pageName  },  "seo": *[_id == "seoSettings"][0]{    siteUrl, allowIndexing, hiddenPaths, personSummary, keywords, author, category,    siteName, "shareImage": shareImage{  alt,  caption,  "url": asset->url,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height,  "hotspot": hotspot{ x, y }}, shareImageAlt,    cardTopLine, cardGreenWord, cardBottomLine,    "faviconUrl": favicon.asset->url, appIconLetters, appName, appShortName, appDescription  },  "homeSeo": *[_id == "homePage"][0].seo{ title, description, shareTitle, shareDescription }}
+// Query: {  "globals": *[_id == "siteGlobals"][0]{    bigTitle, name, tagline, footerLinks[]{ _key, label, href }, newTabNote, navAriaLabel,    notFoundTitle, notFoundBody, notFoundLinkLabel  },  "nav": {    "projects": *[_id == "projectsPage"][0].pageName,    "experience": *[_id == "experiencePage"][0].pageName,    "skills": *[_id == "skillsPage"][0].pageName,    "about": *[_id == "aboutPage"][0].pageName  },  "seo": *[_id == "seoSettings"][0]{    siteUrl, allowIndexing, hiddenPaths, personSummary, keywords, author, category,    siteName, "shareImage": shareImage{  alt,  caption,  "url": asset->url,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height,  "hotspot": hotspot{ x, y }}, shareImageAlt,    cardTopLine, cardGreenWord, cardBottomLine,    "faviconUrl": favicon.asset->url, appName, appShortName, appDescription  },  "homeSeo": *[_id == "homePage"][0].seo{ title, description, shareTitle, shareDescription }}
 export type SiteQueryResult = {
   globals:
     | {
@@ -620,7 +619,6 @@ export type SiteQueryResult = {
         cardGreenWord: null;
         cardBottomLine: null;
         faviconUrl: null;
-        appIconLetters: null;
         appName: null;
         appShortName: null;
         appDescription: null;
@@ -650,7 +648,6 @@ export type SiteQueryResult = {
         cardGreenWord: string | null;
         cardBottomLine: string | null;
         faviconUrl: string | null;
-        appIconLetters: string | null;
         appName: string | null;
         appShortName: string | null;
         appDescription: string | null;
@@ -1074,7 +1071,7 @@ export type PathLookupQueryResult = {
 // Query TypeMap
 declare global {
   interface SanityQueries {
-    '{\n  "globals": *[_id == "siteGlobals"][0]{\n    bigTitle, name, tagline, footerLinks[]{ _key, label, href }, newTabNote, navAriaLabel,\n    notFoundTitle, notFoundBody, notFoundLinkLabel\n  },\n  "nav": {\n    "projects": *[_id == "projectsPage"][0].pageName,\n    "experience": *[_id == "experiencePage"][0].pageName,\n    "skills": *[_id == "skillsPage"][0].pageName,\n    "about": *[_id == "aboutPage"][0].pageName\n  },\n  "seo": *[_id == "seoSettings"][0]{\n    siteUrl, allowIndexing, hiddenPaths, personSummary, keywords, author, category,\n    siteName, "shareImage": shareImage{\n  alt,\n  caption,\n  "url": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height,\n  "hotspot": hotspot{ x, y }\n}, shareImageAlt,\n    cardTopLine, cardGreenWord, cardBottomLine,\n    "faviconUrl": favicon.asset->url, appIconLetters, appName, appShortName, appDescription\n  },\n  "homeSeo": *[_id == "homePage"][0].seo{ title, description, shareTitle, shareDescription }\n}': SiteQueryResult;
+    '{\n  "globals": *[_id == "siteGlobals"][0]{\n    bigTitle, name, tagline, footerLinks[]{ _key, label, href }, newTabNote, navAriaLabel,\n    notFoundTitle, notFoundBody, notFoundLinkLabel\n  },\n  "nav": {\n    "projects": *[_id == "projectsPage"][0].pageName,\n    "experience": *[_id == "experiencePage"][0].pageName,\n    "skills": *[_id == "skillsPage"][0].pageName,\n    "about": *[_id == "aboutPage"][0].pageName\n  },\n  "seo": *[_id == "seoSettings"][0]{\n    siteUrl, allowIndexing, hiddenPaths, personSummary, keywords, author, category,\n    siteName, "shareImage": shareImage{\n  alt,\n  caption,\n  "url": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height,\n  "hotspot": hotspot{ x, y }\n}, shareImageAlt,\n    cardTopLine, cardGreenWord, cardBottomLine,\n    "faviconUrl": favicon.asset->url, appName, appShortName, appDescription\n  },\n  "homeSeo": *[_id == "homePage"][0].seo{ title, description, shareTitle, shareDescription }\n}': SiteQueryResult;
     '*[_id == "homePage"][0]{\n  bio[]{\n  _key,\n  _type,\n  style,\n  children[]{ _key, _type, marks, text },\n  markDefs[]{ _key, _type, href }\n},\n  featureLabel,\n  "featured": *[_type == "project" && featured == true && defined(slug.current)] | order(orderRank asc){\n    _id,\n    name,\n    "slug": slug.current,\n    description,\n    featuredPitch,\n    "photos": photos[defined(asset)]{\n  alt,\n  caption,\n  "url": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height,\n  "hotspot": hotspot{ x, y }\n}\n  }\n}': HomeQueryResult;
     '{\n  "page": *[_id == "projectsPage"][0]{ pageName, seo{ title, description, shareTitle, shareDescription } },\n  "projects": *[_type == "project"] | order(orderRank asc){\n    _id,\n    name,\n    "slug": slug.current,\n    description,\n    "photos": photos[defined(asset)]{\n  alt,\n  caption,\n  "url": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height,\n  "hotspot": hotspot{ x, y }\n}\n  }\n}': ProjectsPageQueryResult;
     '{\n  "page": *[_id == "projectsPage"][0]{\n    pageName,\n    visitSiteLabel,\n    sourceLabel,\n    galleryAriaLabel,\n    openPhotoLabel,\n    previousPhotoLabel,\n    nextPhotoLabel,\n    closePhotoLabel\n  },\n  "project": *[_type == "project" && slug.current == $slug][0]{\n    _id,\n    name,\n    "slug": slug.current,\n    description,\n    link,\n    githubUrl,\n    "photos": photos[defined(asset)]{\n  alt,\n  caption,\n  "url": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height,\n  "hotspot": hotspot{ x, y }\n},\n    details[]{\n  _key,\n  _type,\n  style,\n  listItem,\n  level,\n  children[]{ _key, _type, marks, text },\n  markDefs[]{ _key, _type, href }\n},\n    seo{ title, description, shareTitle, shareDescription }\n  }\n}': ProjectPageQueryResult;

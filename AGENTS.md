@@ -30,7 +30,7 @@ Jake edits only in Studio. **No copy, SEO text, URLs, or redirects in code, and 
 | Homepage | `homePage` | Bio, links, featured block label, home SEO. Featured projects = projects with `featured` on, in list order |
 | Work | `projectsPage` + `project` docs | Page name/SEO and shared work-item-page labels (visit site link, GitHub source link, screenshot viewer); work items (name, slug, short description, link, featured + optional homepage pitch, photos, rich-text `details`, per-item SEO). Order = drag-and-drop (`orderRank`, @sanity/orderable-document-list). Item facts only from `docs/PROJECT_BRIEFS.md`. |
 | Experience / Skills / About | `experiencePage` / `skillsPage` / `aboutPage` | Page name (menu label + tab title), content, SEO |
-| Search & sharing | `seoSettings` | Site address/name, keywords, author, share image, generated card text, favicon, app icon/manifest text, indexing + hidden paths |
+| Search & sharing | `seoSettings` | Site address/name, keywords, author, share image, generated card text, favicon, app/manifest text, indexing + hidden paths |
 | Redirects | `redirects` | Redirect rules (from, to, permanent) |
 
 The old `settings` doc (`9dae2a8c-ff4f-4d8c-8cf6-411f02301eaf`) is kept read-only and hidden from Studio; nothing reads it. Do not delete it. `caseStudyPage` (old /showcase) is a read-only archive, out of the Studio menu; its content lives in the Logiparty project.

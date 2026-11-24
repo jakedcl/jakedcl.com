@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 
 import { getSite } from "@/lib/content";
+import { faviconSourceUrl } from "@/lib/favicon";
 
 export const revalidate = 60;
 
@@ -12,8 +13,13 @@ export const size = {
 export const contentType = "image/png";
 
 export default async function AppleIcon() {
-  // Letters come from Studio > Search & sharing > Phone icon letters.
-  const { appIconLetters } = await getSite();
+  // Image comes from Studio > Search & sharing > Browser tab icon.
+  const { faviconUrl } = await getSite();
+  if (!faviconUrl) return new Response(null, { status: 404 });
+
+  const pad = Math.round(size.width * 0.08);
+  const inner = size.width - pad * 2;
+
   return new ImageResponse(
     (
       <div
@@ -24,14 +30,14 @@ export default async function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#0a0a0a",
-          fontSize: 84,
-          fontWeight: 800,
-          letterSpacing: "-0.06em",
-          fontFamily: "Helvetica Neue, Helvetica, Arial, sans-serif",
         }}
       >
-        {appIconLetters}
+        <img
+          src={faviconSourceUrl(faviconUrl)}
+          width={inner}
+          height={inner}
+          style={{ objectFit: "contain" }}
+        />
       </div>
     ),
     size,

@@ -57,7 +57,6 @@ export type Site = {
   cardGreenWord: string
   cardBottomLine: string
   faviconUrl: string
-  appIconLetters: string
   appName: string
   appShortName: string
   appDescription: string
@@ -211,7 +210,6 @@ const EMPTY_SITE: Site = {
   cardGreenWord: '',
   cardBottomLine: '',
   faviconUrl: '',
-  appIconLetters: '',
   appName: '',
   appShortName: '',
   appDescription: '',
@@ -270,7 +268,6 @@ export async function getSite(): Promise<Site> {
     cardGreenWord: text(s.cardGreenWord),
     cardBottomLine: text(s.cardBottomLine),
     faviconUrl: httpUrl(s.faviconUrl),
-    appIconLetters: text(s.appIconLetters),
     appName: text(s.appName),
     appShortName: text(s.appShortName),
     appDescription: text(s.appDescription),

@@ -64,7 +64,7 @@ export async function generateMetadata(): Promise<Metadata> {
             shortcut: [faviconUrl(site.faviconUrl)],
           },
         }
-      : { icons: { apple: [{ url: "/apple-icon", type: "image/png" }] } }),
+      : {}),
     robots: site.allowIndexing
       ? { index: true, follow: true, googleBot }
       : { index: false, follow: false },

@@ -19,9 +19,11 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     theme_color: "#f6f3ec",
     icons: [
       ...(site.faviconUrl
-        ? [{ src: faviconUrl(site.faviconUrl), sizes: "32x32", type: "image/png" }]
+        ? [
+            { src: faviconUrl(site.faviconUrl), sizes: "32x32", type: "image/png" },
+            { src: "/apple-icon", sizes: "180x180", type: "image/png" },
+          ]
         : []),
-      { src: "/apple-icon", sizes: "180x180", type: "image/png" },
     ],
   };
 }
