@@ -13,6 +13,8 @@
   --signal-green: #00a651;
   --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --paper-noise-fine: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.45' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Space below ui headings (SectionHeading + dropped section nav title). */
+  --portfolio-heading-gap: 0.625rem;
 }
 
 @theme inline {
@@ -199,7 +201,10 @@ body::before {
 }
 
 .section-nav-track--drop {
-  padding-bottom: 1.25rem;
+  /* SectionNav NAV_GAP_PX/2 margin on the dropped title + portfolio-type-ui line + heading gap */
+  padding-bottom: calc(
+    0.5rem + 1.125rem * 1.25 + var(--portfolio-heading-gap)
+  );
 }
 
 .section-nav-link {
@@ -693,7 +698,7 @@ body::before {
 }
 
 .portfolio-mb-heading {
-  margin-bottom: 0.625rem;
+  margin-bottom: var(--portfolio-heading-gap);
 }
 
 .portfolio-gap-prose > * + * {
